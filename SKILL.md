@@ -18,13 +18,13 @@ description: >
 Convertir un lote de tickets/tareas en un paquete que Claude Code ejecute
 de manera autónoma, con un solo prompt por sprint. El paquete incluye:
 
-1. **Specs ejecutables** — cada ticket sin ambigüedad
-2. **Mega-prompt orquestador** — un prompt por sprint que ejecuta todos los tickets
+1. **Specs ejecutables** — cada ticket sin ambigüedad, con scope fence
+2. **Prompt lean del sprint + ORCHESTRATOR_RULES.md** — orquestación por lazy loading
 3. **División en subtareas** — respetando límites de contexto de subagentes
 4. **Agentes custom** — archivos `.claude/agents/` para el proyecto
-5. **Comandos** — `/learn`, `/status`, `/next-ticket`
+5. **Comandos** — `/learn`, `/status`, `/next-ticket`, `/preflight`
 6. **CLAUDE.md seed** — reglas base del proyecto
-7. **Hook Stop** — anti-racionalización para prevenir trabajo incompleto
+7. **Hooks** — guard destructivo + anti-racionalización (capa secundaria)
 
 ---
 
@@ -209,7 +209,7 @@ de **mínimo viable → crece según necesidad**:
    - Solo instalar si durante la ejecución Claude declara victoria prematura
      o `/learn` reporta trabajo incompleto aceptado
    - Mencionar al usuario que existe y cómo activarlo cuando lo necesite
-6. **`/retrospective`** — análisis retroactivo de sesiones
+7. **`/retrospective`** — análisis retroactivo de sesiones
    - Instalar `commands/retrospective.md` después del primer sprint completo
    - Complementa a `/learn` (captura en caliente) con vista panorámica periódica
 
@@ -229,7 +229,7 @@ reglas teóricas. `/learn` se encarga de que las reglas crezcan orgánicamente.
 Presentar el paquete completo:
 - Tabla de sprints con tickets y modo de ejecución
 - Specs generados (resumen de cada uno)
-- **Mega-prompts generados** (uno por sprint, listos para copiar y pegar)
+- **Prompts lean generados** (uno por sprint, listos para copiar y pegar)
 - Advertencias sobre tickets sacados del prompt (si los hay)
 - **Infraestructura diferida:** qué agentes custom, hooks, y comandos
   adicionales podrían ser útiles DESPUÉS del primer sprint, y bajo qué
@@ -259,6 +259,12 @@ Cada spec DEBE incluir:
 
 ## Objetivo (1-2 frases)
 
+## Scope fence
+### Archivos permitidos
+- `ruta/exacta/archivo.py`
+### Archivos prohibidos
+- `ruta/config_prod.py` — razón
+
 ## Archivos a modificar
 - `ruta/exacta/archivo.py` — qué cambiar
 
@@ -268,21 +274,21 @@ Cada spec DEBE incluir:
 ## Subtareas (si aplica)
 ### Subtarea 1 — [nombre]
 **Archivos:** [lista]
-**Instrucciones:** [paso a paso]
-**Tests:** [comando exacto]
-**Commit message:** "[tipo]: descripción"
+**Pasos:** [paso a paso concreto]
+**Tests:** `[comando exacto]`
+**Commit:** `"[tipo]: descripción"`
 
 ## Tests que deben pasar
 - [ ] Test 1: descripción exacta
 - [ ] Test 2: descripción exacta
 
 ## Criterios de aceptación
-- [ ] Criterio 1
-- [ ] Criterio 2
+- [ ] Criterio observable 1
+- [ ] Criterio observable 2
 
 ## NO hacer
-- No X
-- No Y
+- NUNCA [restricción 1 — por qué]
+- NUNCA [restricción 2 — por qué]
 ```
 
 ---
