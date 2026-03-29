@@ -44,9 +44,35 @@ Nota: Los archivos .jsonl pueden ser muy grandes. El subagente debe
 buscar líneas con "role": "user" y "role": "assistant" para encontrar
 los intercambios relevantes, y filtrar tool calls repetitivas.
 
+## Fase 2b: Análisis de datos estructurados
+
+Además de las conversaciones, analizar datos cuantitativos:
+
+### results.tsv
+Leer `results.tsv` (si existe) y calcular:
+- **Total**: [N] keep / [N] discard / [N] crash
+- **Por failure_category**: agrupar discards por categoría
+  (scope_violation, test_failure, incomplete, rationalization, spec_ambiguity)
+- **Tickets reincidentes**: tickets que aparecen >1 vez (descartados y reintentados)
+- **Archivos conflictivos**: archivos que aparecen en tickets descartados
+
+### done-tasks.md
+Leer `done-tasks.md` (si existe) y extraer:
+- Reglas agregadas/modificadas/eliminadas por ticket
+- Infraestructura sugerida y si se implementó
+- Patrones de "tiempo de contexto alto"
+
+### Git history
+```bash
+git log --oneline --since="[fecha inicio]" | head -50
+```
+- Commits revertidos (señal de problemas)
+- Frecuencia de commits por ticket (muchos = implementación difícil)
+
 ## Fase 3: Sintetizar
 
-Después de que todos los subagentes terminen, combinar hallazgos:
+Después de que todos los subagentes terminen, combinar hallazgos
+de AMBAS fuentes (conversaciones + datos estructurados).
 
 **Generalizar agresivamente.** No listar cada error individual sino
 buscar el meta-patrón detrás de errores similares.
@@ -57,6 +83,8 @@ Agrupar por:
 - **Lo que funciona bien** — no perder esto
   (ej: "Los specs con rutas exactas siempre se ejecutan limpio")
 - **Citas de frustración** — evidencia cruda del usuario
+- **Categorías de fallo cuantitativas** — de results.tsv
+  (ej: "scope_violation: 5 ocurrencias, 80% en dominio eléctrico")
 
 ## Fase 4: Cross-reference contra configuración actual
 

@@ -88,15 +88,42 @@ NO implementes tickets directamente en el contexto principal
 (excepto correcciones menores post-rollback).
 
 ## Regla 2: Verificación y rollback automático
+**Nota:** Si el guard destructivo (PreToolUse) está instalado, NO bloquea
+`git reset --hard` porque el rollback es intencional acá. El guard protege
+contra usos accidentales; esta regla lo usa de forma controlada.
+
 Después de cada subagente:
 1. Guardá el hash del commit anterior: `git rev-parse HEAD` (antes del subagente)
 2. Verificá que el commit existe: `git log -1 --oneline`
-3. Corré los tests del ticket (el comando está en el spec)
-4. **Si los tests pasan:** registrá `keep` en `results.tsv` y continuá
-5. **Si los tests fallan:** intentá una corrección rápida (máximo 2 intentos).
+3. **Auditoría de scope** (ver Regla 2b abajo)
+4. Corré los tests del ticket (el comando está en el spec)
+5. **Si scope OK + tests pasan:** registrá `keep` en `results.tsv` y continuá
+6. **Si scope violation (archivos prohibidos tocados):** rollback inmediato:
+   `git reset --hard [hash anterior]`, registrá `discard` con
+   `failure_category=scope_violation` en `results.tsv`, continuá
+7. **Si los tests fallan:** intentá una corrección rápida (máximo 2 intentos).
    Si no se resuelve, hacé rollback: `git reset --hard [hash anterior]`,
-   registrá `discard` en `results.tsv`, y continuá con el siguiente ticket.
+   registrá `discard` con `failure_category=test_failure`, y continuá.
    NO te quedes trabado intentando arreglar un ticket roto indefinidamente.
+
+## Regla 2b: Auditoría de scope por diff
+Después de cada subagente, antes de correr tests:
+1. Corré `git diff --name-only [hash anterior]..HEAD` para ver archivos tocados
+2. Leé la sección "Scope fence" del spec del ticket
+3. Clasificá cada archivo tocado:
+
+| Archivo tocado | En allowlist | En denylist | Resultado |
+|----------------|-------------|-------------|-----------|
+| Está en permitidos | ✅ | — | OK |
+| Está en prohibidos | — | ✅ | **BLOQUEANTE → rollback** |
+| Está en condicionales | ✅ condicional | — | OK si cumple condición |
+| No está en ninguna lista | — | — | **WARNING** — registrar pero no bloquear |
+
+- Si hay archivo en denylist → rollback automático, registrar `scope_violation`
+- Si hay archivo fuera de toda lista → registrar warning en description de results.tsv
+  pero NO bloquear (el subagente puede haber tocado un test auxiliar legítimamente)
+- Si faltan archivos de la allowlist → warning, no bloqueo
+  (una buena implementación puede requerir tocar menos archivos)
 
 ## Regla 3: Autonomía total (NEVER STOP)
 Una vez que empieces a ejecutar los tickets, NO pares a preguntar
@@ -149,13 +176,26 @@ El subagente devuelve SOLO:
 NO devuelve logs completos, contenido de archivos, ni output de tests.
 Esto protege tu contexto de acumular información innecesaria.
 
+## Regla 7: Auto-learn por ticket
+Después de cada ticket con status `keep`, ejecutá `/learn ticket-[N] [título]`
+ANTES de pasar al siguiente ticket. Esto captura lecciones en caliente.
+
+El `/learn` de sprint al final (paso "Al terminar todos los tickets")
+sigue existiendo para síntesis y consolidación del sprint completo.
+Son dos niveles complementarios:
+- `/learn` por ticket = captura en caliente, reglas específicas
+- `/learn` de sprint = síntesis, consolidación, sugerencia de infraestructura
+
+Para tickets con status `discard`, NO correr /learn (no hay lección útil
+de una implementación que se descartó por completo).
+
 ## Formato de results.tsv
 
 Crear `results.tsv` al inicio del sprint (si no existe) con este header.
 Usar tabs como separador (NO comas).
 
 ```
-ticket	commit	tests	status	description
+ticket	commit	tests	status	failure_category	description
 ```
 
 Columnas:
@@ -163,7 +203,18 @@ Columnas:
 2. **commit** — hash corto de 7 chars. "0000000" para crashes
 3. **tests** — passed / failed / crash
 4. **status** — keep / discard / crash
-5. **description** — qué se intentó hacer (1 línea)
+5. **failure_category** — categoría del fallo (ver tabla). "none" si keep
+6. **description** — qué se intentó hacer (1 línea)
+
+Categorías de fallo:
+| Categoría | Cuándo usar |
+|-----------|------------|
+| `none` | Ticket exitoso (status = keep) |
+| `scope_violation` | Subagente tocó archivos prohibidos |
+| `test_failure` | Tests fallaron y no se pudo corregir en 2 intentos |
+| `incomplete` | Subagente no completó todos los pasos del spec |
+| `rationalization` | Hook Stop detectó victoria prematura |
+| `spec_ambiguity` | El spec era demasiado vago y el subagente interpretó mal |
 
 ## Al terminar todos los tickets
 

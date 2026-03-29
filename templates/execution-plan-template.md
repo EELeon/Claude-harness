@@ -136,12 +136,13 @@ Si la ejecución autónoma falla a mitad del sprint:
 ### Tracking de resultados (dos archivos)
 
 **`results.tsv`** — Escrito por el orquestador. Tracking estructurado
-para retomar sprints después de `/clear` y para análisis automatizado.
+para retomar sprints después de `/clear` y para análisis de /retrospective.
 ```
-ticket	commit	tests	status	description
-T-1	a1b2c3d	passed	keep	block por nivel con tabla y capa DXF
-T-5	c3d4e5f	failed	discard	capas eléctricas — tests fallaron
-T-5	d4e5f6g	passed	keep	capas eléctricas — fix aplicado
+ticket	commit	tests	status	failure_category	description
+T-1	a1b2c3d	passed	keep	none	block por nivel con tabla y capa DXF
+T-5	c3d4e5f	failed	discard	test_failure	capas eléctricas — tests fallaron
+T-5	d4e5f6g	passed	keep	none	capas eléctricas — fix aplicado
+T-8	0000000	crash	discard	scope_violation	motor DXF — tocó config global
 ```
 
 **`done-tasks.md`** — Escrito por `/learn`. Lecciones narrativas

@@ -33,6 +33,34 @@ Sesión principal: solo para tickets Alta complejidad + 4 subtareas
 
 ---
 
+## Scope fence (alcance permitido)
+
+<!--
+SCOPE FENCE — La restricción más importante para precisión.
+El subagente SOLO puede tocar archivos dentro del alcance.
+Si toca algo fuera, el orquestador marca scope_violation.
+
+Sin esta sección, Claude Code tiende a "arreglar" cosas fuera del
+alcance del ticket, causando efectos colaterales no deseados.
+-->
+
+### Archivos permitidos
+<!-- Lista EXHAUSTIVA de archivos que este ticket puede modificar o crear -->
+- `ruta/exacta/archivo.py`
+- `ruta/exacta/nuevo.py`
+- `tests/test_modulo.py`
+
+### Archivos prohibidos
+<!-- Archivos que NUNCA deben tocarse, aunque parezca útil -->
+- `ruta/config_produccion.py` — [razón: configuración compartida]
+- `ruta/otro_modulo.py` — [razón: fuera del alcance de este ticket]
+
+### Archivos condicionales (opcional)
+<!-- Archivos que pueden tocarse SOLO si se cumple una condición -->
+- `ruta/shared_utils.py` — solo si se necesita agregar un helper nuevo
+
+---
+
 ## Archivos a modificar
 
 | Archivo | Cambio |
@@ -132,10 +160,12 @@ de disco. El subagente NO recibe:
 Por eso este spec debe ser AUTOCONTENIDO. Verificar:
 -->
 
+- [ ] ¿Tiene scope fence (archivos permitidos + prohibidos)?
 - [ ] ¿Tiene rutas EXACTAS de archivos a modificar/crear?
 - [ ] ¿Tiene pasos concretos (no "investigar" o "explorar")?
 - [ ] ¿Tiene comando exacto de tests?
 - [ ] ¿Tiene commit message definido?
+- [ ] ¿Tiene criterios de aceptación observables?
 - [ ] ¿Tiene restricciones claras en forma imperativa (NUNCA/SIEMPRE)?
 - [ ] ¿Tiene ≤10 restricciones totales?
 - [ ] ¿No depende de contexto que solo existe en la conversación?

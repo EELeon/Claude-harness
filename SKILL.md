@@ -105,6 +105,32 @@ Resumen rápido:
 - Cada subtarea debe ser **autocontenida**: ejecutable sin saber qué hacen las otras
 - Cada subtarea termina con un **commit atómico**
 
+### Paso 3.5 — Preflight: validar specs antes de continuar
+
+ANTES de generar el prompt del sprint, validar TODOS los specs generados
+usando la lógica definida en `commands/preflight.md`.
+
+**Esta validación es obligatoria.** No generar prompt si hay specs con FAIL.
+
+Resumen de lo que valida:
+- Campos obligatorios: objetivo, modo, scope fence, archivos, tests, aceptación, commit
+- Campos warning: restricciones, dependencias, complejidad, pasos concretos
+- Cruce: archivos del spec vs allowlist del scope fence
+- Cruce: dependencias referenciadas vs specs existentes
+- Restricciones excesivas (>10 = warning)
+
+Si hay FAIL:
+1. Listar specs fallidos con campos faltantes
+2. Corregir los specs antes de continuar
+3. Re-validar
+
+Si hay solo WARNINGS:
+1. Mostrar al usuario
+2. Preguntar si quiere corregir o continuar
+
+Nota: este es el MISMO motor que el comando `/preflight`.
+Cowork lo corre aquí; el usuario puede correrlo después con `/preflight`.
+
 ### Paso 4 — Generar prompt del sprint + reglas de orquestación
 
 Para CADA sprint, generar DOS archivos siguiendo `templates/orchestrator-prompt.md`:
@@ -141,18 +167,25 @@ de **mínimo viable → crece según necesidad**:
    - `/learn` — captura conocimiento post-ticket (ver `commands/learn.md`)
    - `/next-ticket` — lee el siguiente spec y empieza (ver `commands/next-ticket.md`)
    - `/status` — muestra progreso del sprint (ver `commands/status.md`)
+   - `/preflight` — validación pre-ejecución de specs (ver `commands/preflight.md`)
 3. **Plan de ejecución** — `EXECUTION_PLAN.md` en la raíz
    - Leer `templates/execution-plan-template.md`
 
+**Instalar en Sprint 1 (costo mínimo, protección máxima):**
+4. **Guard destructivo** (PreToolUse hook) — protege contra `rm -rf`, `git push --force`
+   - Leer `templates/stop-hook.md` sección "Hook 1"
+   - Hook tipo `command` (~50ms), no afecta performance
+   - Compatible con el rollback de Regla 2 (no bloquea `git reset --hard`)
+
 **Sugerir pero no instalar aún (evaluar después del Sprint 1):**
-4. **Agentes custom** en `.claude/agents/`
+5. **Agentes custom** en `.claude/agents/`
    - Leer `references/agent-patterns.md` para los patrones
    - Solo crear si después del primer sprint `/learn` detecta que el mismo
      tipo de error se repite 3+ veces en un dominio específico
    - Describir al usuario qué agentes SE PODRÍAN crear y por qué, pero
      dejar que la experiencia real del primer sprint confirme la necesidad
-5. **Hook Stop** — anti-racionalización
-   - Leer `templates/stop-hook.md` para las opciones
+6. **Hook anti-racionalización** (Stop hook)
+   - Leer `templates/stop-hook.md` sección "Hook 2"
    - Solo instalar si durante la ejecución Claude declara victoria prematura
      o `/learn` reporta trabajo incompleto aceptado
    - Mencionar al usuario que existe y cómo activarlo cuando lo necesite
@@ -244,9 +277,10 @@ proyecto/
 │   ├── commands/
 │   │   ├── learn.md           # Siempre
 │   │   ├── next-ticket.md     # Siempre
-│   │   └── status.md          # Siempre
+│   │   ├── status.md          # Siempre
+│   │   └── preflight.md       # Siempre (motor del Paso 3.5)
 │   ├── agents/                # Solo si /learn lo sugiere después del Sprint 1
-│   └── settings.json          # Solo si se necesita hook Stop
+│   └── settings.json          # Guard destructivo (Sprint 1) + hook Stop (si se necesita)
 ├── specs/
 │   ├── ticket-1.md
 │   ├── ticket-2.md
@@ -293,10 +327,11 @@ Leer estos archivos cuando sea necesario:
 | `references/agent-patterns.md` | Al crear agentes custom |
 | `templates/spec-template.md` | Al escribir cada spec |
 | `templates/orchestrator-prompt.md` | Al generar el prompt del sprint + ORCHESTRATOR_RULES.md |
-| `templates/stop-hook.md` | Al configurar el hook anti-racionalización |
+| `templates/stop-hook.md` | Al configurar hooks (guard destructivo + anti-racionalización) |
 | `templates/claudemd-template.md` | Al generar CLAUDE.md |
 | `templates/execution-plan-template.md` | Al generar el plan de ejecución |
 | `commands/learn.md` | Al instalar el comando /learn |
 | `commands/next-ticket.md` | Al instalar el comando /next-ticket |
 | `commands/status.md` | Al instalar el comando /status |
+| `commands/preflight.md` | Al instalar el comando /preflight Y como motor del Paso 3.5 |
 | `commands/retrospective.md` | Al instalar /retrospective (post Sprint 1) |
