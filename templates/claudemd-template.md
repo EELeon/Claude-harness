@@ -38,9 +38,9 @@ Si una regla no ha evitado un error concreto, borrarla.
 
 ## Reglas de dominio
 <!-- Las reglas que Claude viola sin esta guía -->
-- [Regla 1 — e.g., "Las capas DXF representan frentes físicos, no funciones"]
-- [Regla 2 — e.g., "Nunca mezclar sistemas hidráulicos entre capas"]
-- [Regla 3 — e.g., "Separar siempre conteo vs longitud horizontal vs vertical"]
+- [Regla 1 — e.g., "Un pedido solo puede tener un estado a la vez"]
+- [Regla 2 — e.g., "Nunca mezclar datos de producción con staging"]
+- [Regla 3 — e.g., "Separar siempre validación de input vs lógica de negocio vs output"]
 
 ## 🚫 NO hacer (lecciones aprendidas)
 <!-- Se actualiza con /learn después de cada ticket -->

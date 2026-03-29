@@ -18,7 +18,7 @@ El ticket se ejecuta directo en el contexto principal cuando:
 - Tiene ≤ 3 pasos lógicos secuenciales
 - No requiere exploración del codebase
 - Es principalmente CRUD o configuración
-- Ejemplo: Ticket 7 (bordillo) — crear capa, parser, cuantificación parcial
+- Ejemplo: agregar una nueva tabla de configuración — crear modelo, parser, validador
 
 ### Dividir en 2-3 subtareas
 
@@ -26,10 +26,10 @@ Cuando el ticket:
 - Toca 4-8 archivos
 - Tiene pasos que pueden paralelizarse
 - Mezcla exploración con implementación
-- Ejemplo: Ticket 2 (cuantificación vertical eléctrica)
+- Ejemplo: implementar un nuevo módulo de cálculo
   - Subtarea 1: Modificar config/UI para soportar nuevos campos
-  - Subtarea 2: Implementar cálculo de longitudes verticales
-  - Subtarea 3: Conectar con generador de BOM
+  - Subtarea 2: Implementar lógica de cálculo principal
+  - Subtarea 3: Conectar output con el pipeline existente
 
 ### Dividir en 3-5 subtareas
 
@@ -38,12 +38,12 @@ Cuando el ticket:
 - Tiene lógica algorítmica compleja
 - Requiere investigación previa del codebase
 - Tiene múltiples dominios internos
-- Ejemplo: Ticket 4 (deducción hidráulica)
-  - Subtarea 1 (Explore): Investigar estructura actual de deducción
-  - Subtarea 2: Implementar agrupación por sistema (APO/DRS/DPL)
-  - Subtarea 3: Implementar detección de intersecciones entre segmentos
-  - Subtarea 4: Implementar lógica de reductores por cambio de diámetro
-  - Subtarea 5: Conectar con BOM y validar contra catálogo
+- Ejemplo: reescribir un motor de procesamiento con múltiples subsistemas
+  - Subtarea 1 (Explore): Investigar estructura actual del módulo
+  - Subtarea 2: Implementar agrupación por subsistema
+  - Subtarea 3: Implementar detección de relaciones entre entidades
+  - Subtarea 4: Implementar lógica de transformación por cambio de tipo
+  - Subtarea 5: Conectar con output final y validar contra catálogo
 
 ## Reglas para definir subtareas bien formadas
 
@@ -110,7 +110,7 @@ NO hagas:
 - Los specs pueden ser más concisos
 - 1 sesión puede cubrir 3-5 tickets simples con /clear
 
-### Proyecto mediano (50-200 archivos, 5-20k LOC) — CuantEA está aquí
+### Proyecto mediano (50-200 archivos, 5-20k LOC)
 - Subagentes para tickets de complejidad media y alta
 - Specs deben incluir rutas exactas
 - 1 sesión puede cubrir 2-3 tickets con /clear

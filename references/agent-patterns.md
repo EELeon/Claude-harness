@@ -30,49 +30,46 @@ La description es el trigger. Claude decide si usar el agente basándose en ella
 
 **Bueno:**
 ```
-description: Implementa cambios en el motor de cuantificación. Usar proactivamente
-  cuando se modifiquen cálculos de materiales, BOM, o fórmulas de rendimiento.
+description: Implementa cambios en el módulo de pagos. Usar proactivamente
+  cuando se modifiquen cálculos de precios, facturación, o procesamiento de cobros.
 ```
 
 **Malo:**
 ```
-description: Agente para cuantificación.
+description: Agente para pagos.
 ```
 
 ## Patrones recomendados por rol
 
 ### 1. Implementador de dominio
 
-Para proyectos con dominios especializados (como CuantEA con eléctrico/hidráulico/estructural).
+Para proyectos con dominios especializados (ej: un motor de cálculo con subsistemas diferenciados).
 
 ```markdown
 ---
-name: impl-electrico
-description: Implementa cambios en el subsistema eléctrico de CuantEA. Usar cuando
-  se modifiquen capas eléctricas, dispositivos, circuitos, o cuantificación de
-  materiales eléctricos (tubería, cable, cajas).
+name: impl-[dominio]
+description: Implementa cambios en el subsistema [dominio] de [proyecto]. Usar cuando
+  se modifiquen [archivos/módulos relevantes del dominio].
 tools: Read, Write, Edit, Bash, Glob, Grep
 model: sonnet
 ---
 
-Sos un implementador especializado en el subsistema eléctrico de CuantEA.
+Sos un implementador especializado en el subsistema [dominio] de [proyecto].
 
 ## Reglas de dominio
-- Las capas representan frentes físicos, no funciones abstractas
-- Separar siempre: conteo, longitud horizontal, longitud vertical
-- Nunca mezclar lógica de cielo con pared/piso
-- Los recorridos verticales usan alturas reales, no promedios
+- [Regla 1 que Claude viola sin guía — ej: "Los layers representan X, no Y"]
+- [Regla 2 — ej: "Separar siempre conteo vs cálculo vs output"]
+- [Regla 3 — ej: "Nunca mezclar lógica de subsistema A con subsistema B"]
 
 ## Archivos clave
-- `src/config/electrical_config.py` — configuración de dispositivos
-- `src/calculators/electrical.py` — motor de cálculo
-- `src/io/layers_v2.py` — definición de capas DXF
-- `tests/test_electrical.py` — tests
+- `src/[modulo]/config.py` — configuración del dominio
+- `src/[modulo]/calculator.py` — motor de cálculo
+- `tests/test_[dominio].py` — tests
 
 ## Workflow
 1. Leer el spec completo antes de tocar código
 2. Implementar cambios
-3. Correr `pytest tests/test_electrical.py -v`
+3. Correr `pytest tests/test_[dominio].py -v`
 4. Si fallan tests, corregir sin modificar los tests
 5. Commit con mensaje descriptivo
 ```
@@ -125,31 +122,31 @@ Al recibir un spec y una implementación:
 2. Verificar cada criterio de aceptación
 3. Correr todos los tests mencionados en el spec
 4. Reportar:
-   - ✅ Criterios cumplidos
-   - ❌ Criterios NO cumplidos (con detalle)
-   - ⚠️ Warnings (cosas que funcionan pero podrían mejorar)
+   - Criterios cumplidos
+   - Criterios NO cumplidos (con detalle)
+   - Warnings (cosas que funcionan pero podrían mejorar)
 ```
 
-### 4. Catalogador (específico para CuantEA)
+### 4. Implementador de catálogos/datos
 
-Para tickets que involucran catálogos de materiales/mano de obra.
+Para tickets que involucran catálogos, configuraciones, o datos maestros.
 
 ```markdown
 ---
 name: impl-catalogos
-description: Implementa y mantiene catálogos de materiales, accesorios y mano de
-  obra. Usar cuando se creen o modifiquen catálogos hidráulicos, eléctricos,
-  o de costos.
+description: Implementa y mantiene catálogos de datos, configuraciones maestras,
+  y tablas de referencia. Usar cuando se creen o modifiquen catálogos, lookup tables,
+  o configuraciones de datos base.
 tools: Read, Write, Edit, Bash, Glob, Grep
 model: sonnet
 ---
 
-Sos un implementador de catálogos para CuantEA.
+Sos un implementador de catálogos de datos.
 
 ## Reglas
 - Un catálogo es una fuente de verdad, nunca duplicar datos
-- Cada entrada debe ser validable (diámetro soportado, sistema válido)
-- Separar siempre: materiales vs mano de obra vs costos
+- Cada entrada debe ser validable
+- Separar siempre: datos base vs datos derivados vs configuración
 - Override por proyecto no debe romper catálogo base
 - Todo catálogo debe tener tests de consistencia
 
@@ -176,7 +173,7 @@ Sos un implementador de catálogos para CuantEA.
 Los agentes en `.claude/agents/` se commitean al repo:
 ```bash
 git add .claude/agents/
-git commit -m "feat: agentes custom para sprint de CuantEA"
+git commit -m "feat: agentes custom para [nombre del sprint]"
 ```
 
 Esto permite que cualquier sesión futura de Claude Code los use automáticamente.
