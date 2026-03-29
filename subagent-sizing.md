@@ -1,0 +1,131 @@
+# Reglas de división en subtareas y sizing de subagentes
+
+## Contexto técnico
+
+Un subagente de Claude Code:
+- Tiene su propia ventana de contexto (~200k tokens), separada del agente principal
+- No puede crear otros subagentes (sin anidación)
+- Devuelve solo su resultado final al agente padre (no el contexto intermedio)
+- Puede correr en paralelo con otros subagentes
+- Tiene acceso restringido a herramientas según su configuración
+
+## Cuándo dividir un ticket en subtareas con subagentes
+
+### NO dividir (ejecución directa)
+
+El ticket se ejecuta directo en el contexto principal cuando:
+- Toca ≤ 3 archivos
+- Tiene ≤ 3 pasos lógicos secuenciales
+- No requiere exploración del codebase
+- Es principalmente CRUD o configuración
+- Ejemplo: Ticket 7 (bordillo) — crear capa, parser, cuantificación parcial
+
+### Dividir en 2-3 subtareas
+
+Cuando el ticket:
+- Toca 4-8 archivos
+- Tiene pasos que pueden paralelizarse
+- Mezcla exploración con implementación
+- Ejemplo: Ticket 2 (cuantificación vertical eléctrica)
+  - Subtarea 1: Modificar config/UI para soportar nuevos campos
+  - Subtarea 2: Implementar cálculo de longitudes verticales
+  - Subtarea 3: Conectar con generador de BOM
+
+### Dividir en 3-5 subtareas
+
+Cuando el ticket:
+- Toca 9+ archivos
+- Tiene lógica algorítmica compleja
+- Requiere investigación previa del codebase
+- Tiene múltiples dominios internos
+- Ejemplo: Ticket 4 (deducción hidráulica)
+  - Subtarea 1 (Explore): Investigar estructura actual de deducción
+  - Subtarea 2: Implementar agrupación por sistema (APO/DRS/DPL)
+  - Subtarea 3: Implementar detección de intersecciones entre segmentos
+  - Subtarea 4: Implementar lógica de reductores por cambio de diámetro
+  - Subtarea 5: Conectar con BOM y validar contra catálogo
+
+## Reglas para definir subtareas bien formadas
+
+### Cada subtarea DEBE ser autocontenida
+
+Un subagente recibe SOLO:
+1. El prompt que le pasa el agente padre
+2. Su system prompt (si es un agente custom)
+3. Acceso a leer/escribir archivos del repo
+
+NO recibe:
+- El contexto de la conversación principal
+- Los resultados de otros subagentes (a menos que se escriban a disco)
+
+Por lo tanto, cada subtarea debe incluir:
+- Rutas exactas de archivos a tocar
+- Qué hace cada archivo relevante (1 línea)
+- Instrucciones paso a paso
+- Criterio de "terminé" claro
+
+### Patrón de comunicación entre subtareas
+
+Si la subtarea 2 necesita el resultado de la subtarea 1:
+1. Subtarea 1 escribe su output a un archivo conocido
+2. Subtarea 2 lee ese archivo como input
+3. El spec documenta esta dependencia explícitamente
+
+Si las subtareas son independientes, marcarlas para ejecución paralela.
+
+### Prompt template para delegar a subagente
+
+En el spec, cada subtarea marcada como subagente incluye el prompt listo:
+
+```
+Implementa [nombre de subtarea] para [proyecto].
+
+Archivos a modificar:
+- `ruta/archivo1.py` — [qué contiene actualmente, qué cambiar]
+- `ruta/archivo2.py` — [ídem]
+
+Pasos:
+1. [Paso concreto]
+2. [Paso concreto]
+3. Correr tests: `pytest tests/test_X.py -v`
+
+Commit cuando termines con mensaje: "[tipo]: [descripción]"
+
+NO hagas:
+- [Restricción relevante]
+```
+
+## Sizing por tipo de subagente built-in
+
+| Tipo | Herramientas | Usar para |
+|------|-------------|-----------|
+| **Explore** | Read, Grep, Glob (solo lectura) | Investigar codebase antes de implementar |
+| **Plan** | Read, Grep, Glob (solo lectura) | Diseñar arquitectura de un cambio complejo |
+| **General-purpose** | Read, Write, Edit, Bash, Glob, Grep | Implementación completa de una subtarea |
+
+## Sizing por complejidad del proyecto
+
+### Proyecto pequeño (<50 archivos, <5k LOC)
+- Rara vez necesita subagentes
+- Los specs pueden ser más concisos
+- 1 sesión puede cubrir 3-5 tickets simples con /clear
+
+### Proyecto mediano (50-200 archivos, 5-20k LOC) — CuantEA está aquí
+- Subagentes para tickets de complejidad media y alta
+- Specs deben incluir rutas exactas
+- 1 sesión puede cubrir 2-3 tickets con /clear
+
+### Proyecto grande (200+ archivos, 20k+ LOC)
+- Subagentes casi obligatorios
+- Specs deben incluir contexto de arquitectura
+- 1 ticket complejo puede consumir 1 sesión entera
+
+## Errores comunes al dividir
+
+1. **Subtareas demasiado granulares** — Si una subtarea es "agregar un campo a un dict", no necesita subagente. Agrupá cambios relacionados.
+
+2. **Dependencias circulares** — Si A necesita el output de B y B necesita el de A, no son subtareas separables. Refactorizá la división.
+
+3. **Subagente sin contexto suficiente** — Si el prompt no incluye qué hace el archivo que va a modificar, el subagente va a tener que explorarlo y gasta contexto innecesariamente.
+
+4. **Olvidar el commit atómico** — Cada subtarea debe terminar con commit. Sin commit, si falla la siguiente subtarea, se pierde todo.
