@@ -6,9 +6,11 @@ description: >
   Actívalo cuando diga: "tengo estos tickets", "implementar estos cambios",
   "preparar specs para Code", "dividir en subtareas", "organizar trabajo para Code",
   "sprint de desarrollo", "batch de features", o cualquier referencia a preparar
-  trabajo de programación en lote. También actívalo si el usuario pregunta cómo dividir
-  trabajo entre subagentes, cómo manejar contexto en sesiones largas de Code,
-  o cómo organizar implementación de múltiples cambios en un codebase.
+  trabajo de programación en lote. También actívalo si el usuario pide preparar o
+  instalar un repo para Code ("instalar harness", "preparar este repo para Code",
+  "bootstrap"), o pregunta cómo dividir trabajo entre subagentes, cómo manejar
+  contexto en sesiones largas de Code, o cómo organizar implementación de múltiples
+  cambios en un codebase.
 ---
 
 # Code Orchestrator — De tickets a ejecución autónoma en Claude Code

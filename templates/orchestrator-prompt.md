@@ -14,7 +14,7 @@ El prompt del orquestador debe mantenerse en la zona segura de fidelidad
   subagente lee desde su propio contexto fresco
 - El prompt solo contiene: instrucción de leer reglas + lista de tickets
 
-VENTAJAS vs mega-prompt monolítico:
+VENTAJAS vs prompt monolítico:
 - El prompt cabe en la zona de fidelidad total (0-5K tokens)
 - Sobrevive /compact sin paraphrase loss (es tan corto que no se parafrasea)
 - Los specs se cargan frescos en el contexto de cada subagente (lazy loading)
