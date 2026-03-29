@@ -47,9 +47,29 @@ Para CADA regla que quieras agregar, preguntate:
 - Si la regla describe algo que el modelo ya sabe por pre-training
   (e.g., "usar convenciones de React") → NO agregar
 
-## 4. Clasificar el destino de cada regla
+## 4. Umbral de confirmación (anti-ruido)
 
-No todo va a CLAUDE.md. Clasificar cada regla nueva:
+Antes de clasificar destino, verificar que la regla tiene peso suficiente:
+
+| Evidencia | Acción |
+|-----------|--------|
+| El error ocurrió en 2+ tickets (buscar en results.tsv y done-tasks.md) | → Agregar a CLAUDE.md como regla permanente |
+| El error ocurrió en 1 ticket pero causó rollback o pérdida significativa | → Agregar a CLAUDE.md marcada como `[1 ocurrencia]` |
+| El error ocurrió en 1 ticket y fue menor (corregido rápido, sin rollback) | → Registrar SOLO en done-tasks.md como observación. NO agregar a CLAUDE.md todavía |
+| El error es de un dominio que tiene agente custom | → Agregar al agente, no a CLAUDE.md |
+
+**Lógica:** Una micro-regla de un solo incidente menor infla CLAUDE.md sin
+evidencia de que el patrón se repita. Es mejor esperar a que se confirme
+en un segundo ticket (via /learn de sprint o del siguiente ticket) antes
+de promoverla a regla permanente.
+
+**Excepción:** Si la regla previene pérdida de datos, corrupción, o un
+error que no puede deshacerse con rollback → agregarla inmediatamente
+sin importar cuántas ocurrencias tenga.
+
+## 5. Clasificar el destino de cada regla
+
+No todo va a CLAUDE.md. Clasificar cada regla que pasó el umbral:
 
 | Destino | Criterio | Ejemplo |
 |---------|----------|---------|
@@ -59,7 +79,7 @@ No todo va a CLAUDE.md. Clasificar cada regla nueva:
 | **Agente custom** | Regla específica de un dominio con agente en .claude/agents/ | Regla eléctrica → agente eléctrico |
 | **No agregar** | Ya cubierta, redundante con pre-training, o no generalizable | "Usar camelCase en JS" |
 
-## 5. Actualizar CLAUDE.md (solo lo necesario)
+## 6. Actualizar CLAUDE.md (solo reglas que pasaron umbral + sustracción)
 
 Después de pasar el gate de sustracción causal:
 
@@ -84,12 +104,12 @@ de CLAUDE.md. Si supera 100 líneas, aplicar:
 
 Un CLAUDE.md corto y preciso es más efectivo que uno largo y exhaustivo.
 
-## 6. Actualizar agentes (si aplica)
+## 7. Actualizar agentes (si aplica)
 
 Si el error fue específico de un dominio que tiene agente custom
 en `.claude/agents/`, actualizar el agente con la lección.
 
-## 7. Evaluar si hace falta nueva infraestructura
+## 8. Evaluar si hace falta nueva infraestructura
 
 Basado en los patrones de este ticket y los anteriores:
 
@@ -103,7 +123,7 @@ Basado en los patrones de este ticket y los anteriores:
 NO crear la infraestructura automáticamente — sugerir al usuario
 y dejar que decida.
 
-## 8. Registrar en done-tasks.md
+## 9. Registrar en done-tasks.md
 
 Agregar al archivo `done-tasks.md` (crear si no existe):
 ```
@@ -114,11 +134,12 @@ Agregar al archivo `done-tasks.md` (crear si no existe):
 - Reglas nuevas en CLAUDE.md: [N agregadas, N modificadas, N eliminadas]
 - Intentos fallidos registrados: [N]
 - Reglas stale eliminadas: [N]
+- Observaciones pendientes (no subieron a CLAUDE.md): [lista breve]
 - Infraestructura sugerida: [ninguna | agente para X | hook Stop | etc.]
 - Tiempo aproximado de contexto usado: [bajo/medio/alto]
 ```
 
-## 9. Preparar para el siguiente
+## 10. Preparar para el siguiente
 
 Reporta:
 - Qué se completó

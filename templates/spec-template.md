@@ -56,8 +56,15 @@ alcance del ticket, causando efectos colaterales no deseados.
 - `ruta/otro_modulo.py` — [razón: fuera del alcance de este ticket]
 
 ### Archivos condicionales (opcional)
-<!-- Archivos que pueden tocarse SOLO si se cumple una condición -->
-- `ruta/shared_utils.py` — solo si se necesita agregar un helper nuevo
+<!--
+Archivos que pueden tocarse SOLO si se cumple una condición específica.
+La condición debe describir un CAMBIO OBSERVABLE en el diff:
+  ✅ Bueno: "solo si se agrega una función nueva" (verificable en diff)
+  ✅ Bueno: "solo si se necesita un import nuevo" (verificable en diff)
+  ❌ Malo: "solo si es necesario" (no verificable)
+  ❌ Malo: "solo si tiene sentido" (subjetivo)
+-->
+- `ruta/shared_utils.py` — solo si se agrega una función helper nueva
 
 ---
 

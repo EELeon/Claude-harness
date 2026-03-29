@@ -55,8 +55,8 @@ Lee las reglas de orquestación en `ORCHESTRATOR_RULES.md` y seguílas estrictam
 
 Para cada ticket:
 1. Lanzá un **subagente general-purpose** con este prompt:
-   > Lee e implementa el spec en `specs/ticket-[N].md`. Leé CLAUDE.md para contexto del proyecto. Seguí los pasos del spec, corré los tests, y commiteá. Devolvé: resumen (1-3 líneas), hash del commit, estado de tests (passed/failed), y lista de archivos tocados. NO devuelvas logs completos ni output de tests.
-2. Después del subagente, aplicá la Regla 2 (verificación y rollback)
+   > Lee e implementa el spec en `specs/ticket-[N].md`. Leé CLAUDE.md para contexto del proyecto. Seguí los pasos del spec, corré los tests, y commiteá. Devolvé: resumen (1-3 líneas), hash del commit, estado de tests (passed/failed), lista de archivos tocados, y para cada criterio de aceptación del spec indicá si se cumplió (sí/no/parcial). NO devuelvas logs completos ni output de tests.
+2. Después del subagente, aplicá Reglas 2 + 2b + 2c (scope → tests → completitud)
 3. Registrá el resultado en `results.tsv` (Regla 4)
 
 Al terminar todos los tickets, ejecutá `/learn sprint-[LETRA] completo`.
@@ -97,7 +97,8 @@ Después de cada subagente:
 2. Verificá que el commit existe: `git log -1 --oneline`
 3. **Auditoría de scope** (ver Regla 2b abajo)
 4. Corré los tests del ticket (el comando está en el spec)
-5. **Si scope OK + tests pasan:** registrá `keep` en `results.tsv` y continuá
+5. **Si scope OK + tests pasan:** ejecutá Regla 2c (auditoría de completitud).
+   Si completitud OK → registrá `keep` en `results.tsv` y continuá.
 6. **Si scope violation (archivos prohibidos tocados):** rollback inmediato:
    `git reset --hard [hash anterior]`, registrá `discard` con
    `failure_category=scope_violation` en `results.tsv`, continuá
@@ -116,7 +117,7 @@ Después de cada subagente, antes de correr tests:
 |----------------|-------------|-------------|-----------|
 | Está en permitidos | ✅ | — | OK |
 | Está en prohibidos | — | ✅ | **BLOQUEANTE → rollback** |
-| Está en condicionales | ✅ condicional | — | OK si cumple condición |
+| Está en condicionales | ✅ condicional | — | Verificar condición (ver abajo) |
 | No está en ninguna lista | — | — | **WARNING** — registrar pero no bloquear |
 
 - Si hay archivo en denylist → rollback automático, registrar `scope_violation`
@@ -124,6 +125,57 @@ Después de cada subagente, antes de correr tests:
   pero NO bloquear (el subagente puede haber tocado un test auxiliar legítimamente)
 - Si faltan archivos de la allowlist → warning, no bloqueo
   (una buena implementación puede requerir tocar menos archivos)
+
+**Archivos condicionales — verificación de condición:**
+El spec define cada archivo condicional con formato:
+`ruta/archivo.py` — solo si [condición en texto libre]
+
+Para verificar si la condición se cumplió:
+1. Leé el diff del archivo condicional (`git diff [hash]..HEAD -- [ruta]`)
+2. Comparé el cambio contra la condición del spec
+3. Clasificá:
+
+| Situación | Resultado |
+|-----------|-----------|
+| El diff coincide con la condición (ej: "agregar helper" y el diff agrega una función) | OK |
+| El diff NO coincide con la condición (ej: "agregar helper" pero refactorizó lógica existente) | **WARNING** — registrar "condicional fuera de condición" |
+| El archivo condicional fue tocado pero la condición es ambigua | **WARNING** — registrar para revisión |
+
+Los condicionales NUNCA bloquean. Son warnings para revisión.
+Para que un condicional bloquee, debe estar en la denylist, no en condicionales.
+
+## Regla 2c: Auditoría de completitud (criterios de aceptación)
+Después de que scope (2b) y tests (2) pasen, verificar criterios de aceptación:
+
+1. Leé la sección `## Criterios de aceptación` del spec del ticket
+2. Para CADA criterio, verificá si se cumplió usando esta tabla:
+
+| Tipo de criterio | Cómo verificar | Ejemplo |
+|-----------------|----------------|---------|
+| Archivo existe | `ls [ruta]` | "El archivo `config.json` existe en `/src`" |
+| Función/clase existe | `grep -r "[nombre]" [archivo]` | "La clase `BlockManager` está definida en `block.py`" |
+| Comportamiento | Comando de test específico o output | "El endpoint devuelve 200" |
+| Integración | Evidencia en el diff o tests | "El módulo importa y usa `shared_utils`" |
+| Negación | Verificar ausencia | "No hay console.log en código de producción" |
+
+3. Clasificá el resultado:
+
+| Criterios cumplidos | Resultado |
+|--------------------|-----------|
+| Todos | → `keep` con `failure_category=none` |
+| ≥80% pero faltan menores | → `keep` con warning en description |
+| <80% o falta alguno crítico | → `discard` con `failure_category=incomplete` |
+
+**Qué es "criterio crítico":** cualquier criterio que, si no se cumple,
+significa que el objetivo del ticket NO se logró. En duda, tratarlo como crítico.
+
+4. Si `incomplete`: intentá una corrección rápida (máximo 1 intento).
+   Si no se resuelve, rollback y registrar `incomplete` en results.tsv.
+
+**Orden completo de verificación post-subagente:**
+Regla 2b (scope) → Regla 2 paso 4 (tests) → Regla 2c (completitud)
+Si cualquier paso falla, NO ejecutar los siguientes. Registrar la
+failure_category del PRIMER paso que falló.
 
 ## Regla 3: Autonomía total (NEVER STOP)
 Una vez que empieces a ejecutar los tickets, NO pares a preguntar
@@ -172,9 +224,15 @@ El subagente devuelve SOLO:
 - Hash del commit
 - Estado de tests (passed/failed + nombre del test fallido si aplica)
 - Archivos tocados
+- Estado de criterios de aceptación (sí/no/parcial por cada uno)
 
 NO devuelve logs completos, contenido de archivos, ni output de tests.
 Esto protege tu contexto de acumular información innecesaria.
+
+**Uso del reporte de criterios:** El orquestador usa este reporte en
+Regla 2c para verificar completitud. Si el subagente reporta "parcial"
+o "no" en algún criterio, el orquestador verifica independientemente
+antes de decidir keep/discard.
 
 ## Regla 7: Auto-learn por ticket
 Después de cada ticket con status `keep`, ejecutá `/learn ticket-[N] [título]`
@@ -207,14 +265,14 @@ Columnas:
 6. **description** — qué se intentó hacer (1 línea)
 
 Categorías de fallo:
-| Categoría | Cuándo usar |
-|-----------|------------|
-| `none` | Ticket exitoso (status = keep) |
-| `scope_violation` | Subagente tocó archivos prohibidos |
-| `test_failure` | Tests fallaron y no se pudo corregir en 2 intentos |
-| `incomplete` | Subagente no completó todos los pasos del spec |
-| `rationalization` | Hook Stop detectó victoria prematura |
-| `spec_ambiguity` | El spec era demasiado vago y el subagente interpretó mal |
+| Categoría | Quién la detecta | Cuándo se escribe | Criterio operativo |
+|-----------|-----------------|-------------------|-------------------|
+| `none` | Orquestador | Después de Regla 2c | Todo OK: scope limpio + tests pasan + aceptación cumplida |
+| `scope_violation` | Orquestador (Regla 2b) | Después del diff audit | `git diff --name-only` muestra archivos en la denylist del spec |
+| `test_failure` | Orquestador (Regla 2) | Después de 2 intentos fallidos | El comando de tests del spec devuelve exit code ≠ 0 tras 2 correcciones |
+| `incomplete` | Orquestador (Regla 2c) | Después de auditoría de completitud | ≥1 criterio de aceptación del spec NO cumplido (ver Regla 2c) |
+| `rationalization` | Hook Stop → Orquestador | Cuando el hook bloquea | El hook Stop devuelve exit code 2 (bloqueo). Si no hay hook instalado, el orquestador detecta: subagente reporta "completado" pero el diff tiene 0 archivos tocados, o los archivos tocados no coinciden con ningún paso del spec |
+| `spec_ambiguity` | Orquestador | Después de resultado anómalo | El subagente devuelve resultado que NO corresponde al objetivo del spec (ej: implementó algo diferente a lo pedido), O el subagente reporta que tuvo que "interpretar" o "asumir" algo no definido en el spec |
 
 ## Al terminar todos los tickets
 

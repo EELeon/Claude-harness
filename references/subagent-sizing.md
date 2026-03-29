@@ -134,6 +134,7 @@ necesita mantener su contexto lean para seguir orquestando.
 - Hash del commit
 - Estado de tests (passed/failed)
 - Archivos tocados (lista)
+- Estado de criterios de aceptación (sí/no/parcial por cada uno)
 
 **El subagente NO devuelve:**
 - Logs completos de ejecución

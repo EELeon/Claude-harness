@@ -23,12 +23,28 @@ EVENTOS DEL CICLO DE VIDA:
 - Stop        — antes de terminar respuesta (anti-racionalización)
 - SessionStart — al iniciar sesión (recovery/inicialización)
 
-ESTRATEGIA MULTI-CAPA:
-No usar un solo hook para todo. La resiliencia viene de capas:
-1. PreToolUse: Prevenir comandos destructivos (guard)
-2. Stop: Detectar racionalización (anti-skip)
-3. Regla 2 del orquestador: Verificar tests reales (en código)
-Cada capa cubre lo que las otras no pueden detectar.
+JERARQUÍA DE CAPAS DE PROTECCIÓN:
+Los hooks son capa SECUNDARIA de apoyo. El núcleo del harness son los
+gates del orquestador. La jerarquía de confianza es:
+
+CAPA PRIMARIA (gates duros del orquestador — siempre activos):
+  1. Preflight (Paso 3.5)    — valida specs antes de ejecutar
+  2. Scope fence + diff audit (Regla 2b) — bloquea archivos prohibidos
+  3. Tests (Regla 2)          — verifica implementación correcta
+  4. Completitud (Regla 2c)   — verifica criterios de aceptación
+  5. Ledger (results.tsv)     — registra todo para aprendizaje
+
+CAPA SECUNDARIA (hooks — apoyo, pueden no estar instalados):
+  1. PreToolUse guard         — previene comandos destructivos
+  2. Stop anti-racionalización — detecta victoria prematura
+
+Los hooks COMPLEMENTAN al orquestador, no lo reemplazan.
+El sistema debe funcionar correctamente sin hooks instalados.
+Si un hook no está instalado, el orquestador compensa:
+  - Sin guard destructivo → las reglas de scope igual bloquean
+  - Sin anti-racionalización → Regla 2c detecta incomplete
+
+No invertir más esfuerzo en hooks que en los gates primarios.
 -->
 
 ---

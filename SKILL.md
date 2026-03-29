@@ -37,9 +37,9 @@ nunca se quede sin ventana de contexto:
 1. **Subagentes por ticket** — Cada ticket corre como subagente con contexto
    fresco (~200k tokens). El orquestador solo recibe el resultado resumido.
 2. **Estado en disco** — El orquestador escribe resultados a `results.tsv`
-   (TSV estructurado: ticket, commit, tests, status, description). Si se
-   pierde contexto, retoma leyendo ese archivo. `/learn` complementa con
-   `done-tasks.md` para lecciones narrativas.
+   (TSV estructurado: ticket, commit, tests, status, failure_category,
+   description). Si se pierde contexto, retoma leyendo ese archivo.
+   `/learn` complementa con `done-tasks.md` para lecciones narrativas.
 3. **Compactación proactiva** — Después de cada ticket, el orquestador evalúa
    su propio contexto. Si está pesado (3+ tickets completados), le pide al
    usuario correr `/compact` antes de continuar.
@@ -58,6 +58,17 @@ nunca se quede sin ventana de contexto:
 
 Para tickets excepcionalmente complejos (Alta complejidad + 4 subtareas de 5+ archivos),
 se sacan del prompt del sprint y se ejecutan directo en la sesión principal.
+
+### Jerarquía de capas de protección
+
+El harness tiene dos capas de protección. La primaria siempre está activa;
+la secundaria es apoyo opcional:
+
+**Primaria (gates del orquestador):** Preflight → Scope fence + diff audit →
+Tests → Completitud → Ledger. Estos son gates duros que no dependen de hooks.
+
+**Secundaria (hooks):** Guard destructivo + Anti-racionalización. Complementan
+al orquestador pero el sistema funciona sin ellos.
 
 ---
 
@@ -112,12 +123,21 @@ usando la lógica definida en `commands/preflight.md`.
 
 **Esta validación es obligatoria.** No generar prompt si hay specs con FAIL.
 
-Resumen de lo que valida:
+Resumen de lo que valida (dos capas):
+
+**Capa 1 — Estructural (determinista, sin interpretación):**
+- Headings obligatorios existen (Objetivo, Scope fence, Tests, etc.)
+- Secciones no vacías
+- Formato correcto (rutas con backtick, commits con formato, criterios como checkbox)
+- Cruces numéricos (allowlist ≥ archivos, denylist > 0, restricciones ≤ 10)
+
+**Capa 2 — Semántico (requiere interpretación):**
 - Campos obligatorios: objetivo, modo, scope fence, archivos, tests, aceptación, commit
 - Campos warning: restricciones, dependencias, complejidad, pasos concretos
 - Cruce: archivos del spec vs allowlist del scope fence
 - Cruce: dependencias referenciadas vs specs existentes
-- Restricciones excesivas (>10 = warning)
+
+La capa estructural se ejecuta primero y es determinista (mismo spec = mismo resultado).
 
 Si hay FAIL:
 1. Listar specs fallidos con campos faltantes
@@ -140,8 +160,8 @@ Para CADA sprint, generar DOS archivos siguiendo `templates/orchestrator-prompt.
    Es ultra-lean para mantenerse en la zona de fidelidad total (0-5K tokens).
 
 2. **ORCHESTRATOR_RULES.md** — Reglas de orquestación que el agente lee de disco.
-   Contiene: las 6 reglas, formato de results.tsv, patrón Heat Shield, y
-   paso final de `/learn`.
+   Contiene: las 7 reglas (incluyendo 2b scope audit y 2c completitud),
+   formato de results.tsv, patrón Heat Shield, y paso final de `/learn`.
 
 **Principio de diseño (lazy loading):**
 - El prompt del sprint NO inlinea los prompts de cada ticket
