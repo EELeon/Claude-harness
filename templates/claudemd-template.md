@@ -1,15 +1,21 @@
 # Template para CLAUDE.md de proyecto
 
 <!--
-REGLA: Mantener este archivo bajo 100 líneas / 2500 tokens.
-Cada línea debe existir porque resolvió un problema real.
-Si una regla no ha evitado un error concreto, borrarla.
+META-REGLAS (reglas sobre cómo escribir reglas):
+- Mantener este archivo bajo 100 líneas / ~2500 tokens
+- Cada regla debe existir porque resolvió un problema real
+- Usar forma IMPERATIVA: "SIEMPRE X" / "NUNCA Y" (94% compliance vs 73% descriptivo)
+- Máximo 1-2 frases por regla + justificación breve si no es obvia
+- Test de sustracción: "¿Qué error cometería Claude SIN esta regla?" — si no hay
+  respuesta clara y concreta, no agregar la regla
+- Reglas procedurales (lint, formato, permisos) → hooks/settings.json, NO aquí
+- Reglas que el modelo ya sabe (e.g., "usar convenciones de React") → no agregar
 
 CRITERIO DE SIMPLICIDAD:
-Si borrar una regla no causa errores nuevos, borrarla es una mejora.
-Si simplificar una regla la hace más clara sin perder protección, simplificarla.
+Si borrar una regla no causa errores nuevos → borrarla es una mejora.
 Dos reglas que dicen lo mismo → consolidar en una.
-Una regla que nunca se activa → eliminar.
+Una regla que nunca se activó en results.tsv → eliminar.
+Una regla que referencia archivos borrados o APIs deprecated → eliminar.
 -->
 
 # [Nombre del proyecto]
@@ -38,26 +44,30 @@ Una regla que nunca se activa → eliminar.
 ```
 
 ## Convenciones de código
-- [Convención 1 — e.g., "Usar snake_case para funciones"]
-- [Convención 2 — e.g., "Tests en tests/ con pytest"]
-- [Convención 3 — e.g., "Imports absolutos, nunca relativos"]
+- [SIEMPRE usar snake_case para funciones]
+- [NUNCA usar imports relativos — SIEMPRE absolutos]
+- [Tests en tests/ con pytest]
 
 ## Reglas de dominio
-<!-- Las reglas que Claude viola sin esta guía -->
-- [Regla 1 — e.g., "Un pedido solo puede tener un estado a la vez"]
-- [Regla 2 — e.g., "Nunca mezclar datos de producción con staging"]
-- [Regla 3 — e.g., "Separar siempre validación de input vs lógica de negocio vs output"]
+<!-- Reglas que Claude viola sin esta guía — forma imperativa obligatoria -->
+- [NUNCA mezclar datos de producción con staging]
+- [SIEMPRE separar validación de input vs lógica de negocio vs output]
+- [Un pedido SOLO puede tener un estado a la vez]
 
 ## 🚫 NO hacer (lecciones aprendidas)
 <!-- Se actualiza con /learn después de cada ticket -->
-- [Error que Claude cometió y cómo evitarlo]
+<!-- Formato: "NUNCA [hacer X] — [por qué falla] → [qué hacer en su lugar]" -->
+
+## ❌ Intentos fallidos
+<!-- Caminos muertos que Claude NO debe volver a explorar -->
+<!-- Sin esta sección, Claude reintenta soluciones que ya fracasaron, inflando costos -->
+<!-- Formato: "Intenté [X] y falló porque [Y] — usar [Z] en su lugar" -->
 
 ## Workflow
-- Siempre empezar leyendo el spec en `specs/ticket-N.md`
-- Usar subagentes para subtareas marcadas en el spec
-- Commit atómico después de cada subtarea
-- Correr tests antes de marcar como completado
-- Ejecutar `/learn` al terminar cada ticket para capturar lecciones
-  y verificar que no se dupliquen reglas en este archivo
+- SIEMPRE empezar leyendo el spec en `specs/ticket-N.md`
+- SIEMPRE usar subagentes para subtareas marcadas en el spec
+- SIEMPRE commit atómico después de cada subtarea
+- SIEMPRE correr tests antes de marcar como completado
+- SIEMPRE ejecutar `/learn` al terminar cada ticket
 - Si se usa mega-prompt: el orquestador maneja las transiciones entre tickets
 - Si se ejecuta manualmente: `/clear` entre tickets para contexto fresco

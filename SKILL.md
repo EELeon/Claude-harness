@@ -47,8 +47,15 @@ nunca se quede sin ventana de contexto:
    incluye puntos de pausa donde el usuario puede hacer `/clear` y re-pegar
    el prompt. El orquestador retoma automáticamente desde donde se quedó.
 
-**Limitación:** los subagentes no pueden crear sub-subagentes. Si un ticket
-tiene subtareas, el subagente las ejecuta secuencialmente en su propia ventana.
+**Limitaciones:**
+- Los subagentes no pueden crear sub-subagentes. Si un ticket tiene subtareas,
+  el subagente las ejecuta secuencialmente en su propia ventana.
+- **Máximo 5 subagentes concurrentes** por codebase (más = degradación sistémica).
+- Cada subagente empieza con **contexto en blanco** — todo lo que necesita
+  saber debe ir en el prompt de delegación.
+- El subagente devuelve **síntesis, no datos crudos** (patrón Heat Shield)
+  para proteger el contexto del orquestador.
+
 Para tickets excepcionalmente complejos (Alta complejidad + 4 subtareas de 5+ archivos),
 se sacan del mega-prompt y se ejecutan directo en la sesión principal.
 
@@ -122,7 +129,11 @@ de **mínimo viable → crece según necesidad**:
 **Siempre generar (Sprint 1):**
 1. **CLAUDE.md** del proyecto (si no existe o necesita actualización)
    - Leer `templates/claudemd-template.md` para la estructura
-   - Mantener bajo 100 líneas — se enriquece con `/learn` después de cada ticket
+   - Mantener bajo 100 líneas / ~2500 tokens — se enriquece con `/learn`
+   - Forma imperativa obligatoria (SIEMPRE/NUNCA) — 94% compliance vs 73% descriptivo
+   - Incluir sección "Intentos fallidos" (previene ciclos de reintento costosos)
+   - Reglas procedurales (lint, formato) → hooks/settings.json, NO en CLAUDE.md
+   - Test de sustracción: cada regla debe prevenir un error concreto y específico
 2. **Comandos base** en `.claude/commands/`
    - `/learn` — captura conocimiento post-ticket (ver `commands/learn.md`)
    - `/next-ticket` — lee el siguiente spec y empieza (ver `commands/next-ticket.md`)
@@ -150,6 +161,13 @@ de **mínimo viable → crece según necesidad**:
 Un CLAUDE.md con 3 reglas probadas en batalla vale más que uno con 30
 reglas teóricas. `/learn` se encarga de que las reglas crezcan orgánicamente.
 
+**Presupuesto de tokens (thresholds empíricos):**
+- CLAUDE.md: ~2500 tokens (100 líneas). Más = dilución de atención
+- Cada spec: ~5000 tokens. Más = pérdida de fidelidad
+- Máx 10 constraints por spec/delegación. Más = omisiones
+- Contexto del orquestador: degradación medible a ~100K tokens (50% capacidad)
+- Zona segura de fidelidad total: 0-5K tokens de instrucciones
+
 ### Paso 6 — Revisión con el usuario
 
 Presentar el paquete completo:
@@ -170,6 +188,13 @@ Ajustar según feedback antes de empaquetar.
 Un spec debe permitir que Claude Code ejecute **sin preguntar nada**.
 Si Claude Code tiene que "entender" o "explorar" antes de actuar,
 el spec está incompleto.
+
+**Límites empíricos para specs efectivos:**
+- Máximo **10 constraints** por spec (más causa omisiones críticas)
+- Target ~5000 tokens por spec (>5K = pérdida de fidelidad en instrucciones)
+- Forma imperativa en restricciones: "NUNCA X", "SIEMPRE Y"
+- Si hay dependencia fuerte con otro ticket, usar patrón Interface-First
+  (definir contrato/stub compartido antes de implementar)
 
 Cada spec DEBE incluir:
 

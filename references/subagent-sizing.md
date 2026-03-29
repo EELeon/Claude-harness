@@ -8,6 +8,10 @@ Un subagente de Claude Code:
 - Devuelve solo su resultado final al agente padre (no el contexto intermedio)
 - Puede correr en paralelo con otros subagentes
 - Tiene acceso restringido a herramientas según su configuración
+- **Máximo 5 subagentes concurrentes** por codebase — más de 5 causa
+  fallos de coordinación y degradación sistémica (confirmado empíricamente)
+- Empieza con **contexto en blanco** — NO hereda la conversación del padre.
+  Todo lo que necesita saber debe ir en el prompt de delegación
 
 ## Cuándo dividir un ticket en subtareas con subagentes
 
@@ -120,12 +124,35 @@ NO hagas:
 - Specs deben incluir contexto de arquitectura
 - 1 ticket complejo puede consumir 1 sesión entera
 
+## Patrón Heat Shield (retorno de subagentes)
+
+El subagente NO debe devolver datos crudos al orquestador. El orquestador
+necesita mantener su contexto lean para seguir orquestando.
+
+**El subagente devuelve:**
+- Resumen de qué se hizo (1-3 líneas)
+- Hash del commit
+- Estado de tests (passed/failed)
+- Archivos tocados (lista)
+
+**El subagente NO devuelve:**
+- Logs completos de ejecución
+- Contenido de archivos leídos
+- Output completo de tests (solo pass/fail + nombre del test que falló)
+
+Este patrón protege al orquestador de acumular contexto innecesario
+que acelera la degradación de la ventana.
+
 ## Errores comunes al dividir
 
 1. **Subtareas demasiado granulares** — Si una subtarea es "agregar un campo a un dict", no necesita subagente. Agrupá cambios relacionados.
 
 2. **Dependencias circulares** — Si A necesita el output de B y B necesita el de A, no son subtareas separables. Refactorizá la división.
 
-3. **Subagente sin contexto suficiente** — Si el prompt no incluye qué hace el archivo que va a modificar, el subagente va a tener que explorarlo y gasta contexto innecesariamente.
+3. **Subagente sin contexto suficiente** — Si el prompt no incluye qué hace el archivo que va a modificar, el subagente va a tener que explorarlo y gasta contexto innecesariamente. Incluir siempre: rutas exactas, qué hace cada archivo (1 línea), y el "por qué" estratégico.
 
 4. **Olvidar el commit atómico** — Cada subtarea debe terminar con commit. Sin commit, si falla la siguiente subtarea, se pierde todo.
+
+5. **Demasiados constraints en el prompt** — Máximo 10 restricciones por delegación. Más de 10 causa omisiones críticas del modelo.
+
+6. **Más de 5 subagentes concurrentes** — Causa degradación sistémica por sobrecarga de coordinación. Si un ticket necesita más de 5 subtareas paralelas, serializar en grupos de ≤5.

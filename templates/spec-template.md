@@ -11,6 +11,15 @@
 - Requiere: [Ticket X completado | Ninguna]
 - Bloquea: [Ticket Y | Ninguno]
 
+<!--
+DEPENDENCIAS FUERTES — Patrón Interface-First:
+Si este ticket depende de otro que AÚN NO está implementado, definir
+un contrato explícito (interfaz, tipo, stub) que ambos tickets respeten.
+Esto permite desarrollo paralelo sin bloqueo.
+Ejemplo: Si Ticket B consume una API de Ticket A, definir el schema
+de request/response como stub antes de implementar cualquiera.
+-->
+
 ## Modo de ejecución: [Subagente | Sesión principal]
 
 <!--
@@ -98,9 +107,16 @@ pytest tests/test_[modulo].py -v
 
 ## NO hacer
 
-- No [restricción 1 — qué evitar y por qué]
-- No [restricción 2]
-- No [restricción 3]
+<!--
+LÍMITE: Máximo 10 restricciones por spec.
+Más de 10 constraints causa omisiones críticas — el modelo pierde
+instrucciones cuando hay demasiadas reglas compitiendo por atención.
+Si necesitás más de 10, priorizá las más peligrosas y mové el resto
+a "contexto del proyecto" en el prompt del subagente.
+-->
+- NUNCA [restricción 1 — qué evitar y por qué]
+- NUNCA [restricción 2]
+- NUNCA [restricción 3]
 
 ---
 
@@ -120,7 +136,8 @@ Incluir todo lo necesario para que el subagente ejecute sin explorar.
 Lee e implementa el spec en `specs/ticket-[N].md`.
 
 Contexto del proyecto: [1-2 líneas del CLAUDE.md que el subagente necesita
-saber — reglas de dominio, convenciones de naming, ubicación de tests]
+saber — reglas de dominio, convenciones de naming, ubicación de tests.
+Máximo 10 constraints — priorizar las más peligrosas.]
 
 Archivos a modificar:
 - `ruta/archivo1.py` — [qué contiene actualmente y qué cambiar]

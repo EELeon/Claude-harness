@@ -63,7 +63,7 @@ Las únicas razones válidas para pausar son:
 - Llegaste a un punto de corte (Regla 5)
 - Un error sistémico impide continuar (ej: el repo está roto)
 
-### Regla 4: Gestión de contexto
+### Regla 4: Gestión de contexto y paraphrase loss
 Después de cada ticket completado o descartado:
 1. Registrá el resultado en `results.tsv` (ver formato abajo)
 2. Evaluá tu uso de contexto
@@ -71,6 +71,13 @@ Después de cada ticket completado o descartado:
    decile al usuario: **"Recomiendo correr /compact antes de continuar
    con el siguiente ticket. Tu progreso está guardado en results.tsv."**
 4. Después de /compact, retomá leyendo `results.tsv` para saber qué falta
+
+**AVISO sobre /compact (paraphrase loss):** Cuando se comprime el contexto,
+las instrucciones detalladas se parafrasean y pierden precisión. Por eso:
+- Las reglas del sprint están en este prompt (se re-leen al re-pegar)
+- El estado está en results.tsv (sobrevive cualquier compresión)
+- Los specs están en disco (el subagente los lee frescos)
+- NUNCA depender de "lo que recuerdo de tickets anteriores"
 
 ### Regla 5: Punto de corte (sprints largos)
 Si este sprint tiene 5+ tickets, hay un **punto de corte** marcado abajo.
@@ -212,6 +219,24 @@ archivos del repo. El subagente NO tiene acceso a:
 
 Por eso cada prompt incluye las líneas relevantes del CLAUDE.md
 y las restricciones específicas del ticket.
+
+**Límite de constraints:** Máximo 10 restricciones por prompt de subagente.
+Más de 10 causa omisiones críticas — el modelo pierde instrucciones
+cuando hay demasiadas reglas compitiendo por atención probabilística.
+Priorizar las restricciones más peligrosas (las que causan errores
+difíciles de detectar).
+
+### Patrón Heat Shield (retorno de subagentes)
+
+El subagente devuelve al orquestador SOLO:
+- Resumen de qué se hizo (1-3 líneas)
+- Hash del commit
+- Estado de tests (passed/failed + nombre del test fallido si aplica)
+- Archivos tocados
+
+NO devuelve logs completos, contenido de archivos, ni output de tests.
+Esto protege al orquestador de acumular contexto innecesario que
+acelera la degradación de la ventana.
 
 ### Dónde poner el punto de corte
 

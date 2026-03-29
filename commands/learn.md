@@ -11,6 +11,7 @@ Revisa todo lo que pasó en este thread:
 - ¿Qué archivos resultaron relevantes que no estaban en el spec?
 - ¿Qué patrones del codebase descubriste que no sabías?
 - ¿Hubo algo que el spec no cubría y tuviste que decidir?
+- ¿Intentaste algo que falló? (candidato para sección "Intentos fallidos")
 
 ## 2. Cross-reference contra CLAUDE.md existente
 
@@ -31,31 +32,64 @@ ANTES de agregar cualquier regla nueva, leé CLAUDE.md completo y verificá:
   Si sí → corregirlas o eliminarlas. Las reglas que no reflejan la
   realidad del codebase hacen más daño que bien
 
-## 3. Actualizar CLAUDE.md (solo lo necesario)
+- **¿Hay reglas stale?** (referencian archivos borrados, APIs deprecated,
+  o no se activaron en ningún ticket de results.tsv)
+  Si sí → eliminarlas. Las reglas muertas diluyen la atención del modelo
+  sobre las reglas críticas
 
-Después del cross-reference, agregar a la sección "NO hacer (lecciones aprendidas)":
-- Una línea por cada error NUEVO (que no estaba cubierto por reglas existentes)
-- Formato: "No [hacer X] — [por qué falla] → [qué hacer en su lugar]"
+## 3. Test de sustracción causal (gate obligatorio)
+
+Para CADA regla que quieras agregar, preguntate:
+> "¿Qué error CONCRETO cometería Claude SIN esta regla?"
+
+- Si la respuesta es clara y específica → la regla pasa el test
+- Si la respuesta es vaga ("podría confundirse", "es buena práctica") → NO agregar
+- Si la regla describe algo que el modelo ya sabe por pre-training
+  (e.g., "usar convenciones de React") → NO agregar
+
+## 4. Clasificar el destino de cada regla
+
+No todo va a CLAUDE.md. Clasificar cada regla nueva:
+
+| Destino | Criterio | Ejemplo |
+|---------|----------|---------|
+| **CLAUDE.md** | Regla de dominio o decisión que Claude no puede inferir | "NUNCA mezclar presupuesto con cotización" |
+| **hooks/settings.json** | Regla procedural verificable por código | Lint, formato, permisos de archivos |
+| **Intentos fallidos** | Camino muerto que NO se debe reintentar | "Intenté X y falló porque Y" |
+| **Agente custom** | Regla específica de un dominio con agente en .claude/agents/ | Regla eléctrica → agente eléctrico |
+| **No agregar** | Ya cubierta, redundante con pre-training, o no generalizable | "Usar camelCase en JS" |
+
+## 5. Actualizar CLAUDE.md (solo lo necesario)
+
+Después de pasar el gate de sustracción causal:
+
+**Para "NO hacer" (lecciones):**
+- Formato IMPERATIVO: "NUNCA [hacer X] — [por qué falla] → [qué hacer en su lugar]"
 - Solo agregar si la regla es generalizable (no específica a este ticket)
 
-Si descubriste convenciones de código o reglas de dominio que faltan,
-agregarlas a las secciones correspondientes.
+**Para "Intentos fallidos":**
+- Formato: "Intenté [X] y falló porque [Y] — usar [Z] en su lugar"
+- CRÍTICO: sin esta sección, Claude reintenta caminos muertos y gasta tokens
+
+**Para convenciones o reglas de dominio:**
+- Agregar a la sección correspondiente en forma imperativa (SIEMPRE/NUNCA)
 
 **Meta-regla de simplicidad:** Después de actualizar, contar las líneas
-de CLAUDE.md. Si supera 100 líneas, aplicar el criterio de simplicidad:
+de CLAUDE.md. Si supera 100 líneas, aplicar:
 - Si borrar una regla no causa errores nuevos → borrarla es una mejora
 - Dos reglas que dicen lo mismo → consolidar en una
 - Una regla que nunca se activó en ningún ticket de results.tsv → eliminar
+- Una regla que referencia archivos borrados o APIs deprecated → eliminar
 - Simplificar redacción sin perder protección → siempre vale la pena
 
 Un CLAUDE.md corto y preciso es más efectivo que uno largo y exhaustivo.
 
-## 4. Actualizar agentes (si aplica)
+## 6. Actualizar agentes (si aplica)
 
 Si el error fue específico de un dominio que tiene agente custom
 en `.claude/agents/`, actualizar el agente con la lección.
 
-## 5. Evaluar si hace falta nueva infraestructura
+## 7. Evaluar si hace falta nueva infraestructura
 
 Basado en los patrones de este ticket y los anteriores:
 
@@ -69,7 +103,7 @@ Basado en los patrones de este ticket y los anteriores:
 NO crear la infraestructura automáticamente — sugerir al usuario
 y dejar que decida.
 
-## 6. Registrar en done-tasks.md
+## 8. Registrar en done-tasks.md
 
 Agregar al archivo `done-tasks.md` (crear si no existe):
 ```
@@ -78,15 +112,19 @@ Agregar al archivo `done-tasks.md` (crear si no existe):
 - Tests: [pasaron/fallaron]
 - Lecciones: [resumen de 1 línea]
 - Reglas nuevas en CLAUDE.md: [N agregadas, N modificadas, N eliminadas]
+- Intentos fallidos registrados: [N]
+- Reglas stale eliminadas: [N]
 - Infraestructura sugerida: [ninguna | agente para X | hook Stop | etc.]
 - Tiempo aproximado de contexto usado: [bajo/medio/alto]
 ```
 
-## 7. Preparar para el siguiente
+## 9. Preparar para el siguiente
 
 Reporta:
 - Qué se completó
 - Qué se cambió en CLAUDE.md (agregados, modificados, eliminados)
+- Intentos fallidos registrados (previene reintentos costosos)
+- Reglas stale eliminadas (mantiene CLAUDE.md limpio)
 - Cualquier deuda técnica detectada
 - Infraestructura sugerida (si aplica)
 - Recomendación para el siguiente ticket
