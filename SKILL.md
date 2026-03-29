@@ -36,8 +36,10 @@ nunca se quede sin ventana de contexto:
 
 1. **Subagentes por ticket** — Cada ticket corre como subagente con contexto
    fresco (~200k tokens). El orquestador solo recibe el resultado resumido.
-2. **Estado en disco** — El orquestador escribe progreso a `done-tasks.md`
-   después de cada ticket. Si se pierde contexto, retoma leyendo ese archivo.
+2. **Estado en disco** — El orquestador escribe resultados a `results.tsv`
+   (TSV estructurado: ticket, commit, tests, status, description). Si se
+   pierde contexto, retoma leyendo ese archivo. `/learn` complementa con
+   `done-tasks.md` para lecciones narrativas.
 3. **Compactación proactiva** — Después de cada ticket, el orquestador evalúa
    su propio contexto. Si está pesado (3+ tickets completados), le pide al
    usuario correr `/compact` antes de continuar.
@@ -223,7 +225,8 @@ proyecto/
 │   └── ...
 ├── CLAUDE.md                  # Mínimo viable — crece con /learn
 ├── EXECUTION_PLAN.md
-└── done-tasks.md              # Se crea durante ejecución
+├── results.tsv                # Tracking estructurado (keep/discard/crash)
+└── done-tasks.md              # Lecciones narrativas (escrito por /learn)
 ```
 
 Después del Sprint 1, `/learn` y `/retrospective` sugieren qué agregar.

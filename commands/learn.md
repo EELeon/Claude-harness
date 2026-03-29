@@ -41,9 +41,14 @@ Después del cross-reference, agregar a la sección "NO hacer (lecciones aprendi
 Si descubriste convenciones de código o reglas de dominio que faltan,
 agregarlas a las secciones correspondientes.
 
-**Meta-regla:** Después de actualizar, contar las líneas de CLAUDE.md.
-Si supera 100 líneas, consolidar reglas redundantes o eliminar las que
-nunca han prevenido un error real.
+**Meta-regla de simplicidad:** Después de actualizar, contar las líneas
+de CLAUDE.md. Si supera 100 líneas, aplicar el criterio de simplicidad:
+- Si borrar una regla no causa errores nuevos → borrarla es una mejora
+- Dos reglas que dicen lo mismo → consolidar en una
+- Una regla que nunca se activó en ningún ticket de results.tsv → eliminar
+- Simplificar redacción sin perder protección → siempre vale la pena
+
+Un CLAUDE.md corto y preciso es más efectivo que uno largo y exhaustivo.
 
 ## 4. Actualizar agentes (si aplica)
 
@@ -54,7 +59,7 @@ en `.claude/agents/`, actualizar el agente con la lección.
 
 Basado en los patrones de este ticket y los anteriores:
 
-- **¿Se repite el mismo tipo de error 3+ veces en done-tasks.md?**
+- **¿Se repite el mismo tipo de error 3+ veces en results.tsv/done-tasks.md?**
   → Sugerir crear un agente custom para ese dominio
 - **¿Claude declaró "listo" prematuramente en este ticket?**
   → Sugerir instalar el hook Stop si no está instalado

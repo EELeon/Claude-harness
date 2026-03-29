@@ -3,7 +3,7 @@
 Lee EXECUTION_PLAN.md y determina cuál es el siguiente ticket pendiente.
 
 1. Leer `EXECUTION_PLAN.md` para identificar el ticket actual
-2. Leer `done-tasks.md` para confirmar qué ya se completó
+2. Leer `results.tsv` para confirmar qué ya se completó (status = keep)
 3. Leer el spec correspondiente: `specs/ticket-[N].md`
 4. Mostrar resumen:
    - Título del ticket

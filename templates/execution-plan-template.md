@@ -125,15 +125,25 @@ Si la ejecución autónoma falla a mitad del sprint:
 - **Tipo:** Anti-racionalización
 - **Acción:** Bloquea respuestas que declaren victoria prematura
 
-### Formato de done-tasks.md
+### Tracking de resultados (dos archivos)
 
-El orquestador y `/learn` escriben a este archivo con este formato:
+**`results.tsv`** — Escrito por el orquestador. Tracking estructurado
+para retomar sprints después de `/clear` y para análisis automatizado.
+```
+ticket	commit	tests	status	description
+T-1	a1b2c3d	passed	keep	block por nivel con tabla y capa DXF
+T-5	c3d4e5f	failed	discard	capas eléctricas — tests fallaron
+T-5	d4e5f6g	passed	keep	capas eléctricas — fix aplicado
+```
+
+**`done-tasks.md`** — Escrito por `/learn`. Lecciones narrativas
+para humanos y para que `/retrospective` analice.
 ```
 ## [fecha] — Ticket [N]: [título]
 - Subtareas completadas: [lista]
 - Tests: [pasaron/fallaron]
 - Lecciones: [resumen de 1 línea]
-- Tiempo aproximado de contexto usado: [bajo/medio/alto]
+- Reglas nuevas en CLAUDE.md: [N agregadas, N modificadas, N eliminadas]
 ```
-Este archivo se commitea al repo y permite retomar sprints
-después de `/clear`.
+
+Ambos archivos se commitean al repo.

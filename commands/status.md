@@ -3,28 +3,31 @@
 Reporta el progreso del sprint actual:
 
 1. Leer `EXECUTION_PLAN.md`
-2. Leer `done-tasks.md`
-3. Verificar rama actual con `git branch --show-current`
-4. Contar commits del sprint con `git log --oneline main..HEAD`
+2. Leer `results.tsv` para ver qué tickets tienen status keep/discard/crash
+3. Leer `done-tasks.md` para lecciones (si existe)
+4. Verificar rama actual con `git branch --show-current`
+5. Contar commits del sprint con `git log --oneline main..HEAD`
 
 Mostrar:
 
 ```
 Sprint: [nombre]
 Rama: [nombre]
-Progreso: [N/M] tickets completados
+Progreso: [N] keep / [N] discard / [N] crash de [M] total
 
-✅ Completados:
-  - Ticket N: [título] ([fecha])
+Completados (keep):
+  - T-[N]: [título] ([commit])
 
-🔄 Siguiente:
-  - Ticket N: [título] — [complejidad]
+Descartados (discard):
+  - T-[N]: [título] — [razón del discard]
 
-⏳ Pendientes:
-  - Ticket N: [título]
+Siguiente:
+  - T-[N]: [título] — [complejidad]
+
+Pendientes:
+  - T-[N]: [título]
 
 Commits: [N] commits en esta rama
-Contexto: [estimación de uso basada en /context]
 ```
 
 $ARGUMENTS

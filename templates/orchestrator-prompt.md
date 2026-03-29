@@ -11,7 +11,7 @@ El orquestador usa una combinación de técnicas para no quedarse sin contexto:
 1. SUBAGENTES: Cada ticket corre como subagente → contexto fresco automático.
    El orquestador solo recibe el resultado resumido, no todo el contexto intermedio.
 
-2. ESTADO EN DISCO: El orquestador escribe progreso a done-tasks.md después de
+2. ESTADO EN DISCO: El orquestador escribe progreso a results.tsv después de
    cada ticket. Si se corre /compact o /clear, puede retomar leyendo ese archivo.
 
 3. COMPACTACIÓN PROACTIVA: Después de cada ticket, el orquestador evalúa su
@@ -20,7 +20,7 @@ El orquestador usa una combinación de técnicas para no quedarse sin contexto:
 
 4. PUNTOS DE CORTE: Para sprints largos (5+ tickets), el mega-prompt incluye
    puntos de pausa donde el usuario puede hacer /clear y re-pegar el prompt.
-   El orquestador retoma desde donde se quedó leyendo done-tasks.md.
+   El orquestador retoma desde donde se quedó leyendo results.tsv.
 
 LIMITACIONES:
 - Claude Code NO puede ejecutar /clear ni /compact programáticamente
@@ -39,35 +39,50 @@ Ejecuta los tickets de este sprint en orden. Seguí estas reglas estrictamente:
 ### Regla 1: Cada ticket como subagente
 Para cada ticket, lanzá un **subagente general-purpose** con el prompt
 indicado abajo. NO implementes tickets directamente en el contexto principal
-(excepto correcciones menores si el subagente falla).
+(excepto correcciones menores post-rollback).
 
-### Regla 2: Verificación entre tickets
+### Regla 2: Verificación y rollback automático
 Después de cada subagente:
-1. Verificá que el commit existe: `git log -1 --oneline`
-2. Corré los tests del ticket: `[comando de tests]`
-3. Si falla, intentá corregir en el contexto principal
-4. Registrá el resultado en `done-tasks.md`
+1. Guardá el hash del commit anterior: `git rev-parse HEAD` (antes del subagente)
+2. Verificá que el commit existe: `git log -1 --oneline`
+3. Corré los tests del ticket: `[comando de tests]`
+4. **Si los tests pasan:** registrá `keep` en `results.tsv` y continuá
+5. **Si los tests fallan:** intentá una corrección rápida (máximo 2 intentos).
+   Si no se resuelve, hacé rollback: `git reset --hard [hash anterior]`,
+   registrá `discard` en `results.tsv`, y continuá con el siguiente ticket.
+   NO te quedes trabado intentando arreglar un ticket roto indefinidamente.
 
-### Regla 3: Gestión de contexto
-Después de cada ticket completado:
-1. Escribí el progreso a `done-tasks.md` (fecha, ticket, estado, lecciones)
+### Regla 3: Autonomía total (NEVER STOP)
+Una vez que empieces a ejecutar los tickets, NO pares a preguntar
+"¿sigo?" o "¿es un buen punto para parar?". El usuario puede estar
+durmiendo o lejos de la computadora. Continuá ejecutando tickets
+hasta terminar el sprint completo o hasta que el usuario te interrumpa.
+
+Las únicas razones válidas para pausar son:
+- Necesitás que el usuario corra `/compact` (Regla 4)
+- Llegaste a un punto de corte (Regla 5)
+- Un error sistémico impide continuar (ej: el repo está roto)
+
+### Regla 4: Gestión de contexto
+Después de cada ticket completado o descartado:
+1. Registrá el resultado en `results.tsv` (ver formato abajo)
 2. Evaluá tu uso de contexto
 3. Si sentís que tu contexto está pesado o llevás 3+ tickets completados,
    decile al usuario: **"Recomiendo correr /compact antes de continuar
-   con el siguiente ticket. Tu progreso está guardado en done-tasks.md."**
-4. Después de /compact, retomá leyendo done-tasks.md para saber qué falta
+   con el siguiente ticket. Tu progreso está guardado en results.tsv."**
+4. Después de /compact, retomá leyendo `results.tsv` para saber qué falta
 
-### Regla 4: Punto de corte (sprints largos)
+### Regla 5: Punto de corte (sprints largos)
 Si este sprint tiene 5+ tickets, hay un **punto de corte** marcado abajo.
 Al llegar al punto de corte:
-1. Asegurate de que done-tasks.md está actualizado
+1. Asegurate de que `results.tsv` está actualizado
 2. Mostrá resumen de progreso parcial
 3. Decile al usuario: **"Llegamos al punto de corte. Recomiendo:
    /clear y luego pegá de nuevo este prompt. Voy a retomar
-   automáticamente desde el ticket [N] leyendo done-tasks.md."**
+   automáticamente desde el ticket [N] leyendo results.tsv."**
 
-### Regla 5: Retomar después de /clear
-Si al empezar este prompt encontrás que done-tasks.md ya tiene tickets
+### Regla 6: Retomar después de /clear
+Si al empezar este prompt encontrás que `results.tsv` ya tiene tickets
 completados de este sprint, **saltá los tickets ya completados** y
 continuá con el siguiente pendiente.
 
@@ -103,7 +118,7 @@ continuá con el siguiente pendiente.
 
 <!-- Para sprints de 5+ tickets, insertar aquí: -->
 <!-- ### --- PUNTO DE CORTE --- -->
-<!-- Antes de continuar, ejecutá la Regla 4 de arriba. -->
+<!-- Antes de continuar, ejecutá la Regla 5 de arriba. -->
 
 ### 3. Ticket [N] — [Título]
 ...
@@ -112,18 +127,47 @@ continuá con el siguiente pendiente.
 
 ---
 
+## Formato de results.tsv
+
+Crear `results.tsv` al inicio del sprint (si no existe) con este header.
+Usar tabs como separador (NO comas — rompen en descripciones).
+
+```
+ticket	commit	tests	status	description
+```
+
+Columnas:
+1. **ticket** — número de ticket (ej: T-3)
+2. **commit** — hash corto de 7 chars (ej: a1b2c3d). "0000000" para crashes
+3. **tests** — passed / failed / crash
+4. **status** — keep / discard / crash
+5. **description** — qué se intentó hacer (1 línea)
+
+Ejemplo:
+```
+ticket	commit	tests	status	description
+T-1	a1b2c3d	passed	keep	block por nivel con tabla y capa DXF
+T-5	b2c3d4e	passed	keep	capas eléctricas oficiales por frente físico
+T-6	c3d4e5f	failed	discard	block pineado — tests de cuantificación fallaron
+T-6	d4e5f6g	passed	keep	block pineado — fix: separar conteo de pineado
+```
+
+Nota: un ticket puede aparecer más de una vez si se descartó y reintentó.
+
+---
+
 ## Al terminar todos los tickets
 
 1. Corré la suite completa de tests: `[comando]`
 2. Si hay fallos, corregí
-3. Asegurate de que `done-tasks.md` está completo
+3. Asegurate de que `results.tsv` está completo
 4. Ejecutá `/learn sprint-[LETRA] completo` para:
    - Cross-referenciar lecciones contra CLAUDE.md existente (sin duplicar)
    - Agregar solo reglas nuevas que la experiencia real justifique
    - Evaluar si hace falta infraestructura adicional (agentes, hooks)
-   - Registrar el sprint completo en done-tasks.md
+   - Registrar resumen del sprint en done-tasks.md
 5. Mostrá resumen final:
-   - Tickets completados
+   - Tickets: [N] keep / [N] discard / [N] crash
    - Cambios en CLAUDE.md (agregados, modificados, eliminados)
    - Infraestructura sugerida por /learn (si aplica)
    - Deuda técnica detectada

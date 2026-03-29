@@ -1,9 +1,15 @@
 # Template para CLAUDE.md de proyecto
 
-<!-- 
+<!--
 REGLA: Mantener este archivo bajo 100 líneas / 2500 tokens.
 Cada línea debe existir porque resolvió un problema real.
 Si una regla no ha evitado un error concreto, borrarla.
+
+CRITERIO DE SIMPLICIDAD:
+Si borrar una regla no causa errores nuevos, borrarla es una mejora.
+Si simplificar una regla la hace más clara sin perder protección, simplificarla.
+Dos reglas que dicen lo mismo → consolidar en una.
+Una regla que nunca se activa → eliminar.
 -->
 
 # [Nombre del proyecto]

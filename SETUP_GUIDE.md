@@ -229,7 +229,7 @@ Mantenimiento periódico:
   directamente en la terminal de Claude Code (es un comando del usuario,
   no algo que Claude pueda correr solo). Si ya es muy tarde, ejecutá
   `/clear` vos y pegá el mega-prompt de nuevo — Claude retoma
-  automáticamente leyendo `done-tasks.md`.
+  automáticamente leyendo `results.tsv`.
 
 **El hook Stop bloquea todo**
 → Bajá la sensibilidad removiendo frases del prompt del hook.
@@ -245,7 +245,8 @@ Mantenimiento periódico:
 → No modifiqués el mega-prompt activo. Agregá los tickets nuevos al
   siguiente sprint, o creá un mini-sprint adicional.
 
-**¿`done-tasks.md` se commitea o se ignora?**
-→ Commitealo. Sirve como registro de progreso y permite que `/learn`
-  y `/status` funcionen entre sesiones. Si trabajás en equipo,
-  cada persona puede ver qué tickets ya se completaron.
+**¿`results.tsv` y `done-tasks.md` se commitean o se ignoran?**
+→ Commitealos. `results.tsv` es el tracking estructurado que permite
+  retomar sprints después de `/clear`. `done-tasks.md` tiene las
+  lecciones narrativas que `/retrospective` analiza. Si trabajás
+  en equipo, ambos permiten ver el progreso.
