@@ -117,6 +117,7 @@ Si la ejecución autónoma falla a mitad del sprint:
 | `/learn` | `.claude/commands/learn.md` | Captura lecciones post-ticket |
 | `/next-ticket` | `.claude/commands/next-ticket.md` | Inicia siguiente ticket |
 | `/status` | `.claude/commands/status.md` | Muestra progreso del sprint |
+| `/retrospective` | `.claude/commands/retrospective.md` | Análisis retroactivo de sesiones (instalar post Sprint 1) |
 
 ### Hook Stop
 

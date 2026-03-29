@@ -67,7 +67,7 @@ Leer todos los tickets. Para cada uno, extraer:
 | **Tests** | Tests mencionados en el ticket |
 | **Modo de ejecución** | Subagente (default) o Sesión principal (si es excepcionalmente complejo) |
 
-Presentar tabla-resumen a Edwin antes de continuar.
+Presentar tabla-resumen al usuario antes de continuar.
 
 ### Paso 2 — Agrupación en sprints
 
@@ -77,7 +77,7 @@ Agrupar tickets por estos criterios (en orden de prioridad):
 2. **Dominio compartido** — tickets que tocan los mismos archivos juntos
 3. **Complejidad balanceada** — no más de 2 tickets de complejidad Alta por sprint
 
-Cada sprint = 1 rama de git = 1 mega-prompt. Presentar propuesta a Edwin.
+Cada sprint = 1 rama de git = 1 mega-prompt. Presentar propuesta al usuario.
 
 ### Paso 3 — Generar specs
 
@@ -112,34 +112,52 @@ El mega-prompt es el producto final más importante. Debe:
 3. Agregar 1-2 líneas de contexto del CLAUDE.md relevantes al dominio
 4. El prompt debe funcionar SIN que el subagente lea nada más que los archivos del repo
 
-### Paso 5 — Generar artefactos de soporte
+### Paso 5 — Generar artefactos de soporte (progresivo)
 
-Además de specs y mega-prompts, generar:
+La infraestructura no se pre-carga toda de una vez. Seguir este orden
+de **mínimo viable → crece según necesidad**:
 
+**Siempre generar (Sprint 1):**
 1. **CLAUDE.md** del proyecto (si no existe o necesita actualización)
    - Leer `templates/claudemd-template.md` para la estructura
-2. **Agentes custom** en `.claude/agents/`
-   - Leer `references/agent-patterns.md` para los patrones
-   - Solo crear si el proyecto tiene dominios especializados con reglas que Claude viola
-3. **Comandos** en `.claude/commands/`
+   - Mantener bajo 100 líneas — se enriquece con `/learn` después de cada ticket
+2. **Comandos base** en `.claude/commands/`
    - `/learn` — captura conocimiento post-ticket (ver `commands/learn.md`)
    - `/next-ticket` — lee el siguiente spec y empieza (ver `commands/next-ticket.md`)
    - `/status` — muestra progreso del sprint (ver `commands/status.md`)
-4. **Hook Stop** — anti-racionalización
-   - Leer `templates/stop-hook.md` para las opciones
-   - Instalar en `.claude/settings.json`
-5. **Plan de ejecución** — `EXECUTION_PLAN.md` en la raíz
+3. **Plan de ejecución** — `EXECUTION_PLAN.md` en la raíz
    - Leer `templates/execution-plan-template.md`
 
-### Paso 6 — Revisión con Edwin
+**Sugerir pero no instalar aún (evaluar después del Sprint 1):**
+4. **Agentes custom** en `.claude/agents/`
+   - Leer `references/agent-patterns.md` para los patrones
+   - Solo crear si después del primer sprint `/learn` detecta que el mismo
+     tipo de error se repite 3+ veces en un dominio específico
+   - Describir al usuario qué agentes SE PODRÍAN crear y por qué, pero
+     dejar que la experiencia real del primer sprint confirme la necesidad
+5. **Hook Stop** — anti-racionalización
+   - Leer `templates/stop-hook.md` para las opciones
+   - Solo instalar si durante la ejecución Claude declara victoria prematura
+     o `/learn` reporta trabajo incompleto aceptado
+   - Mencionar al usuario que existe y cómo activarlo cuando lo necesite
+6. **`/retrospective`** — análisis retroactivo de sesiones
+   - Instalar `commands/retrospective.md` después del primer sprint completo
+   - Complementa a `/learn` (captura en caliente) con vista panorámica periódica
+
+**Principio:** La complejidad emerge de la presión real, no se anticipa.
+Un CLAUDE.md con 3 reglas probadas en batalla vale más que uno con 30
+reglas teóricas. `/learn` se encarga de que las reglas crezcan orgánicamente.
+
+### Paso 6 — Revisión con el usuario
 
 Presentar el paquete completo:
 - Tabla de sprints con tickets y modo de ejecución
 - Specs generados (resumen de cada uno)
 - **Mega-prompts generados** (uno por sprint, listos para copiar y pegar)
-- Agentes custom propuestos
-- Hook Stop configurado
 - Advertencias sobre tickets sacados del mega-prompt (si los hay)
+- **Infraestructura diferida:** qué agentes custom, hooks, y comandos
+  adicionales podrían ser útiles DESPUÉS del primer sprint, y bajo qué
+  condiciones activarlos
 
 Ajustar según feedback antes de empaquetar.
 
@@ -186,29 +204,32 @@ Cada spec DEBE incluir:
 
 ---
 
-## Entrega final a Edwin
+## Entrega final
 
-El paquete listo para ejecución incluye estos archivos en el repo:
+El paquete del Sprint 1 incluye solo lo esencial:
 
 ```
 proyecto/
 ├── .claude/
-│   ├── agents/           # Agentes custom (si aplica)
 │   ├── commands/
-│   │   ├── learn.md
-│   │   ├── next-ticket.md
-│   │   └── status.md
-│   └── settings.json     # Con hook Stop configurado
+│   │   ├── learn.md           # Siempre
+│   │   ├── next-ticket.md     # Siempre
+│   │   └── status.md          # Siempre
+│   ├── agents/                # Solo si /learn lo sugiere después del Sprint 1
+│   └── settings.json          # Solo si se necesita hook Stop
 ├── specs/
 │   ├── ticket-1.md
 │   ├── ticket-2.md
 │   └── ...
-├── CLAUDE.md
+├── CLAUDE.md                  # Mínimo viable — crece con /learn
 ├── EXECUTION_PLAN.md
-└── done-tasks.md          # Se crea durante ejecución
+└── done-tasks.md              # Se crea durante ejecución
 ```
 
-Y las instrucciones para Edwin:
+Después del Sprint 1, `/learn` y `/retrospective` sugieren qué agregar.
+La infraestructura crece orgánicamente en vez de pre-cargarse.
+
+Instrucciones para el usuario:
 
 > **Para ejecutar un sprint:**
 > 1. `git checkout -b sprint-[X]-[nombre]`
@@ -245,3 +266,4 @@ Leer estos archivos cuando sea necesario:
 | `commands/learn.md` | Al instalar el comando /learn |
 | `commands/next-ticket.md` | Al instalar el comando /next-ticket |
 | `commands/status.md` | Al instalar el comando /status |
+| `commands/retrospective.md` | Al instalar /retrospective (post Sprint 1) |

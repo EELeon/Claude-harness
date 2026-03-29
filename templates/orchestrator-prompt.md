@@ -117,13 +117,15 @@ continuá con el siguiente pendiente.
 1. Corré la suite completa de tests: `[comando]`
 2. Si hay fallos, corregí
 3. Asegurate de que `done-tasks.md` está completo
-4. Leé CLAUDE.md y agregá lecciones aprendidas:
-   - Errores cometidos → reglas preventivas
-   - Patrones del codebase descubiertos → convenciones
-   - Decisiones tomadas sin guía del spec → documentar
+4. Ejecutá `/learn sprint-[LETRA] completo` para:
+   - Cross-referenciar lecciones contra CLAUDE.md existente (sin duplicar)
+   - Agregar solo reglas nuevas que la experiencia real justifique
+   - Evaluar si hace falta infraestructura adicional (agentes, hooks)
+   - Registrar el sprint completo en done-tasks.md
 5. Mostrá resumen final:
    - Tickets completados
-   - Cambios en CLAUDE.md
+   - Cambios en CLAUDE.md (agregados, modificados, eliminados)
+   - Infraestructura sugerida por /learn (si aplica)
    - Deuda técnica detectada
    - Estado de tests
    - Recomendación para el siguiente sprint

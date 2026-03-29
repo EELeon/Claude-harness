@@ -14,7 +14,7 @@ Lee EXECUTION_PLAN.md y determina cuál es el siguiente ticket pendiente.
 
 5. Preguntar: "¿Procedo con la implementación?"
 
-Si Edwin confirma, implementar siguiendo el spec exactamente.
+Si el usuario confirma, implementar siguiendo el spec exactamente.
 Usar subagentes para las subtareas marcadas.
 Commit atómico después de cada subtarea.
 

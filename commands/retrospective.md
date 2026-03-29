@@ -1,0 +1,131 @@
+# /retrospective — Análisis retroactivo de sesiones
+
+Analiza el historial de conversaciones de Claude Code para encontrar
+patrones de fricción y sugerir mejoras sistémicas.
+
+$ARGUMENTS
+
+<!--
+Uso:
+  /retrospective                    → analiza las últimas 5 sesiones
+  /retrospective last 3 days        → sesiones de los últimos 3 días
+  /retrospective sprint-a           → sesiones que mencionan "sprint-a"
+-->
+
+## Fase 1: Encontrar conversaciones
+
+```bash
+# Obtener el directorio del proyecto (buscar en las rutas codificadas)
+ls ~/.claude/projects/
+
+# Listar conversaciones recientes
+# Ajustar -mtime según el argumento del usuario
+ls -lt ~/.claude/projects/<encoded-path>/*.jsonl | head -20
+```
+
+Si el usuario especificó un rango de tiempo, filtrar por fecha.
+Si especificó un término, filtrar por nombre o contenido.
+
+## Fase 2: Análisis paralelo
+
+Para cada archivo de conversación encontrado, lanzar un **subagente
+general-purpose** que lo lea y extraiga:
+
+1. **Objetivo:** ¿Qué intentaba hacer el usuario?
+2. **Fricción:** Problemas que ocurrieron. Incluir citas textuales
+   del usuario mostrando frustración o correcciones
+3. **Victorias:** ¿Qué funcionó bien? ¿Qué patrones fueron efectivos?
+4. **Patrones:** Ineficiencias repetidas, decisiones que Claude tomó
+   mal, archivos que siempre resultan problemáticos
+
+Priorizar archivos grandes (>500KB) — contienen las sesiones más sustanciosas.
+
+Nota: Los archivos .jsonl pueden ser muy grandes. El subagente debe
+buscar líneas con "role": "user" y "role": "assistant" para encontrar
+los intercambios relevantes, y filtrar tool calls repetitivas.
+
+## Fase 3: Sintetizar
+
+Después de que todos los subagentes terminen, combinar hallazgos:
+
+**Generalizar agresivamente.** No listar cada error individual sino
+buscar el meta-patrón detrás de errores similares.
+
+Agrupar por:
+- **Patrones de fricción** — rankeados por frecuencia
+  (ej: "Claude cambia archivos que el spec no menciona" × 4 sesiones)
+- **Lo que funciona bien** — no perder esto
+  (ej: "Los specs con rutas exactas siempre se ejecutan limpio")
+- **Citas de frustración** — evidencia cruda del usuario
+
+## Fase 4: Cross-reference contra configuración actual
+
+Leer la configuración vigente:
+- CLAUDE.md del proyecto
+- CLAUDE.md del usuario (~/.claude/CLAUDE.md) si existe
+- Skills en .claude/skills/ y ~/.claude/skills/
+- Agentes custom en .claude/agents/
+- Hooks en .claude/settings.json
+
+Para cada patrón de fricción, clasificar:
+
+| Clasificación | Qué significa | Acción |
+|--------------|---------------|--------|
+| **Ya arreglado** | Existe una regla que lo cubre | Anotar dónde. Si sigue ocurriendo, la regla no es efectiva |
+| **Parcialmente cubierto** | Hay una regla pero no es suficiente | Sugerir cómo reforzarla |
+| **No cubierto** | No hay nada que lo prevenga | Sugerir regla nueva |
+| **Causado por la config** | La configuración actual CAUSA el problema | Sugerir corrección |
+
+## Fase 5: Generar reporte
+
+Crear `RETROSPECTIVE.md` con:
+
+```markdown
+# Retrospectiva — [fecha]
+
+Basado en análisis de [N] conversaciones del [rango de fechas].
+
+## Patrones de fricción (por frecuencia)
+
+### 1. [Nombre del patrón] — [N] ocurrencias
+**Problema:** [Descripción]
+**Citas:** "[texto del usuario]"
+**Estado:** [Ya arreglado en X | No cubierto | Parcialmente cubierto]
+**Sugerencia:**
+```markdown
+[Texto propuesto para CLAUDE.md o agente o hook]
+```
+
+### 2. [Siguiente patrón]
+...
+
+## Lo que funciona bien (no tocar)
+
+| Patrón | Por qué funciona | Dónde está |
+|--------|-----------------|------------|
+| ... | ... | ... |
+
+## Infraestructura sugerida
+
+| Tipo | Nombre | Propósito | Prioridad |
+|------|--------|-----------|-----------|
+| Regla CLAUDE.md | ... | ... | Alta |
+| Agente custom | ... | ... | Media |
+| Hook | ... | ... | Baja |
+| Skill nuevo | ... | ... | Baja |
+
+## Log crudo de fricción
+
+- "[cita 1]" — sesión [fecha]
+- "[cita 2]" — sesión [fecha]
+```
+
+**NO aplicar cambios automáticamente.** Crear el archivo para
+revisión del usuario. La retrospectiva es diagnóstico, no tratamiento.
+
+## Después del reporte
+
+Preguntar al usuario:
+"¿Querés que aplique alguna de estas sugerencias? Puedo actualizar
+CLAUDE.md, crear agentes custom, o instalar hooks según lo que
+te parezca útil."

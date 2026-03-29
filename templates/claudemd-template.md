@@ -51,5 +51,7 @@ Si una regla no ha evitado un error concreto, borrarla.
 - Usar subagentes para subtareas marcadas en el spec
 - Commit atómico después de cada subtarea
 - Correr tests antes de marcar como completado
-- Ejecutar `/learn` al terminar cada ticket
-- Usar `/clear` entre tickets
+- Ejecutar `/learn` al terminar cada ticket para capturar lecciones
+  y verificar que no se dupliquen reglas en este archivo
+- Si se usa mega-prompt: el orquestador maneja las transiciones entre tickets
+- Si se ejecuta manualmente: `/clear` entre tickets para contexto fresco

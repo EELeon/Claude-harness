@@ -85,41 +85,50 @@ Esas son las reglas que van acá.
 existir porque previene un error real. Si una regla nunca ha prevenido
 un error, borrarla.
 
-### Agentes custom (personalización OPCIONAL)
+### Agentes custom (DIFERIDO — no instalar en Sprint 1)
 
-Solo crear agentes custom si tu proyecto tiene dominios diferenciados
-con reglas que Claude viola sistemáticamente.
+Los agentes custom NO se crean upfront. Se instalan después del primer
+sprint, solo si la evidencia lo justifica.
 
-**Cuándo SÍ crear:**
-- Proyecto con 3+ subsistemas independientes (ej: backend, frontend, infra)
-- Cada subsistema tiene reglas de dominio que Claude confunde entre sí
-- Vas a ejecutar 3+ tickets del mismo dominio
+**Señales de que necesitás un agente custom (las detecta /learn):**
+- El mismo tipo de error se repitió 3+ veces en el mismo dominio
+- Claude confunde reglas entre subsistemas diferentes
+- Hay "gotchas" de dominio que CLAUDE.md no logra prevenir
 
-**Cuándo NO crear:**
-- Proyecto pequeño con un solo dominio
-- Las reglas ya están bien cubiertas en CLAUDE.md
-- Los specs son suficientemente detallados
-
-**Cómo personalizar un agente:**
+**Cómo crearlos cuando sea el momento:**
 1. Copiar el patrón de `references/agent-patterns.md` que más se ajuste
 2. Reemplazar `[dominio]`, `[proyecto]`, archivos clave
-3. Agregar las reglas específicas de tu dominio
+3. Agregar las reglas específicas extraídas de las lecciones de `/learn`
 4. Guardar en `.claude/agents/` de tu repo
 
-### Hook Stop (personalización RECOMENDADA)
+### Hook Stop (DIFERIDO — instalar si hay evidencia)
 
-El hook anti-racionalización viene en dos versiones (ver `templates/stop-hook.md`):
+El hook anti-racionalización se instala solo si durante la ejecución
+Claude declara "listo" con trabajo incompleto. `/learn` detecta esto
+y lo sugiere.
+
+Cuando sea el momento, viene en dos versiones (ver `templates/stop-hook.md`):
 
 | Versión | Cuándo usar |
 |---------|------------|
-| **Básica** | Proyectos nuevos donde no sabés qué errores esperar |
-| **Extendida** | Proyectos con specs estructurados y tests definidos |
+| **Básica** | Primer intento — detecta lenguaje de racionalización |
+| **Extendida** | Si la básica no es suficiente — también verifica tests y archivos |
 
 **Cómo ajustar sensibilidad:**
 - Si el hook bloquea demasiado (falsos positivos), removí la detección
   de frases como "mostly done" del prompt
 - Si el hook deja pasar trabajo incompleto, agregá frases específicas
   de tu dominio que Claude usa para racionalizar
+
+### /retrospective (instalar después del Sprint 1)
+
+Complementa a `/learn` con una vista panorámica. Mientras `/learn` captura
+lecciones en caliente después de cada ticket, `/retrospective` analiza
+múltiples sesiones pasadas para encontrar patrones que no se ven
+ticket por ticket.
+
+Instalar `commands/retrospective.md` en `.claude/commands/` después
+del primer sprint completo. Correrlo cada 2-3 sprints.
 
 ### Specs (se generan por ticket, no se personalizan manualmente)
 
@@ -187,16 +196,26 @@ claude
 ## Flujo de vida del sistema
 
 ```
-Primera vez:
-  Tickets → Cowork (skill) → Specs + CLAUDE.md + mega-prompt → Claude Code
+Sprint 1 (mínimo viable):
+  Tickets → Cowork (skill) → Specs + CLAUDE.md mínimo + mega-prompt → Claude Code
+  Después de cada ticket: /learn captura lecciones y enriquece CLAUDE.md
+  Al terminar Sprint 1: /learn sugiere si hacen falta agentes custom o hooks
+
+Post Sprint 1 (evolución guiada):
+  /retrospective analiza las sesiones del Sprint 1
+  Instalar agentes custom SI /learn detectó errores repetidos por dominio
+  Instalar hook Stop SI Claude declaró victoria prematura
+  Instalar /retrospective para análisis periódico
 
 Sprints siguientes:
   Nuevos tickets → Cowork (skill) → Nuevos specs → Claude Code
-  (CLAUDE.md ya existe y se enriquece con /learn después de cada ticket)
+  CLAUDE.md ya tiene reglas probadas en batalla
+  La infraestructura crece solo cuando la evidencia lo justifica
 
-Mantenimiento:
-  /learn actualiza CLAUDE.md automáticamente después de cada ticket
-  Las reglas se acumulan y Claude cada vez comete menos errores
+Mantenimiento periódico:
+  /retrospective cada 2-3 sprints para vista panorámica
+  /learn después de cada ticket para captura en caliente
+  Meta-regla: si CLAUDE.md pasa de 100 líneas, consolidar
 ```
 
 ## Troubleshooting
