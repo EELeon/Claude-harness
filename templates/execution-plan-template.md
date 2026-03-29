@@ -20,8 +20,8 @@ Sprints: [N]
 Estados: ⬜ pendiente | 🔄 en progreso | ✅ completado | ❌ bloqueado
 
 Modo de ejecución:
-  Subagente (default): corre dentro del mega-prompt como subagente.
-  Sesión principal: corre fuera del mega-prompt, directamente en el
+  Subagente (default): corre dentro del prompt del sprint como subagente.
+  Sesión principal: corre fuera del prompt del sprint, directamente en el
     contexto principal de Claude Code. Usar SOLO cuando el ticket
     es de complejidad Alta + tiene 4 subtareas de 5+ archivos cada una.
     Estos tickets necesitan lanzar sus propios subagentes internos,
@@ -34,34 +34,40 @@ Modo de ejecución:
 - **Rama:** `sprint-a-[nombre]`
 - **Tickets:** T-[N], T-[N], T-[N]
 - **Dependencias internas:** T-[X] antes de T-[Y]
-- **Tickets fuera del mega-prompt:** [ninguno | T-[N] (razón)]
+- **Tickets fuera del prompt:** [ninguno | T-[N] (razón)]
 
 ### Sprint B — [Nombre temático]
 - **Rama:** `sprint-b-[nombre]`
 - **Tickets:** T-[N], T-[N]
 - **Dependencias:** Requiere Sprint A mergeado
-- **Tickets fuera del mega-prompt:** [ninguno | T-[N] (razón)]
+- **Tickets fuera del prompt:** [ninguno | T-[N] (razón)]
 
 <!-- Repetir por sprint -->
 
 ---
 
-## Mega-prompts por sprint
+## Prompts por sprint
 
-### Mega-prompt Sprint A
+<!--
+El prompt del sprint es LEAN (~1-2K tokens). Solo contiene:
+- Instrucción de leer ORCHESTRATOR_RULES.md
+- Tabla de tickets apuntando a sus specs en disco
+Los subagentes leen los specs directamente de disco (lazy loading).
+-->
 
-<!-- Copiar y pegar este bloque completo en Claude Code -->
+### Prompt Sprint A
+
+<!-- Copiar y pegar este bloque en Claude Code -->
 
 ```
-[AQUÍ VA EL MEGA-PROMPT GENERADO POR EL SKILL]
+[PROMPT LEAN GENERADO POR EL SKILL]
 [Seguir el template en templates/orchestrator-prompt.md]
-[Incluye todos los tickets del sprint que corren como subagente]
 ```
 
-### Mega-prompt Sprint B
+### Prompt Sprint B
 
 ```
-[MEGA-PROMPT DEL SPRINT B]
+[PROMPT LEAN DEL SPRINT B]
 ```
 
 <!-- Repetir por sprint -->
@@ -76,12 +82,14 @@ git checkout -b sprint-a-[nombre]
 claude
 
 # Dentro de Claude Code:
-#   1. Pegar el mega-prompt del Sprint A (arriba)
-#   2. Esperar ejecución autónoma
-#   3. Si hay tickets fuera del mega-prompt:
+#   1. Pegar el prompt del Sprint A (arriba)
+#   2. El orquestador lee ORCHESTRATOR_RULES.md automáticamente
+#   3. Cada subagente lee su spec de specs/ticket-N.md
+#   4. Esperar ejecución autónoma
+#   5. Si hay tickets fuera del prompt (excepcionalmente complejos):
 #      > "Lee specs/ticket-[N].md e impleméntalo. Usa subagents."
 #      > /learn ticket-[N] [título]
-#   4. Revisar resumen final
+#   6. Revisar resumen final
 
 gh pr create --title "Sprint A: [nombre]"
 
@@ -89,10 +97,10 @@ gh pr create --title "Sprint A: [nombre]"
 git checkout main && git pull
 git checkout -b sprint-b-[nombre]
 claude
-# Pegar mega-prompt Sprint B...
+# Pegar prompt Sprint B...
 ```
 
-## Fallback: ejecución manual (si el mega-prompt falla)
+## Fallback: ejecución manual (si el prompt del sprint falla)
 
 Si la ejecución autónoma falla a mitad del sprint:
 1. Revisar qué tickets ya se completaron: `/status`

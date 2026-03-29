@@ -69,5 +69,5 @@ Una regla que referencia archivos borrados o APIs deprecated → eliminar.
 - SIEMPRE commit atómico después de cada subtarea
 - SIEMPRE correr tests antes de marcar como completado
 - SIEMPRE ejecutar `/learn` al terminar cada ticket
-- Si se usa mega-prompt: el orquestador maneja las transiciones entre tickets
+- Si se usa prompt del sprint: el orquestador maneja las transiciones entre tickets
 - Si se ejecuta manualmente: `/clear` entre tickets para contexto fresco

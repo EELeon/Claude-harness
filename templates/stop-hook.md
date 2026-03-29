@@ -73,5 +73,5 @@ usar esta versión que además verifica contra el spec:
 - No puede ejecutar `pytest` por sí solo
 - Su poder está en detectar LENGUAJE de racionalización, no en
   verificar estado técnico real
-- Complementar con el paso de verificación del mega-prompt orquestador
-  (que sí corre tests después de cada subagente)
+- Complementar con la Regla 2 del orquestador (ORCHESTRATOR_RULES.md)
+  que sí corre tests después de cada subagente

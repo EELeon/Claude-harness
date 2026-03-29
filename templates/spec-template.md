@@ -23,12 +23,12 @@ de request/response como stub antes de implementar cualquiera.
 ## Modo de ejecución: [Subagente | Sesión principal]
 
 <!--
-Subagente (default): se ejecuta dentro del mega-prompt orquestador.
+Subagente (default): se ejecuta dentro del prompt orquestador.
   El subagente NO puede lanzar sub-subagentes. Si hay subtareas,
   las ejecuta secuencialmente dentro de su propia ventana de contexto.
 Sesión principal: solo para tickets Alta complejidad + 4 subtareas
   de 5+ archivos cada una. Estos tickets SÍ pueden usar subagentes
-  para sus subtareas, pero se ejecutan fuera del mega-prompt.
+  para sus subtareas, pero se ejecutan fuera del prompt orquestador.
 -->
 
 ---
@@ -120,43 +120,24 @@ a "contexto del proyecto" en el prompt del subagente.
 
 ---
 
-## Prompt para el mega-prompt orquestador
+## Checklist de autocontención
 
 <!--
-SECCIÓN CLAVE: Este bloque es lo que el skill copia al mega-prompt
-del sprint. Debe ser AUTOCONTENIDO — el subagente no recibe:
+El orquestador lanza un subagente que lee ESTE archivo directamente
+de disco. El subagente NO recibe:
   - La conversación de Cowork
   - El contexto de otros tickets
   - Los resultados de subagentes anteriores
 
-Incluir todo lo necesario para que el subagente ejecute sin explorar.
+Por eso este spec debe ser AUTOCONTENIDO. Verificar:
 -->
 
-```
-Lee e implementa el spec en `specs/ticket-[N].md`.
+- [ ] ¿Tiene rutas EXACTAS de archivos a modificar/crear?
+- [ ] ¿Tiene pasos concretos (no "investigar" o "explorar")?
+- [ ] ¿Tiene comando exacto de tests?
+- [ ] ¿Tiene commit message definido?
+- [ ] ¿Tiene restricciones claras en forma imperativa (NUNCA/SIEMPRE)?
+- [ ] ¿Tiene ≤10 restricciones totales?
+- [ ] ¿No depende de contexto que solo existe en la conversación?
 
-Contexto del proyecto: [1-2 líneas del CLAUDE.md que el subagente necesita
-saber — reglas de dominio, convenciones de naming, ubicación de tests.
-Máximo 10 constraints — priorizar las más peligrosas.]
-
-Archivos a modificar:
-- `ruta/archivo1.py` — [qué contiene actualmente y qué cambiar]
-- `ruta/archivo2.py` — [ídem]
-
-Archivos a crear:
-- `ruta/nuevo.py` — [qué debe contener y su propósito]
-
-Pasos:
-1. [Paso concreto — copiado/condensado de las subtareas de arriba]
-2. [Paso concreto]
-3. [...]
-
-Tests: `pytest tests/test_[modulo].py -v`
-Todos los tests listados en el spec deben pasar antes de commitear.
-
-Commit con mensaje: "[tipo]: [descripción]"
-
-NO hagas:
-- [Restricción 1 del ticket]
-- [Restricción 2 del ticket]
-```
+Si falta algo, el subagente va a tener que explorar y gastar contexto.

@@ -31,7 +31,7 @@ de manera autónoma, con un solo prompt por sprint. El paquete incluye:
 ## Modelo de ejecución: subagentes + gestión inteligente de contexto
 
 Claude Code no puede ejecutar `/clear` ni `/compact` programáticamente.
-El mega-prompt orquestador usa una estrategia de 4 capas para que Code
+El orquestador usa una estrategia de 4 capas para que Code
 nunca se quede sin ventana de contexto:
 
 1. **Subagentes por ticket** — Cada ticket corre como subagente con contexto
@@ -43,7 +43,7 @@ nunca se quede sin ventana de contexto:
 3. **Compactación proactiva** — Después de cada ticket, el orquestador evalúa
    su propio contexto. Si está pesado (3+ tickets completados), le pide al
    usuario correr `/compact` antes de continuar.
-4. **Puntos de corte** — Para sprints largos (5+ tickets), el mega-prompt
+4. **Puntos de corte** — Para sprints largos (5+ tickets), el prompt del sprint
    incluye puntos de pausa donde el usuario puede hacer `/clear` y re-pegar
    el prompt. El orquestador retoma automáticamente desde donde se quedó.
 
@@ -57,7 +57,7 @@ nunca se quede sin ventana de contexto:
   para proteger el contexto del orquestador.
 
 Para tickets excepcionalmente complejos (Alta complejidad + 4 subtareas de 5+ archivos),
-se sacan del mega-prompt y se ejecutan directo en la sesión principal.
+se sacan del prompt del sprint y se ejecutan directo en la sesión principal.
 
 ---
 
@@ -86,7 +86,7 @@ Agrupar tickets por estos criterios (en orden de prioridad):
 2. **Dominio compartido** — tickets que tocan los mismos archivos juntos
 3. **Complejidad balanceada** — no más de 2 tickets de complejidad Alta por sprint
 
-Cada sprint = 1 rama de git = 1 mega-prompt. Presentar propuesta al usuario.
+Cada sprint = 1 rama de git = 1 prompt de sprint. Presentar propuesta al usuario.
 
 ### Paso 3 — Generar specs
 
@@ -105,21 +105,24 @@ Resumen rápido:
 - Cada subtarea debe ser **autocontenida**: ejecutable sin saber qué hacen las otras
 - Cada subtarea termina con un **commit atómico**
 
-### Paso 4 — Generar mega-prompt orquestador
+### Paso 4 — Generar prompt del sprint + reglas de orquestación
 
-Para CADA sprint, generar un mega-prompt siguiendo `templates/orchestrator-prompt.md`.
+Para CADA sprint, generar DOS archivos siguiendo `templates/orchestrator-prompt.md`:
 
-El mega-prompt es el producto final más importante. Debe:
-1. Listar los tickets del sprint en orden
-2. Para cada ticket, incluir un **prompt autocontenido** para el subagente
-3. Incluir verificación de tests y commits entre tickets
-4. Incluir paso final de `/learn` (actualizar CLAUDE.md)
+1. **Prompt del sprint** (~1-2K tokens) — Lo que el usuario pega en Claude Code.
+   Solo contiene: instrucción de leer reglas + tabla de tickets con ruta al spec.
+   Es ultra-lean para mantenerse en la zona de fidelidad total (0-5K tokens).
 
-**Cómo construir el prompt de cada subagente:**
-1. Leer el spec del ticket
-2. Extraer: archivos, pasos, tests, commit message, restricciones
-3. Agregar 1-2 líneas de contexto del CLAUDE.md relevantes al dominio
-4. El prompt debe funcionar SIN que el subagente lea nada más que los archivos del repo
+2. **ORCHESTRATOR_RULES.md** — Reglas de orquestación que el agente lee de disco.
+   Contiene: las 6 reglas, formato de results.tsv, patrón Heat Shield, y
+   paso final de `/learn`.
+
+**Principio de diseño (lazy loading):**
+- El prompt del sprint NO inlinea los prompts de cada ticket
+- Cada subagente lee su spec directamente de `specs/ticket-N.md`
+- Los specs ya son autocontenidos (verificar checklist en spec-template.md)
+- Esto mantiene el prompt del orquestador lean, resiste /compact sin
+  paraphrase loss, y escala sin importar cuántos tickets tenga el sprint
 
 ### Paso 5 — Generar artefactos de soporte (progresivo)
 
@@ -174,7 +177,7 @@ Presentar el paquete completo:
 - Tabla de sprints con tickets y modo de ejecución
 - Specs generados (resumen de cada uno)
 - **Mega-prompts generados** (uno por sprint, listos para copiar y pegar)
-- Advertencias sobre tickets sacados del mega-prompt (si los hay)
+- Advertencias sobre tickets sacados del prompt (si los hay)
 - **Infraestructura diferida:** qué agentes custom, hooks, y comandos
   adicionales podrían ser útiles DESPUÉS del primer sprint, y bajo qué
   condiciones activarlos
@@ -249,7 +252,8 @@ proyecto/
 │   ├── ticket-2.md
 │   └── ...
 ├── CLAUDE.md                  # Mínimo viable — crece con /learn
-├── EXECUTION_PLAN.md
+├── ORCHESTRATOR_RULES.md      # Reglas de orquestación (leídas de disco)
+├── EXECUTION_PLAN.md          # Plan + prompts lean por sprint
 ├── results.tsv                # Tracking estructurado (keep/discard/crash)
 └── done-tasks.md              # Lecciones narrativas (escrito por /learn)
 ```
@@ -262,17 +266,18 @@ Instrucciones para el usuario:
 > **Para ejecutar un sprint:**
 > 1. `git checkout -b sprint-[X]-[nombre]`
 > 2. `claude`
-> 3. Pegar el mega-prompt del sprint (está en EXECUTION_PLAN.md)
-> 4. Esperar a que Claude Code termine todos los tickets
-> 5. Revisar el resumen final
-> 6. `gh pr create --title "Sprint [X]: [nombre]"`
+> 3. Pegar el prompt del sprint (está en EXECUTION_PLAN.md — es lean, ~1-2K tokens)
+> 4. El orquestador lee ORCHESTRATOR_RULES.md y cada subagente lee su spec de disco
+> 5. Esperar a que Claude Code termine todos los tickets
+> 6. Revisar el resumen final
+> 7. `gh pr create --title "Sprint [X]: [nombre]"`
 >
 > **Si un ticket falla durante la ejecución autónoma:**
 > Claude Code lo reportará en el resumen. Podés corregirlo manualmente
 > o correr `/next-ticket` para reintentar.
 >
-> **Para tickets sacados del mega-prompt (excepcionalmente complejos):**
-> 1. Ejecutar el mega-prompt primero (tickets normales)
+> **Para tickets sacados del prompt (excepcionalmente complejos):**
+> 1. Ejecutar el prompt del sprint primero (tickets normales)
 > 2. Después: `> Lee specs/ticket-[N].md e impleméntalo. Usa subagents.`
 > 3. `> /learn ticket-[N] [título]`
 
@@ -287,7 +292,7 @@ Leer estos archivos cuando sea necesario:
 | `references/subagent-sizing.md` | Al dividir tickets en subtareas |
 | `references/agent-patterns.md` | Al crear agentes custom |
 | `templates/spec-template.md` | Al escribir cada spec |
-| `templates/orchestrator-prompt.md` | Al generar el mega-prompt de cada sprint |
+| `templates/orchestrator-prompt.md` | Al generar el prompt del sprint + ORCHESTRATOR_RULES.md |
 | `templates/stop-hook.md` | Al configurar el hook anti-racionalización |
 | `templates/claudemd-template.md` | Al generar CLAUDE.md |
 | `templates/execution-plan-template.md` | Al generar el plan de ejecución |

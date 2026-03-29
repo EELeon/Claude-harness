@@ -17,7 +17,7 @@ El skill `code-orchestrator` se instala en la carpeta de skills de Cowork:
 ├── SKILL.md                              # Orquestador principal
 ├── templates/
 │   ├── spec-template.md                  # Template para specs de tickets
-│   ├── orchestrator-prompt.md            # Template para mega-prompts
+│   ├── orchestrator-prompt.md            # Template para prompt lean + reglas
 │   ├── execution-plan-template.md        # Template para plan de ejecución
 │   ├── claudemd-template.md              # Template para CLAUDE.md
 │   └── stop-hook.md                      # Template para hook anti-racionalización
@@ -52,7 +52,7 @@ Decile a Cowork algo como:
 - "Organizar este sprint de desarrollo"
 
 El skill te va a guiar por el flujo de 6 pasos:
-inventario → sprints → specs → mega-prompt → artefactos → revisión.
+inventario → sprints → specs → prompt del sprint + reglas → artefactos → revisión.
 
 ## Paso 4 — Revisar y ajustar el paquete generado
 
@@ -139,15 +139,16 @@ calidad dándole mejor input:
 - Si mencionás archivos exactos → el spec los incluye
 - Si das ejemplos concretos → el spec los convierte en tests
 
-### Mega-prompt (se genera por sprint, ajustes menores)
+### Prompt del sprint + ORCHESTRATOR_RULES.md (ajustes menores)
 
-El mega-prompt se genera automáticamente por sprint. Lo único que
-podrías querer ajustar:
+El prompt del sprint es lean (~1-2K tokens) — solo lista los tickets
+y apunta a sus specs. Las reglas viven en ORCHESTRATOR_RULES.md que
+el orquestador lee de disco. Lo que podrías ajustar:
 
 - **Punto de corte:** Si sabés que ciertos tickets son más pesados,
   podés mover el punto de corte para que caiga antes de ellos
 - **Comando de tests:** Asegurate de que el comando de tests global
-  sea correcto para tu proyecto
+  sea correcto en ORCHESTRATOR_RULES.md
 
 ### Comandos /learn, /next-ticket, /status (generalmente no se tocan)
 
@@ -179,7 +180,7 @@ cp -r .claude/ /ruta/a/tu/repo/
 cd /ruta/a/tu/repo
 git checkout -b sprint-a-nombre
 claude
-# Pegar el mega-prompt del Sprint A
+# Pegar el prompt lean del Sprint A
 ```
 
 ## Ejemplo: instalar en un proyecto Python
@@ -197,7 +198,7 @@ claude
 
 ```
 Sprint 1 (mínimo viable):
-  Tickets → Cowork (skill) → Specs + CLAUDE.md mínimo + mega-prompt → Claude Code
+  Tickets → Cowork (skill) → Specs + CLAUDE.md mínimo + prompt lean → Claude Code
   Después de cada ticket: /learn captura lecciones y enriquece CLAUDE.md
   Al terminar Sprint 1: /learn sugiere si hacen falta agentes custom o hooks
 
@@ -224,11 +225,11 @@ Mantenimiento periódico:
 → El spec probablemente es ambiguo. Revisá que tenga rutas exactas,
   pasos concretos, y restricciones claras.
 
-**El mega-prompt se queda sin contexto antes de terminar**
+**El orquestador se queda sin contexto antes de terminar**
 → Cuando Claude te pida correr `/compact`, ejecutá el comando vos
   directamente en la terminal de Claude Code (es un comando del usuario,
   no algo que Claude pueda correr solo). Si ya es muy tarde, ejecutá
-  `/clear` vos y pegá el mega-prompt de nuevo — Claude retoma
+  `/clear` vos y pegá el prompt del sprint de nuevo — Claude retoma
   automáticamente leyendo `results.tsv`.
 
 **El hook Stop bloquea todo**
@@ -242,7 +243,7 @@ Mantenimiento periódico:
   para saltar al siguiente y volver al fallido después.
 
 **Quiero agregar más tickets a mitad de un sprint**
-→ No modifiqués el mega-prompt activo. Agregá los tickets nuevos al
+→ No modifiqués el prompt activo. Agregá los tickets nuevos al
   siguiente sprint, o creá un mini-sprint adicional.
 
 **¿`results.tsv` y `done-tasks.md` se commitean o se ignoran?**
