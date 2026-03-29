@@ -1,38 +1,43 @@
 # Guía de implementación — Code Orchestrator
 
-Cómo instalar y personalizar este sistema en cualquier repositorio.
+Cómo instalar y usar este sistema en cualquier repositorio.
 
 ## Requisitos previos
 
 - Claude Code instalado y funcionando
+- Cowork con el skill `code-orchestrator` instalado
 - Un repositorio git con al menos un commit
 - Tickets/tareas definidos (pueden ser informales)
 
-## Paso 1 — Instalar el skill en Cowork
+## Paso 1 — Instalar el skill (una sola vez)
 
-El skill `code-orchestrator` se instala en la carpeta de skills de Cowork:
+Crear un symlink del repo Claude-harness al skill folder de Cowork:
 
-```
-~/.claude/skills/code-orchestrator/
-├── SKILL.md                              # Orquestador principal
-├── templates/
-│   ├── spec-template.md                  # Template para specs de tickets
-│   ├── orchestrator-prompt.md            # Template para prompt lean + reglas
-│   ├── execution-plan-template.md        # Template para plan de ejecución
-│   ├── claudemd-template.md              # Template para CLAUDE.md
-│   └── stop-hook.md                      # Template para hook anti-racionalización
-├── references/
-│   ├── subagent-sizing.md                # Reglas de división en subtareas
-│   └── agent-patterns.md                 # Patrones de agentes custom
-└── commands/
-    ├── learn.md                          # Comando /learn
-    ├── next-ticket.md                    # Comando /next-ticket
-    └── status.md                         # Comando /status
+```bash
+ln -s "/ruta/a/Claude harness" ~/.claude/skills/code-orchestrator
 ```
 
-Copiar toda la carpeta a la ubicación de skills.
+Con el symlink, cada cambio al repo actualiza el skill automáticamente.
+No hay que copiar ni sincronizar nada.
 
-## Paso 2 — Preparar tus tickets
+Para verificar que funciona:
+```bash
+ls -la ~/.claude/skills/code-orchestrator/SKILL.md
+# Debe apuntar al SKILL.md del repo
+```
+
+## Paso 2 — Bootstrap de un repo nuevo
+
+1. Abrí Cowork con acceso al repo target
+2. Decile:
+   > "Instalar harness en este repo" o "Preparar este repo para Code"
+3. Cowork va a:
+   - Auditar el repo (stack, comandos, estructura, archivos sensibles)
+   - Instalar scaffold: CLAUDE.md, .claude/commands/, .claude/settings.json
+   - Personalizar todo para el repo (no copia plantillas sin adaptar)
+4. El repo queda listo para generar sprints.
+
+## Paso 3 — Preparar tus tickets
 
 El skill acepta tickets en cualquier formato, pero produce mejores resultados
 cuando cada ticket incluye al menos:
@@ -158,38 +163,34 @@ a `/learn` si hay patrones de error recurrentes en tu proyecto.
 
 ---
 
-## Ejemplo: instalar en un proyecto Node.js
+## Ejemplo: flujo completo con un proyecto Node.js
 
 ```bash
-# 1. El skill ya está en Cowork
+# 1. BOOTSTRAP (una sola vez)
+#    Abrir Cowork con acceso a mi-api-node/
+#    Decir: "Instalar harness en este repo"
+#    Cowork detecta: npm test, ESLint, TypeScript strict
+#    Cowork instala: CLAUDE.md, commands, settings.json
 
-# 2. En Cowork, decí:
-#    "Tengo estos 5 tickets para mi API de Node.js: [pegar tickets]"
+# 2. SPRINT (cada vez que hay tickets)
+#    En la misma sesión o en una nueva con mi-api-node/
+#    Decir: "Tengo estos 5 tickets: [pegar tickets]"
+#    El skill genera specs, preflight, sprint package.
 
-# 3. El skill genera el paquete. Verificá CLAUDE.md:
-#    - Comandos: npm test, npm run lint
-#    - Convenciones: camelCase, ESM imports, TypeScript strict
-#    - Reglas: "Nunca usar any", "Handlers siempre retornan Response"
-
-# 4. Copiar los archivos generados a tu repo:
-cp -r specs/ /ruta/a/tu/repo/
-cp CLAUDE.md EXECUTION_PLAN.md /ruta/a/tu/repo/
-cp -r .claude/ /ruta/a/tu/repo/
-
-# 5. Ejecutar en Claude Code:
-cd /ruta/a/tu/repo
-git checkout -b sprint-a-nombre
+# 3. EJECUCIÓN
+cd mi-api-node
+git checkout -b sprint-a-auth-flow
 claude
 # Pegar el prompt lean del Sprint A
+# Claude Code ejecuta autónomamente
 ```
 
-## Ejemplo: instalar en un proyecto Python
+## Ejemplo: flujo con proyecto Python
 
 ```bash
-# Mismos pasos, pero CLAUDE.md tendría:
-#   - Comandos: pytest, ruff check, mypy
-#   - Convenciones: snake_case, type hints, docstrings numpy-style
-#   - Reglas: según tu dominio
+# Bootstrap: Cowork detecta pytest, ruff, mypy
+# CLAUDE.md incluye: snake_case, type hints, reglas de dominio
+# Mismo flujo de sprint y ejecución
 ```
 
 ---
