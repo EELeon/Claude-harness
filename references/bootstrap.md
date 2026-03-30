@@ -19,9 +19,9 @@ repo-target/
 │   │   ├── learn.md            # Adaptar: paths y comandos reales del repo
 │   │   ├── next-ticket.md      # Adaptar: paths
 │   │   ├── status.md           # Adaptar: paths
-│   │   └── preflight.md        # Copiar tal cual (lógica universal)
+│   │   └── preflight.md        # Copiar IDÉNTICO del skill (lógica universal)
 │   ├── agents/                 # NO instalar aún — esperar evidencia
-│   └── settings.json           # Guard destructivo activado
+│   └── settings.json           # Hook PreToolUse del skill (NO permissions.deny)
 ├── CLAUDE.md                   # Personalizado para este repo (≤100 líneas)
 ```
 
@@ -33,8 +33,16 @@ repo-target/
        ni reemplazar reglas que el usuario ya definió.
      - **Si no existe:** generar desde `templates/claudemd-template.md`
        con reglas de dominio reales, comandos reales, convenciones reales.
-   - `commands/*.md`: paths y comandos que existen en este repo
-   - `settings.json`: guard destructivo con los destructive patterns del stack
+   - `commands/learn.md`, `next-ticket.md`, `status.md`: adaptar paths y
+     comandos reales del repo
+   - `commands/preflight.md`: copiar IDÉNTICO del skill, sin simplificar
+     ni recortar. Su lógica es universal y no depende del repo.
+   - `settings.json`: DEBE usar formato de hooks `PreToolUse`, NO
+     `permissions.allow/deny`. Leer `templates/stop-hook.md` sección
+     "Hook 1" y copiar el JSON tal cual. Solo agregar patrones
+     destructivos específicos del stack (ej: `DROP TABLE` para SQL).
+     NUNCA bloquear `git reset --hard` — el orquestador lo usa para
+     rollback controlado en Regla 2.
 
 4. **Reportar al usuario:**
    - Qué se instaló y dónde
