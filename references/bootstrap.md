@@ -26,7 +26,13 @@ repo-target/
 ```
 
 3. **Personalizar** — NO copiar plantillas sin adaptar:
-   - `CLAUDE.md`: reglas de dominio reales, comandos reales, convenciones reales
+   - `CLAUDE.md`:
+     - **Si ya existe:** leerlo primero, preservar TODO el contenido existente,
+       y solo agregar las secciones que faltan (comandos del orquestador,
+       archivos sensibles si no están, convenciones si no están). Nunca borrar
+       ni reemplazar reglas que el usuario ya definió.
+     - **Si no existe:** generar desde `templates/claudemd-template.md`
+       con reglas de dominio reales, comandos reales, convenciones reales.
    - `commands/*.md`: paths y comandos que existen en este repo
    - `settings.json`: guard destructivo con los destructive patterns del stack
 
