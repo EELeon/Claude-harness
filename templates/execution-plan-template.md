@@ -79,10 +79,9 @@ Los subagentes leen los specs directamente de disco (lazy loading).
 El prompt del sprint ya incluye la creación de rama y el PR al final,
 así que la ejecución es un solo paso:
 
-```bash
+```
 # Sprint A
-claude
-# Pegar el prompt del Sprint A (arriba) y esperar ejecución autónoma.
+# Pegar el prompt del Sprint A (arriba) en Claude Code (CLI o Desktop).
 # El orquestador: crea la rama, lee ORCHESTRATOR_RULES.md, ejecuta
 # cada ticket como subagente leyendo su spec de specs/ticket-N.md,
 # y al final crea el PR con gh.
@@ -92,9 +91,7 @@ claude
 #   > /learn ticket-[N] [título]
 
 # Sprint B (después de mergear Sprint A)
-git checkout main && git pull
-claude
-# Pegar prompt Sprint B...
+# Mergear el PR del Sprint A, hacer pull de main, y pegar prompt Sprint B.
 ```
 
 ## Fallback: ejecución manual (si el prompt del sprint falla)

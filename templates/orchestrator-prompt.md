@@ -284,7 +284,16 @@ Categorías de fallo:
 2. Si hay fallos, corregí
 3. Asegurate de que `results.tsv` está completo
 4. Ejecutá `/learn sprint-[LETRA] completo`
-5. Mostrá resumen final:
+5. **Limpieza de artefactos de sprint:**
+   Borrá los archivos que ya no sirven y commiteá la limpieza:
+   ```
+   rm -rf specs/
+   rm -f ORCHESTRATOR_RULES.md EXECUTION_PLAN.md results.tsv
+   git add -A && git commit -m "chore: limpiar artefactos de sprint [LETRA]"
+   ```
+   **NO borrar:** `done-tasks.md` (es acumulativo entre sprints),
+   `CLAUDE.md`, ni nada en `.claude/`.
+6. Mostrá resumen final:
    - Tickets: [N] keep / [N] discard / [N] crash
    - Cambios en CLAUDE.md
    - Infraestructura sugerida por /learn
