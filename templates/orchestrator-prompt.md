@@ -37,7 +37,9 @@ LIMITACIONES:
 ```markdown
 # Sprint [LETRA] — [Nombre temático]
 
-Lee las reglas de orquestación en `ORCHESTRATOR_RULES.md` y seguílas estrictamente.
+## Setup inicial
+1. Creá la rama del sprint: `git checkout -b sprint-[letra]-[nombre]`
+2. Lee las reglas de orquestación en `ORCHESTRATOR_RULES.md` y seguílas estrictamente.
 
 ## Tickets de este sprint (en orden)
 
@@ -59,7 +61,9 @@ Para cada ticket:
 2. Después del subagente, aplicá Reglas 2 + 2b + 2c (scope → tests → completitud)
 3. Registrá el resultado en `results.tsv` (Regla 4)
 
-Al terminar todos los tickets, ejecutá `/learn sprint-[LETRA] completo`.
+Al terminar todos los tickets:
+1. Ejecutá `/learn sprint-[LETRA] completo`
+2. Creá el PR: `gh pr create --title "Sprint [LETRA]: [Nombre temático]" --body "$(cat results.tsv)"`
 ```
 
 ---

@@ -32,6 +32,11 @@ Cada sprint = 1 rama de git = 1 prompt de sprint. Presentar propuesta al usuario
 Para CADA ticket, generar un archivo `specs/ticket-N.md` siguiendo
 la plantilla en `templates/spec-template.md`.
 
+**Ubicación:** La carpeta `specs/` se crea en la **raíz del repositorio**
+del usuario (al mismo nivel que `CLAUDE.md` y `ORCHESTRATOR_RULES.md`).
+Ruta completa: `<repo-root>/specs/ticket-N.md`.
+Todos los specs de todos los sprints van en la misma carpeta.
+
 **Regla crítica de división en subtareas:**
 
 Leer `references/subagent-sizing.md` para las reglas de cuándo y cómo

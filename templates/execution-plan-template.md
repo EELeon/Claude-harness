@@ -76,26 +76,23 @@ Los subagentes leen los specs directamente de disco (lazy loading).
 
 ## Instrucciones de ejecución
 
+El prompt del sprint ya incluye la creación de rama y el PR al final,
+así que la ejecución es un solo paso:
+
 ```bash
 # Sprint A
-git checkout -b sprint-a-[nombre]
 claude
-
-# Dentro de Claude Code:
-#   1. Pegar el prompt del Sprint A (arriba)
-#   2. El orquestador lee ORCHESTRATOR_RULES.md automáticamente
-#   3. Cada subagente lee su spec de specs/ticket-N.md
-#   4. Esperar ejecución autónoma
-#   5. Si hay tickets fuera del prompt (excepcionalmente complejos):
-#      > "Lee specs/ticket-[N].md e impleméntalo. Usa subagents."
-#      > /learn ticket-[N] [título]
-#   6. Revisar resumen final
-
-gh pr create --title "Sprint A: [nombre]"
+# Pegar el prompt del Sprint A (arriba) y esperar ejecución autónoma.
+# El orquestador: crea la rama, lee ORCHESTRATOR_RULES.md, ejecuta
+# cada ticket como subagente leyendo su spec de specs/ticket-N.md,
+# y al final crea el PR con gh.
+#
+# Si hay tickets fuera del prompt (excepcionalmente complejos):
+#   > "Lee specs/ticket-[N].md e impleméntalo. Usa subagents."
+#   > /learn ticket-[N] [título]
 
 # Sprint B (después de mergear Sprint A)
 git checkout main && git pull
-git checkout -b sprint-b-[nombre]
 claude
 # Pegar prompt Sprint B...
 ```
@@ -112,12 +109,6 @@ Si la ejecución autónoma falla a mitad del sprint:
 
 ## Infraestructura instalada
 
-### Agentes custom
-
-| Agente | Archivo | Dominio |
-|--------|---------|---------|
-| [nombre] | `.claude/agents/[nombre].md` | [dominio] |
-
 ### Comandos
 
 | Comando | Archivo | Propósito |
@@ -125,13 +116,13 @@ Si la ejecución autónoma falla a mitad del sprint:
 | `/learn` | `.claude/commands/learn.md` | Captura lecciones post-ticket |
 | `/next-ticket` | `.claude/commands/next-ticket.md` | Inicia siguiente ticket |
 | `/status` | `.claude/commands/status.md` | Muestra progreso del sprint |
-| `/retrospective` | `.claude/commands/retrospective.md` | Análisis retroactivo de sesiones (instalar post Sprint 1) |
+| `/preflight` | `.claude/commands/preflight.md` | Validación pre-ejecución de specs |
 
-### Hook Stop
+### Guard destructivo (PreToolUse hook)
 
 - **Archivo:** `.claude/settings.json`
-- **Tipo:** Anti-racionalización
-- **Acción:** Bloquea respuestas que declaren victoria prematura
+- **Tipo:** PreToolUse — bloquea comandos destructivos (`rm -rf`, `git push --force`)
+- **Nota:** Compatible con rollback de Regla 2 (no bloquea `git reset --hard`)
 
 ### Tracking de resultados (dos archivos)
 
@@ -156,3 +147,13 @@ para humanos y para que `/retrospective` analice.
 ```
 
 Ambos archivos se commitean al repo.
+
+---
+
+## Infraestructura diferida (evaluar después del Sprint 1)
+
+| Componente | Archivo | Cuándo instalar |
+|------------|---------|----------------|
+| `/retrospective` | `.claude/commands/retrospective.md` | Después del primer sprint completo |
+| Hook anti-racionalización (Stop) | `.claude/settings.json` | Si Claude declara victoria prematura durante ejecución |
+| Agentes custom | `.claude/agents/[nombre].md` | Si `/learn` detecta el mismo tipo de error 3+ veces en un dominio |
