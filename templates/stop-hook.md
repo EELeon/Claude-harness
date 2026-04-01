@@ -32,7 +32,7 @@ CAPA PRIMARIA (gates duros del orquestador — siempre activos):
   2. Scope fence + diff audit (Regla 2b) — bloquea archivos prohibidos
   3. Tests (Regla 2)          — verifica implementación correcta
   4. Completitud (Regla 2c)   — verifica criterios de aceptación
-  5. Ledger (results.tsv)     — registra todo para aprendizaje
+  5. Ledger (.ai/runs/results.tsv) — registra todo para aprendizaje
 
 CAPA SECUNDARIA (hooks — apoyo, pueden no estar instalados):
   1. PreToolUse guard         — previene comandos destructivos
@@ -201,6 +201,6 @@ Para instalar ambos hooks en un solo settings.json:
 - El hook Stop ve la respuesta pero NO el estado real del repo
 - El guard PreToolUse ve el comando pero no su intención
 - Ningún hook puede ejecutar tests por sí solo
-- Complementar con la Regla 2 del orquestador (ORCHESTRATOR_RULES.md)
+- Complementar con la Regla 2 del orquestador (.ai/rules.md)
   que sí corre tests después de cada subagente
 - La resiliencia viene de las 3 capas juntas, no de una sola

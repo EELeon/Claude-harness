@@ -33,7 +33,7 @@ ANTES de agregar cualquier regla nueva, leé CLAUDE.md completo y verificá:
   realidad del codebase hacen más daño que bien
 
 - **¿Hay reglas stale?** (referencian archivos borrados, APIs deprecated,
-  o no se activaron en ningún ticket de results.tsv)
+  o no se activaron en ningún ticket de .ai/runs/results.tsv)
   Si sí → eliminarlas. Las reglas muertas diluyen la atención del modelo
   sobre las reglas críticas
 
@@ -53,9 +53,9 @@ Antes de clasificar destino, verificar que la regla tiene peso suficiente:
 
 | Evidencia | Acción |
 |-----------|--------|
-| El error ocurrió en 2+ tickets (buscar en results.tsv y done-tasks.md) | → Agregar a CLAUDE.md como regla permanente |
+| El error ocurrió en 2+ tickets (buscar en .ai/runs/results.tsv y .ai/done-tasks.md) | → Agregar a CLAUDE.md como regla permanente |
 | El error ocurrió en 1 ticket pero causó rollback o pérdida significativa | → Agregar a CLAUDE.md marcada como `[1 ocurrencia]` |
-| El error ocurrió en 1 ticket y fue menor (corregido rápido, sin rollback) | → Registrar SOLO en done-tasks.md como observación. NO agregar a CLAUDE.md todavía |
+| El error ocurrió en 1 ticket y fue menor (corregido rápido, sin rollback) | → Registrar SOLO en .ai/done-tasks.md como observación. NO agregar a CLAUDE.md todavía |
 | El error es de un dominio que tiene agente custom | → Agregar al agente, no a CLAUDE.md |
 
 **Lógica:** Una micro-regla de un solo incidente menor infla CLAUDE.md sin
@@ -98,7 +98,7 @@ Después de pasar el gate de sustracción causal:
 de CLAUDE.md. Si supera 100 líneas, aplicar:
 - Si borrar una regla no causa errores nuevos → borrarla es una mejora
 - Dos reglas que dicen lo mismo → consolidar en una
-- Una regla que nunca se activó en ningún ticket de results.tsv → eliminar
+- Una regla que nunca se activó en ningún ticket de .ai/runs/results.tsv → eliminar
 - Una regla que referencia archivos borrados o APIs deprecated → eliminar
 - Simplificar redacción sin perder protección → siempre vale la pena
 
@@ -113,7 +113,7 @@ en `.claude/agents/`, actualizar el agente con la lección.
 
 Basado en los patrones de este ticket y los anteriores:
 
-- **¿Se repite el mismo tipo de error 3+ veces en results.tsv/done-tasks.md?**
+- **¿Se repite el mismo tipo de error 3+ veces en .ai/runs/results.tsv/.ai/done-tasks.md?**
   → Sugerir crear un agente custom para ese dominio
 - **¿Claude declaró "listo" prematuramente en este ticket?**
   → Sugerir instalar el hook Stop si no está instalado
@@ -123,9 +123,9 @@ Basado en los patrones de este ticket y los anteriores:
 NO crear la infraestructura automáticamente — sugerir al usuario
 y dejar que decida.
 
-## 9. Registrar en done-tasks.md
+## 9. Registrar en .ai/done-tasks.md
 
-Agregar al archivo `done-tasks.md` (crear si no existe):
+Agregar al archivo `.ai/done-tasks.md` (crear si no existe):
 ```
 ## [fecha] — Ticket [N]: [título]
 - Subtareas completadas: [lista]

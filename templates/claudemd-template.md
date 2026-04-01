@@ -14,7 +14,7 @@ META-REGLAS (reglas sobre cómo escribir reglas):
 CRITERIO DE SIMPLICIDAD:
 Si borrar una regla no causa errores nuevos → borrarla es una mejora.
 Dos reglas que dicen lo mismo → consolidar en una.
-Una regla que nunca se activó en results.tsv → eliminar.
+Una regla que nunca se activó en .ai/runs/results.tsv → eliminar.
 Una regla que referencia archivos borrados o APIs deprecated → eliminar.
 -->
 
@@ -64,7 +64,7 @@ Una regla que referencia archivos borrados o APIs deprecated → eliminar.
 <!-- Formato: "Intenté [X] y falló porque [Y] — usar [Z] en su lugar" -->
 
 ## Workflow
-- SIEMPRE empezar leyendo el spec en `specs/ticket-N.md`
+- SIEMPRE empezar leyendo el spec en `.ai/specs/active/ticket-N.md`
 - SIEMPRE usar subagentes para subtareas marcadas en el spec
 - SIEMPRE commit atómico después de cada subtarea
 - SIEMPRE correr tests antes de marcar como completado

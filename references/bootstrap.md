@@ -14,6 +14,14 @@ Cuando el usuario pide preparar un repo para usar con el orquestador
 
 ```
 repo-target/
+├── .ai/
+│   ├── standards/              # Crear vacío (el usuario lo llena con su harness de auditoría)
+│   ├── specs/
+│   │   ├── active/             # Crear vacío (se llena al preparar sprints)
+│   │   └── archive/            # Crear vacío (se llena al finalizar sprints)
+│   ├── runs/                   # Crear vacío (results.tsv se genera por sprint)
+│   ├── prompts/                # Crear vacío (prompts archivados)
+│   └── done-tasks.md           # NO crear aún — se crea con el primer /learn
 ├── .claude/
 │   ├── commands/
 │   │   ├── learn.md            # Adaptar: paths y comandos reales del repo
@@ -50,8 +58,9 @@ repo-target/
    - Qué quedó diferido (agents, hooks opcionales, retrospective)
 
 **Importante:** El scaffold (CLAUDE.md, commands, settings) vive en el repo
-y se commitea. Los artefactos de sprint (specs, results.tsv, etc.) se generan
-bajo demanda cuando hay tickets reales.
+y se commitea. La estructura `.ai/` y los artefactos de sprint
+(specs, results.tsv, rules.md) se generan bajo demanda cuando hay
+tickets reales.
 
 ## Fuentes de personalización
 

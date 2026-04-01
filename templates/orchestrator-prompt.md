@@ -9,8 +9,8 @@ PRINCIPIO DE DISEÑO:
 El prompt del orquestador debe mantenerse en la zona segura de fidelidad
 (~2-3K tokens). Para lograrlo:
 - Las reglas de orquestación viven en un archivo separado en disco
-  (ORCHESTRATOR_RULES.md) que el orquestador lee al inicio
-- Los specs están en archivos separados (specs/ticket-N.md) que cada
+  (.ai/rules.md) que el orquestador lee al inicio
+- Los specs están en archivos separados (.ai/specs/active/ticket-N.md) que cada
   subagente lee desde su propio contexto fresco
 - El prompt solo contiene: instrucción de leer reglas + lista de tickets
 
@@ -24,7 +24,7 @@ VENTAJAS vs prompt monolítico:
 ESTRATEGIA DE CONTEXTO (4 capas):
 1. SUBAGENTES: Cada ticket corre como subagente → contexto fresco.
    El orquestador solo recibe el resultado resumido (Heat Shield).
-2. ESTADO EN DISCO: results.tsv persiste entre /compact y /clear.
+2. ESTADO EN DISCO: .ai/runs/results.tsv persiste entre /compact y /clear.
 3. COMPACTACIÓN PROACTIVA: Después de 3+ tickets, pedir /compact.
 4. PUNTOS DE CORTE: Para sprints largos, pausar y re-pegar prompt.
 
@@ -39,36 +39,36 @@ LIMITACIONES:
 
 ## Setup inicial
 1. Creá la rama del sprint: `git checkout -b sprint-[letra]-[nombre]`
-2. Lee las reglas de orquestación en `ORCHESTRATOR_RULES.md` y seguílas estrictamente.
+2. Lee las reglas de orquestación en `.ai/rules.md` y seguílas estrictamente.
 
 ## Tickets de este sprint (en orden)
 
 | # | Ticket | Spec | Complejidad |
 |---|--------|------|-------------|
-| 1 | T-[N] — [Título] | `specs/ticket-[N].md` | [Simple/Media/Alta] |
-| 2 | T-[N] — [Título] | `specs/ticket-[N].md` | [Simple/Media/Alta] |
-| 3 | T-[N] — [Título] | `specs/ticket-[N].md` | [Simple/Media/Alta] |
+| 1 | T-[N] — [Título] | `.ai/specs/active/ticket-[N].md` | [Simple/Media/Alta] |
+| 2 | T-[N] — [Título] | `.ai/specs/active/ticket-[N].md` | [Simple/Media/Alta] |
+| 3 | T-[N] — [Título] | `.ai/specs/active/ticket-[N].md` | [Simple/Media/Alta] |
 
 <!-- Para sprints de 5+ tickets, insertar aquí: -->
 <!-- ### --- PUNTO DE CORTE --- -->
-<!-- Antes de continuar, ejecutá la Regla 5 de ORCHESTRATOR_RULES.md -->
+<!-- Antes de continuar, ejecutá la Regla 5 de .ai/rules.md -->
 
-| 4 | T-[N] — [Título] | `specs/ticket-[N].md` | [Simple/Media/Alta] |
+| 4 | T-[N] — [Título] | `.ai/specs/active/ticket-[N].md` | [Simple/Media/Alta] |
 
 Para cada ticket:
 1. Lanzá un **subagente general-purpose** con este prompt:
-   > Lee e implementa el spec en `specs/ticket-[N].md`. Leé CLAUDE.md para contexto del proyecto. Seguí los pasos del spec, corré los tests, y commiteá. Devolvé: resumen (1-3 líneas), hash del commit, estado de tests (passed/failed), lista de archivos tocados, y para cada criterio de aceptación del spec indicá si se cumplió (sí/no/parcial). NO devuelvas logs completos ni output de tests.
+   > Lee e implementa el spec en `.ai/specs/active/ticket-[N].md`. Leé CLAUDE.md para contexto del proyecto. Seguí los pasos del spec, corré los tests, y commiteá. Devolvé: resumen (1-3 líneas), hash del commit, estado de tests (passed/failed), lista de archivos tocados, y para cada criterio de aceptación del spec indicá si se cumplió (sí/no/parcial). NO devuelvas logs completos ni output de tests.
 2. Después del subagente, aplicá Reglas 2 + 2b + 2c (scope → tests → completitud)
-3. Registrá el resultado en `results.tsv` (Regla 4)
+3. Registrá el resultado en `.ai/runs/results.tsv` (Regla 4)
 
 Al terminar todos los tickets:
 1. Ejecutá `/learn sprint-[LETRA] completo`
-2. Creá el PR: `gh pr create --title "Sprint [LETRA]: [Nombre temático]" --body "$(cat results.tsv)"`
+2. Creá el PR: `gh pr create --title "Sprint [LETRA]: [Nombre temático]" --body "$(cat .ai/runs/results.tsv)"`
 ```
 
 ---
 
-## Archivo complementario: ORCHESTRATOR_RULES.md
+## Archivo complementario: .ai/rules.md
 
 <!--
 Este archivo se genera junto con el prompt y se commitea al repo.
@@ -102,10 +102,10 @@ Después de cada subagente:
 3. **Auditoría de scope** (ver Regla 2b abajo)
 4. Corré los tests del ticket (el comando está en el spec)
 5. **Si scope OK + tests pasan:** ejecutá Regla 2c (auditoría de completitud).
-   Si completitud OK → registrá `keep` en `results.tsv` y continuá.
+   Si completitud OK → registrá `keep` en `.ai/runs/results.tsv` y continuá.
 6. **Si scope violation (archivos prohibidos tocados):** rollback inmediato:
    `git reset --hard [hash anterior]`, registrá `discard` con
-   `failure_category=scope_violation` en `results.tsv`, continuá
+   `failure_category=scope_violation` en `.ai/runs/results.tsv`, continuá
 7. **Si los tests fallan:** intentá una corrección rápida (máximo 2 intentos).
    Si no se resuelve, hacé rollback: `git reset --hard [hash anterior]`,
    registrá `discard` con `failure_category=test_failure`, y continuá.
@@ -125,7 +125,7 @@ Después de cada subagente, antes de correr tests:
 | No está en ninguna lista | — | — | **WARNING** — registrar pero no bloquear |
 
 - Si hay archivo en denylist → rollback automático, registrar `scope_violation`
-- Si hay archivo fuera de toda lista → registrar warning en description de results.tsv
+- Si hay archivo fuera de toda lista → registrar warning en description de .ai/runs/results.tsv
   pero NO bloquear (el subagente puede haber tocado un test auxiliar legítimamente)
 - Si faltan archivos de la allowlist → warning, no bloqueo
   (una buena implementación puede requerir tocar menos archivos)
@@ -174,7 +174,7 @@ Después de que scope (2b) y tests (2) pasen, verificar criterios de aceptación
 significa que el objetivo del ticket NO se logró. En duda, tratarlo como crítico.
 
 4. Si `incomplete`: intentá una corrección rápida (máximo 1 intento).
-   Si no se resuelve, rollback y registrar `incomplete` en results.tsv.
+   Si no se resuelve, rollback y registrar `incomplete` en .ai/runs/results.tsv.
 
 **Orden completo de verificación post-subagente:**
 Regla 2b (scope) → Regla 2 paso 4 (tests) → Regla 2c (completitud)
@@ -194,31 +194,31 @@ Las únicas razones válidas para pausar son:
 
 ## Regla 4: Gestión de contexto
 Después de cada ticket completado o descartado:
-1. Registrá el resultado en `results.tsv` (ver formato abajo)
+1. Registrá el resultado en `.ai/runs/results.tsv` (ver formato abajo)
 2. Evaluá tu uso de contexto
 3. Si sentís que tu contexto está pesado o llevás 3+ tickets completados,
    decile al usuario: **"Recomiendo correr /compact antes de continuar
-   con el siguiente ticket. Tu progreso está guardado en results.tsv."**
-4. Después de /compact, retomá leyendo `results.tsv` para saber qué falta
+   con el siguiente ticket. Tu progreso está guardado en .ai/runs/results.tsv."**
+4. Después de /compact, retomá leyendo `.ai/runs/results.tsv` para saber qué falta
 
 **AVISO (paraphrase loss):** Cuando se comprime el contexto, las
 instrucciones detalladas se parafrasean y pierden precisión. Por eso:
 - Las reglas están en este archivo (releélo si tenés dudas)
-- El estado está en results.tsv (sobrevive cualquier compresión)
+- El estado está en .ai/runs/results.tsv (sobrevive cualquier compresión)
 - Los specs están en disco (el subagente los lee frescos)
 - NUNCA depender de "lo que recuerdo de tickets anteriores"
 
 ## Regla 5: Punto de corte (sprints largos)
 Si el sprint tiene 5+ tickets, hay un **punto de corte** marcado en
 el prompt del sprint. Al llegar:
-1. Asegurate de que `results.tsv` está actualizado
+1. Asegurate de que `.ai/runs/results.tsv` está actualizado
 2. Mostrá resumen de progreso parcial
 3. Decile al usuario: **"Llegamos al punto de corte. Recomiendo:
    /clear y luego pegá de nuevo el prompt del sprint. Voy a retomar
-   automáticamente desde el ticket [N] leyendo results.tsv."**
+   automáticamente desde el ticket [N] leyendo .ai/runs/results.tsv."**
 
 ## Regla 6: Retomar después de /clear
-Si al empezar encontrás que `results.tsv` ya tiene tickets
+Si al empezar encontrás que `.ai/runs/results.tsv` ya tiene tickets
 completados de este sprint, **saltá los tickets ya completados** y
 continuá con el siguiente pendiente.
 
@@ -251,9 +251,9 @@ Son dos niveles complementarios:
 Para tickets con status `discard`, NO correr /learn (no hay lección útil
 de una implementación que se descartó por completo).
 
-## Formato de results.tsv
+## Formato de .ai/runs/results.tsv
 
-Crear `results.tsv` al inicio del sprint (si no existe) con este header.
+Crear `.ai/runs/results.tsv` al inicio del sprint (si no existe) con este header.
 Usar tabs como separador (NO comas).
 
 ```
@@ -282,17 +282,18 @@ Categorías de fallo:
 
 1. Corré la suite completa de tests
 2. Si hay fallos, corregí
-3. Asegurate de que `results.tsv` está completo
+3. Asegurate de que `.ai/runs/results.tsv` está completo
 4. Ejecutá `/learn sprint-[LETRA] completo`
 5. **Limpieza de artefactos de sprint:**
-   Borrá los archivos que ya no sirven y commiteá la limpieza:
+   Archivá los specs y borrá los artefactos temporales:
    ```
-   rm -rf specs/
-   rm -f ORCHESTRATOR_RULES.md EXECUTION_PLAN.md results.tsv
-   git add -A && git commit -m "chore: limpiar artefactos de sprint [LETRA]"
+   mkdir -p .ai/specs/archive/sprint-[LETRA]
+   mv .ai/specs/active/* .ai/specs/archive/sprint-[LETRA]/
+   rm -f .ai/rules.md .ai/plan.md .ai/runs/results.tsv
+   git add -A && git commit -m "chore: archivar specs y limpiar sprint [LETRA]"
    ```
-   **NO borrar:** `done-tasks.md` (es acumulativo entre sprints),
-   `CLAUDE.md`, ni nada en `.claude/`.
+   **NO borrar:** `.ai/done-tasks.md` (es acumulativo entre sprints),
+   `.ai/standards/`, `CLAUDE.md`, ni nada en `.claude/`.
 6. Mostrá resumen final:
    - Tickets: [N] keep / [N] discard / [N] crash
    - Cambios en CLAUDE.md
@@ -314,7 +315,7 @@ Categorías de fallo:
    (o después del 3 y 6 si hay 7+)
 5. Nunca cortar entre tickets con dependencia directa
 
-### Cómo generar ORCHESTRATOR_RULES.md
+### Cómo generar .ai/rules.md
 
 1. Copiar el bloque de arriba
 2. Personalizar el comando de tests si el proyecto lo requiere

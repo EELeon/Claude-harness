@@ -2,9 +2,9 @@
 
 Reporta el progreso del sprint actual:
 
-1. Leer `EXECUTION_PLAN.md`
-2. Leer `results.tsv` para ver qué tickets tienen status keep/discard/crash
-3. Leer `done-tasks.md` para lecciones (si existe)
+1. Leer `.ai/plan.md`
+2. Leer `.ai/runs/results.tsv` para ver qué tickets tienen status keep/discard/crash
+3. Leer `.ai/done-tasks.md` para lecciones (si existe)
 4. Verificar rama actual con `git branch --show-current`
 5. Contar commits del sprint con `git log --oneline main..HEAD`
 

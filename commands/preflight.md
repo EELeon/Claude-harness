@@ -11,7 +11,7 @@ Un solo motor de validación, dos puntos de entrada:
 
 ## Instrucciones
 
-Leé todos los archivos en `specs/` y para cada uno, validá los siguientes campos.
+Leé todos los archivos en `.ai/specs/active/` y para cada uno, validá los siguientes campos.
 Si se pasó un argumento (ej: `/preflight ticket-3`), validar solo ese spec.
 
 ### Campos obligatorios (FAIL si falta)
@@ -41,7 +41,7 @@ Si se pasó un argumento (ej: `/preflight ticket-3`), validar solo ese spec.
    debe estar en la allowlist del scope fence. Si no → FAIL.
 
 2. **Dependencias rotas**: Si el spec dice "Requiere: Ticket X completado",
-   verificar que `specs/ticket-X.md` existe. Si no → WARN.
+   verificar que `.ai/specs/active/ticket-X.md` existe. Si no → WARN.
 
 3. **Restricciones excesivas**: Contar total de restricciones en `## NO hacer`.
    Si >10 → WARN ("más de 10 constraints causa omisiones").
@@ -117,7 +117,7 @@ deterministas: el mismo spec siempre produce el mismo resultado.
 Para cada spec, reportar:
 
 ```
-## specs/ticket-[N].md — [PASS | PASS WITH WARNINGS | FAIL]
+## .ai/specs/active/ticket-[N].md — [PASS | PASS WITH WARNINGS | FAIL]
 
 ### Estructural (determinista)
 ✅ Headings: 8/8 presentes
@@ -142,7 +142,7 @@ Sprint preflight:
   FAIL: [N] specs (NO ejecutar hasta corregir)
 
 Specs que DEBEN corregirse antes de ejecutar:
-- specs/ticket-[N].md: [campos faltantes]
+- .ai/specs/active/ticket-[N].md: [campos faltantes]
 ```
 
 ## Severidad

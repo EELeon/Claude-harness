@@ -48,16 +48,16 @@ los intercambios relevantes, y filtrar tool calls repetitivas.
 
 Además de las conversaciones, analizar datos cuantitativos:
 
-### results.tsv
-Leer `results.tsv` (si existe) y calcular:
+### .ai/runs/results.tsv
+Leer `.ai/runs/results.tsv` (si existe) y calcular:
 - **Total**: [N] keep / [N] discard / [N] crash
 - **Por failure_category**: agrupar discards por categoría
   (scope_violation, test_failure, incomplete, rationalization, spec_ambiguity)
 - **Tickets reincidentes**: tickets que aparecen >1 vez (descartados y reintentados)
 - **Archivos conflictivos**: archivos que aparecen en tickets descartados
 
-### done-tasks.md
-Leer `done-tasks.md` (si existe) y extraer:
+### .ai/done-tasks.md
+Leer `.ai/done-tasks.md` (si existe) y extraer:
 - Reglas agregadas/modificadas/eliminadas por ticket
 - Infraestructura sugerida y si se implementó
 - Patrones de "tiempo de contexto alto"
@@ -83,7 +83,7 @@ Agrupar por:
 - **Lo que funciona bien** — no perder esto
   (ej: "Los specs con rutas exactas siempre se ejecutan limpio")
 - **Citas de frustración** — evidencia cruda del usuario
-- **Categorías de fallo cuantitativas** — de results.tsv
+- **Categorías de fallo cuantitativas** — de .ai/runs/results.tsv
   (ej: "scope_violation: 5 ocurrencias, 80% en dominio eléctrico")
 
 ## Fase 4: Cross-reference contra configuración actual

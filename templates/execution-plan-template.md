@@ -1,6 +1,6 @@
-# Template para EXECUTION_PLAN.md
+# Template para .ai/plan.md
 
-<!-- Este archivo se genera junto con los specs y se commitea al repo -->
+<!-- Este archivo se genera junto con los specs y se commitea al repo como .ai/plan.md -->
 
 # Plan de Ejecución — [Nombre del batch]
 
@@ -50,7 +50,7 @@ Modo de ejecución:
 
 <!--
 El prompt del sprint es LEAN (~1-2K tokens). Solo contiene:
-- Instrucción de leer ORCHESTRATOR_RULES.md
+- Instrucción de leer .ai/rules.md
 - Tabla de tickets apuntando a sus specs en disco
 Los subagentes leen los specs directamente de disco (lazy loading).
 -->
@@ -82,12 +82,12 @@ así que la ejecución es un solo paso:
 ```
 # Sprint A
 # Pegar el prompt del Sprint A (arriba) en Claude Code (CLI o Desktop).
-# El orquestador: crea la rama, lee ORCHESTRATOR_RULES.md, ejecuta
-# cada ticket como subagente leyendo su spec de specs/ticket-N.md,
+# El orquestador: crea la rama, lee .ai/rules.md, ejecuta
+# cada ticket como subagente leyendo su spec de .ai/specs/active/ticket-N.md,
 # y al final crea el PR con gh.
 #
 # Si hay tickets fuera del prompt (excepcionalmente complejos):
-#   > "Lee specs/ticket-[N].md e impleméntalo. Usa subagents."
+#   > "Lee .ai/specs/active/ticket-[N].md e impleméntalo. Usa subagents."
 #   > /learn ticket-[N] [título]
 
 # Sprint B (después de mergear Sprint A)
@@ -110,10 +110,26 @@ Si la ejecución autónoma falla a mitad del sprint:
 
 | Comando | Archivo | Propósito |
 |---------|---------|-----------|
-| `/learn` | `.claude/commands/learn.md` | Captura lecciones post-ticket |
-| `/next-ticket` | `.claude/commands/next-ticket.md` | Inicia siguiente ticket |
+| `/learn` | `.claude/commands/learn.md` | Captura lecciones en `.ai/done-tasks.md` |
+| `/next-ticket` | `.claude/commands/next-ticket.md` | Inicia siguiente ticket pendiente |
 | `/status` | `.claude/commands/status.md` | Muestra progreso del sprint |
 | `/preflight` | `.claude/commands/preflight.md` | Validación pre-ejecución de specs |
+
+### Estructura .ai/
+
+```
+.ai/
+├── standards/           # Harness de auditoría (ChatGPT) — no tocar
+├── specs/
+│   ├── active/          # Specs del sprint actual
+│   └── archive/         # Specs de sprints pasados
+├── runs/
+│   └── results.tsv      # Tracking del sprint actual
+├── prompts/             # Prompts lean archivados
+├── rules.md             # Reglas de orquestación del sprint actual
+├── plan.md              # Plan de ejecución del sprint actual
+└── done-tasks.md        # Lecciones acumulativas (NO borrar)
+```
 
 ### Guard destructivo (PreToolUse hook)
 
@@ -123,7 +139,7 @@ Si la ejecución autónoma falla a mitad del sprint:
 
 ### Tracking de resultados (dos archivos)
 
-**`results.tsv`** — Escrito por el orquestador. Tracking estructurado
+**`.ai/runs/results.tsv`** — Escrito por el orquestador. Tracking estructurado
 para retomar sprints después de `/clear` y para análisis de /retrospective.
 ```
 ticket	commit	tests	status	failure_category	description
@@ -133,7 +149,7 @@ T-5	d4e5f6g	passed	keep	none	capas eléctricas — fix aplicado
 T-8	0000000	crash	discard	scope_violation	motor DXF — tocó config global
 ```
 
-**`done-tasks.md`** — Escrito por `/learn`. Lecciones narrativas
+**`.ai/done-tasks.md`** — Escrito por `/learn`. Lecciones narrativas
 para humanos y para que `/retrospective` analice.
 ```
 ## [fecha] — Ticket [N]: [título]

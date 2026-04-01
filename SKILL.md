@@ -23,8 +23,8 @@ de manera autónoma, con un solo prompt por sprint.
 ## Modelo de ejecución
 
 - **Subagentes por ticket** — contexto fresco (~200k tokens) por cada uno
-- **Estado en disco** — `results.tsv` (TSV: ticket, commit, tests, status,
-  failure_category, description) permite retomar si se pierde contexto
+- **Estado en disco** — `.ai/runs/results.tsv` (TSV: ticket, commit, tests,
+  status, failure_category, description) permite retomar si se pierde contexto
 - **Compactación proactiva** — pedir `/compact` después de 3+ tickets
 - **Puntos de corte** — para sprints de 5+ tickets, pausas para `/clear`
 
@@ -46,7 +46,7 @@ Leer `references/flujo-principal.md` para los pasos completos.
 | 2 | Agrupación en sprints | `references/flujo-principal.md` |
 | 3 | Generar specs por ticket | `references/reglas-specs.md` |
 | 3.5 | Preflight: validar specs | `commands/preflight.md` |
-| 4 | Prompt lean + ORCHESTRATOR_RULES.md | `templates/orchestrator-prompt.md` |
+| 4 | Prompt lean + .ai/rules.md | `templates/orchestrator-prompt.md` |
 | 5 | Artefactos de soporte (progresivo) | `references/flujo-principal.md` |
 | 6 | Revisión con el usuario | `references/flujo-principal.md` |
 

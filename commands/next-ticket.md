@@ -1,10 +1,10 @@
 # /next-ticket — Iniciar siguiente ticket del sprint
 
-Lee EXECUTION_PLAN.md y determina cuál es el siguiente ticket pendiente.
+Lee `.ai/plan.md` y determina cuál es el siguiente ticket pendiente.
 
-1. Leer `EXECUTION_PLAN.md` para identificar el ticket actual
-2. Leer `results.tsv` para confirmar qué ya se completó (status = keep)
-3. Leer el spec correspondiente: `specs/ticket-[N].md`
+1. Leer `.ai/plan.md` para identificar el ticket actual
+2. Leer `.ai/runs/results.tsv` para confirmar qué ya se completó (status = keep)
+3. Leer el spec correspondiente: `.ai/specs/active/ticket-[N].md`
 4. Mostrar resumen:
    - Título del ticket
    - Complejidad

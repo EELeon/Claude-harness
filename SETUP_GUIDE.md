@@ -144,16 +144,16 @@ calidad dándole mejor input:
 - Si mencionás archivos exactos → el spec los incluye
 - Si das ejemplos concretos → el spec los convierte en tests
 
-### Prompt del sprint + ORCHESTRATOR_RULES.md (ajustes menores)
+### Prompt del sprint + .ai/rules.md (ajustes menores)
 
 El prompt del sprint es lean (~1-2K tokens) — solo lista los tickets
-y apunta a sus specs. Las reglas viven en ORCHESTRATOR_RULES.md que
+y apunta a sus specs. Las reglas viven en `.ai/rules.md` que
 el orquestador lee de disco. Lo que podrías ajustar:
 
 - **Punto de corte:** Si sabés que ciertos tickets son más pesados,
   podés mover el punto de corte para que caiga antes de ellos
 - **Comando de tests:** Asegurate de que el comando de tests global
-  sea correcto en ORCHESTRATOR_RULES.md
+  sea correcto en `.ai/rules.md`
 
 ### Comandos /learn, /next-ticket, /status (generalmente no se tocan)
 
@@ -231,7 +231,7 @@ Mantenimiento periódico:
   directamente en la terminal de Claude Code (es un comando del usuario,
   no algo que Claude pueda correr solo). Si ya es muy tarde, ejecutá
   `/clear` vos y pegá el prompt del sprint de nuevo — Claude retoma
-  automáticamente leyendo `results.tsv`.
+  automáticamente leyendo `.ai/runs/results.tsv`.
 
 **El hook Stop bloquea todo**
 → Bajá la sensibilidad removiendo frases del prompt del hook.
@@ -247,8 +247,8 @@ Mantenimiento periódico:
 → No modifiqués el prompt activo. Agregá los tickets nuevos al
   siguiente sprint, o creá un mini-sprint adicional.
 
-**¿`results.tsv` y `done-tasks.md` se commitean o se ignoran?**
-→ Commitealos. `results.tsv` es el tracking estructurado que permite
-  retomar sprints después de `/clear`. `done-tasks.md` tiene las
+**¿`.ai/runs/results.tsv` y `.ai/done-tasks.md` se commitean o se ignoran?**
+→ Commitealos. `.ai/runs/results.tsv` es el tracking estructurado que permite
+  retomar sprints después de `/clear`. `.ai/done-tasks.md` tiene las
   lecciones narrativas que `/retrospective` analiza. Si trabajás
   en equipo, ambos permiten ver el progreso.

@@ -29,13 +29,12 @@ Cada sprint = 1 rama de git = 1 prompt de sprint. Presentar propuesta al usuario
 
 ## Paso 3 — Generar specs
 
-Para CADA ticket, generar un archivo `specs/ticket-N.md` siguiendo
-la plantilla en `templates/spec-template.md`.
+Para CADA ticket, generar un archivo `.ai/specs/active/ticket-N.md`
+siguiendo la plantilla en `templates/spec-template.md`.
 
-**Ubicación:** La carpeta `specs/` se crea en la **raíz del repositorio**
-del usuario (al mismo nivel que `CLAUDE.md` y `ORCHESTRATOR_RULES.md`).
-Ruta completa: `<repo-root>/specs/ticket-N.md`.
-Todos los specs de todos los sprints van en la misma carpeta.
+**Ubicación:** Los specs van en `.ai/specs/active/` (relativo a la raíz
+del repositorio). Al finalizar el sprint, se archivan automáticamente
+en `.ai/specs/archive/sprint-[LETRA]/`.
 
 **Regla crítica de división en subtareas:**
 
@@ -91,13 +90,13 @@ Para CADA sprint, generar DOS archivos siguiendo `templates/orchestrator-prompt.
    Solo contiene: instrucción de leer reglas + tabla de tickets con ruta al spec.
    Es ultra-lean para mantenerse en la zona de fidelidad total (0-5K tokens).
 
-2. **ORCHESTRATOR_RULES.md** — Reglas de orquestación que el agente lee de disco.
+2. **`.ai/rules.md`** — Reglas de orquestación que el agente lee de disco.
    Contiene: las 7 reglas (incluyendo 2b scope audit y 2c completitud),
-   formato de results.tsv, patrón Heat Shield, y paso final de `/learn`.
+   formato de .ai/runs/results.tsv, patrón Heat Shield, y paso final de `/learn`.
 
 **Principio de diseño (lazy loading):**
 - El prompt del sprint NO inlinea los prompts de cada ticket
-- Cada subagente lee su spec directamente de `specs/ticket-N.md`
+- Cada subagente lee su spec directamente de `.ai/specs/active/ticket-N.md`
 - Los specs ya son autocontenidos (verificar checklist en spec-template.md)
 - Esto mantiene el prompt del orquestador lean, resiste /compact sin
   paraphrase loss, y escala sin importar cuántos tickets tenga el sprint
@@ -120,7 +119,7 @@ de **mínimo viable → crece según necesidad**:
    - `/next-ticket` — lee el siguiente spec y empieza (ver `commands/next-ticket.md`)
    - `/status` — muestra progreso del sprint (ver `commands/status.md`)
    - `/preflight` — validación pre-ejecución de specs (ver `commands/preflight.md`)
-3. **Plan de ejecución** — `EXECUTION_PLAN.md` en la raíz
+3. **Plan de ejecución** — `.ai/plan.md`
    - Leer `templates/execution-plan-template.md`
 
 **Instalar en Sprint 1 (costo mínimo, protección máxima):**
