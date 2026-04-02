@@ -63,7 +63,7 @@ Tipo `command` para máxima velocidad (~50ms) y determinismo.
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c 'CMD=$(cat /dev/stdin | grep -oP '\"command\":\\s*\"\\K[^\"]+'); case \"$CMD\" in *\"rm -rf /\"*|*\"rm -rf ~\"*|*\"git push --force\"*|*\"git push -f \"*|*\"git clean -fd\"*) echo \"BLOCKED: comando destructivo detectado: $CMD\" >&2; exit 2;; *) exit 0;; esac'",
+            "command": "bash -c \"CMD=$(cat | jq -r '.command // empty'); case \\\"$CMD\\\" in *'rm -rf /'*|*'rm -rf ~'*|*'git push --force'*|*'git push -f '*|*'git clean -fd'*) echo 'BLOCKED: comando destructivo detectado' >&2; exit 2;; *) exit 0;; esac\"",
             "timeout": 5
           }
         ]
@@ -158,7 +158,7 @@ Para instalar ambos hooks en un solo settings.json:
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c 'CMD=$(cat /dev/stdin | grep -oP '\"command\":\\s*\"\\K[^\"]+'); case \"$CMD\" in *\"rm -rf /\"*|*\"rm -rf ~\"*|*\"git push --force\"*|*\"git push -f \"*|*\"git clean -fd\"*) echo \"BLOCKED: comando destructivo detectado\" >&2; exit 2;; *) exit 0;; esac'",
+            "command": "bash -c \"CMD=$(cat | jq -r '.command // empty'); case \\\"$CMD\\\" in *'rm -rf /'*|*'rm -rf ~'*|*'git push --force'*|*'git push -f '*|*'git clean -fd'*) echo 'BLOCKED: comando destructivo detectado' >&2; exit 2;; *) exit 0;; esac\"",
             "timeout": 5
           }
         ]
