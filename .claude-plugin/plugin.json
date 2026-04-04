@@ -3,9 +3,26 @@
   "version": "2.0.0",
   "description": "Orquestador de tickets para Claude Code. Convierte tickets en ejecución autónoma con specs, validación, auditoría recursiva contra meta, y aprendizaje continuo.",
   "author": {
-    "name": "EELeon"
+    "name": "EELeon",
+    "url": "https://github.com/EELeon"
   },
-  "repository": "https://github.com/EELeon/Claude-harness",
-  "license": "MIT",
-  "keywords": ["orchestrator", "tickets", "specs", "autonomous", "audit", "meta"]
+  "skills": [
+    "skills/orchestrate",
+    "skills/bootstrap",
+    "skills/preflight",
+    "skills/recursive-audit",
+    "skills/define-meta",
+    "skills/validate-meta",
+    "skills/retrospective"
+  ],
+  "commands": [
+    "commands/learn.md",
+    "commands/next-ticket.md",
+    "commands/status.md",
+    "commands/preflight.md",
+    "commands/validate-meta.md",
+    "commands/recursive-audit.md",
+    "commands/retrospective.md",
+    "commands/cleanup-ai.md"
+  ]
 }
