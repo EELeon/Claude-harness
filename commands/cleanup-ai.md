@@ -13,16 +13,15 @@ y migrar el hook PreToolUse de one-liner inline a script externo.
 .ai/
 ├── standards/           # Harness de auditoría — NO tocar
 ├── specs/
-│   ├── active/          # Specs del sprint en curso (si hay)
+│   ├── active/          # Specs del batch en curso (si hay)
 │   └── archive/
-│       └── sprint-X/    # Un folder por sprint pasado
+│       └── [nombre]/    # Un folder por batch pasado
 ├── runs/
-│   └── results.tsv      # Solo si hay sprint en curso
-├── prompts/             # Un .md por sprint (permanente)
-│   ├── sprint-a.md
-│   └── ...
-├── rules.md             # Solo si hay sprint en curso
-├── plan.md              # Solo si hay sprint en curso
+│   └── results.tsv      # Solo si hay ejecución en curso
+├── prompts/             # Un .md por batch (permanente)
+│   └── [nombre-batch].md
+├── rules.md             # Solo si hay ejecución en curso
+├── plan.md              # Solo si hay ejecución en curso
 └── done-tasks.md        # Acumulativo — NUNCA borrar
 ```
 
@@ -38,8 +37,8 @@ Corré `find .ai/ -type f` y clasificá cada archivo:
 | **Basura** | Temporales, duplicados, nombres sin sentido | Listar para borrar |
 
 Reglas de clasificación:
-- Archivos con headings Objetivo/Scope fence/Tests → specs → `.ai/specs/active/` o `.ai/specs/archive/sprint-X/`
-- Archivos con "Setup inicial" + tabla de tickets → prompts → `.ai/prompts/sprint-[letra].md`
+- Archivos con headings Objetivo/Scope fence/Tests → specs → `.ai/specs/active/` o `.ai/specs/archive/[nombre-batch]/`
+- Archivos con "Setup inicial" + tabla de tickets → prompts → `.ai/prompts/[nombre-batch].md`
 - `rules.md` → `.ai/rules.md`
 - `plan.md` → `.ai/plan.md`
 - `done-tasks.md` → `.ai/done-tasks.md`

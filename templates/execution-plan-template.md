@@ -6,74 +6,79 @@
 
 Generado: [fecha]
 Total tickets: [N]
-Sprints: [N]
+Rama: `[nombre-rama]`
 
 ## Orden de ejecución
 
-| # | Ticket | Título | Sprint | Complejidad | Modo | Subtareas | Estado |
-|---|--------|--------|--------|-------------|------|-----------|--------|
-| 1 | T-[N]  | [título] | A | [S/M/A] | Subagente | [N] | ⬜ |
-| 2 | T-[N]  | [título] | A | [S/M/A] | Subagente | [N] | ⬜ |
-| 3 | T-[N]  | [título] | B | Alta | Sesión principal | [N] | ⬜ |
+| # | Ticket | Título | Complejidad | Modo | Subtareas | Estado |
+|---|--------|--------|-------------|------|-----------|--------|
+| 1 | T-[N]  | [título] | [S/M/A] | Subagente | [N] | ⬜ |
+| 2 | T-[N]  | [título] | [S/M/A] | Subagente | [N] | ⬜ |
+| 3 | T-[N]  | [título] | [S/M/A] | Subagente | [N] | ⬜ |
+| — | **PUNTO DE CORTE** | /compact o /clear | — | — | — | — |
+| 4 | T-[N]  | [título] | Alta | Subagente | [N] | ⬜ |
+| 5 | T-[N]  | [título] | [S/M/A] | Sesión principal | [N] | ⬜ |
 
 <!--
 Estados: ⬜ pendiente | 🔄 en progreso | ✅ completado | ❌ bloqueado
 
 Modo de ejecución:
-  Subagente (default): corre dentro del prompt del sprint como subagente.
-  Sesión principal: corre fuera del prompt del sprint, directamente en el
+  Subagente (default): corre como subagente dentro del prompt.
+  Sesión principal: corre fuera del prompt, directamente en el
     contexto principal de Claude Code. Usar SOLO cuando el ticket
     es de complejidad Alta + tiene 4 subtareas de 5+ archivos cada una.
     Estos tickets necesitan lanzar sus propios subagentes internos,
     lo cual no es posible si ya corren como subagente.
+
+Puntos de corte: pausas para /compact o /clear. NO son fronteras de git.
+Toda la ejecución ocurre en una sola rama y un solo PR.
 -->
 
-## Sprints
+## Dependencias
 
-### Sprint A — [Nombre temático]
-- **Rama:** `sprint-a-[nombre]`
-- **Tickets:** T-[N], T-[N], T-[N]
-- **Dependencias internas:** T-[X] antes de T-[Y]
-- **Prompt:** `.ai/prompts/sprint-a.md`
-- **Tickets fuera del prompt:** [ninguno | T-[N] (razón)]
+- T-[X] antes de T-[Y] — [razón]
+- T-[Z] independiente
 
-### Sprint B — [Nombre temático]
-- **Rama:** `sprint-b-[nombre]`
-- **Tickets:** T-[N], T-[N]
-- **Dependencias:** Requiere Sprint A mergeado
-- **Prompt:** `.ai/prompts/sprint-b.md`
-- **Tickets fuera del prompt:** [ninguno | T-[N] (razón)]
+## Tickets fuera del prompt
 
-<!-- Repetir por sprint -->
+[ninguno | T-[N] — razón: complejidad Alta + 4 subtareas de 5+ archivos]
 
 ---
 
-## Ejecución — líneas para Claude Code
+## Ejecución — línea para Claude Code
 
 <!--
-Los prompts ya NO están embebidos en este archivo.
-Cada sprint tiene su propio archivo en .ai/prompts/sprint-[letra].md.
-El usuario solo pega la línea correspondiente en Claude Code.
+El prompt vive en .ai/prompts/[nombre-batch].md como archivo independiente.
+El usuario solo pega esta línea en Claude Code.
 -->
 
 ```
-# Sprint A
-Lee .ai/prompts/sprint-a.md y ejecutá el Sprint A completo.
+Lee .ai/prompts/[nombre-batch].md y ejecutá todos los tickets.
+```
 
-# Sprint B (después de mergear Sprint A)
-Lee .ai/prompts/sprint-b.md y ejecutá el Sprint B completo.
-
-# Tickets fuera del prompt (excepcionalmente complejos)
+Para tickets fuera del prompt (excepcionalmente complejos):
+```
 Lee .ai/specs/active/ticket-[N].md e impleméntalo. Usa subagents.
 ```
 
-## Fallback: ejecución manual (si el prompt del sprint falla)
+## Fallback: ejecución manual
 
-Si la ejecución autónoma falla a mitad del sprint:
+Si la ejecución autónoma falla a mitad:
 1. Revisar qué tickets ya se completaron: `/status`
 2. Para el ticket que falló: `/next-ticket` (ejecuta el siguiente pendiente)
 3. Después de corregir: `/learn ticket-[N] [título]`
 4. `/clear` y continuar con `/next-ticket`
+
+## Rollback de un ticket específico
+
+Cada ticket tiene un commit atómico con el número de ticket en el mensaje.
+Para revertir un ticket sin afectar al resto:
+```bash
+# Encontrar el commit del ticket
+git log --oneline --grep="T-[N]"
+# Revertir solo ese commit
+git revert [hash] --no-edit
+```
 
 ---
 
@@ -85,7 +90,7 @@ Si la ejecución autónoma falla a mitad del sprint:
 |---------|---------|-----------|
 | `/learn` | `.claude/commands/learn.md` | Captura lecciones en `.ai/done-tasks.md` |
 | `/next-ticket` | `.claude/commands/next-ticket.md` | Inicia siguiente ticket pendiente |
-| `/status` | `.claude/commands/status.md` | Muestra progreso del sprint |
+| `/status` | `.claude/commands/status.md` | Muestra progreso |
 | `/preflight` | `.claude/commands/preflight.md` | Validación pre-ejecución de specs |
 
 ### Estructura .ai/
@@ -94,29 +99,29 @@ Si la ejecución autónoma falla a mitad del sprint:
 .ai/
 ├── standards/           # Harness de auditoría (ChatGPT) — no tocar
 ├── specs/
-│   ├── active/          # Specs del sprint actual
-│   └── archive/         # Specs de sprints pasados
-│       └── sprint-A/    # mkdir -p al archivar
+│   ├── active/          # Specs del batch actual
+│   └── archive/         # Specs de batches pasados
+│       └── [nombre]/    # mkdir -p al archivar
 ├── runs/
-│   └── results.tsv      # Tracking del sprint actual
-├── prompts/             # UN archivo por sprint (permanente)
-│   ├── sprint-a.md
-│   └── sprint-b.md
-├── rules.md             # Reglas de orquestación (temporal, se borra post-sprint)
-├── plan.md              # Este archivo (temporal, se borra post-sprint)
+│   └── results.tsv      # Tracking (temporal, se borra post-ejecución)
+├── prompts/             # UN archivo por batch (permanente)
+│   └── [nombre-batch].md
+├── rules.md             # Reglas de orquestación (temporal)
+├── plan.md              # Este archivo (temporal)
 └── done-tasks.md        # Lecciones acumulativas (NO borrar)
 ```
 
 ### Guard destructivo (PreToolUse hook)
 
-- **Archivo:** `.claude/settings.json`
+- **Script:** `.claude/hooks/guard-destructive.sh`
+- **Config:** `.claude/settings.json`
 - **Tipo:** PreToolUse — bloquea comandos destructivos (`rm -rf`, `git push --force`)
 - **Nota:** Compatible con rollback de Regla 2 (no bloquea `git reset --hard`)
 
 ### Tracking de resultados (dos archivos)
 
 **`.ai/runs/results.tsv`** — Escrito por el orquestador. Tracking estructurado
-para retomar sprints después de `/clear` y para análisis de /retrospective.
+para retomar después de `/clear` y para análisis de /retrospective.
 ```
 ticket	commit	tests	status	failure_category	description
 T-1	a1b2c3d	passed	keep	none	block por nivel con tabla y capa DXF
@@ -139,10 +144,10 @@ Ambos archivos se commitean al repo.
 
 ---
 
-## Infraestructura diferida (evaluar después del Sprint 1)
+## Infraestructura diferida (evaluar después de la primera ejecución)
 
 | Componente | Archivo | Cuándo instalar |
 |------------|---------|----------------|
-| `/retrospective` | `.claude/commands/retrospective.md` | Después del primer sprint completo |
+| `/retrospective` | `.claude/commands/retrospective.md` | Después de la primera ejecución completa |
 | Hook anti-racionalización (Stop) | `.claude/settings.json` | Si Claude declara victoria prematura durante ejecución |
 | Agentes custom | `.claude/agents/[nombre].md` | Si `/learn` detecta el mismo tipo de error 3+ veces en un dominio |

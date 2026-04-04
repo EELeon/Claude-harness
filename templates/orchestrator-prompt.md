@@ -1,15 +1,20 @@
-# Template para prompt orquestador de sprint
+# Template para prompt orquestador
 
 <!--
 Este template se llena por el skill code-orchestrator en Cowork.
 El resultado es un prompt LEAN que Claude Code lee de disco.
 
 UBICACIÓN DEL ARCHIVO GENERADO:
-  .ai/prompts/sprint-[letra].md
+  .ai/prompts/[nombre-batch].md
 Crear la carpeta si no existe: mkdir -p .ai/prompts
 
 El usuario NO copia el prompt manualmente. Cowork le da una línea:
-  Lee .ai/prompts/sprint-a.md y ejecutá el Sprint A completo.
+  Lee .ai/prompts/[nombre-batch].md y ejecutá todos los tickets.
+
+MODELO DE EJECUCIÓN:
+Una sola rama, un solo PR, todos los tickets en secuencia.
+Los puntos de corte son pausas de contexto, NO fronteras de git.
+Cada ticket termina con un commit atómico revertible individualmente.
 
 PRINCIPIO DE DISEÑO:
 El prompt del orquestador debe mantenerse en la zona segura de fidelidad
@@ -32,7 +37,7 @@ ESTRATEGIA DE CONTEXTO (4 capas):
    El orquestador solo recibe el resultado resumido (Heat Shield).
 2. ESTADO EN DISCO: .ai/runs/results.tsv persiste entre /compact y /clear.
 3. COMPACTACIÓN PROACTIVA: Después de 3+ tickets, pedir /compact.
-4. PUNTOS DE CORTE: Para sprints largos, pausar y re-pegar prompt.
+4. PUNTOS DE CORTE: Pausas para /clear, luego re-pegar la misma línea.
 
 LIMITACIONES:
 - Claude Code NO puede ejecutar /clear ni /compact programáticamente
@@ -41,13 +46,13 @@ LIMITACIONES:
 -->
 
 ```markdown
-# Sprint [LETRA] — [Nombre temático]
+# [Nombre del batch]
 
 ## Setup inicial
-1. Creá la rama del sprint: `git checkout -b sprint-[letra]-[nombre]`
+1. Creá la rama: `git checkout -b [nombre-rama]`
 2. Lee las reglas de orquestación en `.ai/rules.md` y seguílas estrictamente.
 
-## Tickets de este sprint (en orden)
+## Tickets (en orden de ejecución)
 
 | # | Ticket | Spec | Complejidad |
 |---|--------|------|-------------|
@@ -55,21 +60,22 @@ LIMITACIONES:
 | 2 | T-[N] — [Título] | `.ai/specs/active/ticket-[N].md` | [Simple/Media/Alta] |
 | 3 | T-[N] — [Título] | `.ai/specs/active/ticket-[N].md` | [Simple/Media/Alta] |
 
-<!-- Para sprints de 5+ tickets, insertar aquí: -->
-<!-- ### --- PUNTO DE CORTE --- -->
-<!-- Antes de continuar, ejecutá la Regla 5 de .ai/rules.md -->
+### --- PUNTO DE CORTE ---
+Antes de continuar, ejecutá la Regla 5 de .ai/rules.md
 
 | 4 | T-[N] — [Título] | `.ai/specs/active/ticket-[N].md` | [Simple/Media/Alta] |
+| 5 | T-[N] — [Título] | `.ai/specs/active/ticket-[N].md` | [Simple/Media/Alta] |
+| 6 | T-[N] — [Título] | `.ai/specs/active/ticket-[N].md` | [Simple/Media/Alta] |
 
 Para cada ticket:
 1. Lanzá un **subagente general-purpose** con este prompt:
-   > Lee e implementa el spec en `.ai/specs/active/ticket-[N].md`. Leé CLAUDE.md para contexto del proyecto. Seguí los pasos del spec, corré los tests, y commiteá. Devolvé: resumen (1-3 líneas), hash del commit, estado de tests (passed/failed), lista de archivos tocados, y para cada criterio de aceptación del spec indicá si se cumplió (sí/no/parcial). NO devuelvas logs completos ni output de tests.
+   > Lee e implementa el spec en `.ai/specs/active/ticket-[N].md`. Leé CLAUDE.md para contexto del proyecto. Seguí los pasos del spec, corré los tests, y hacé un commit atómico con el número de ticket en el mensaje. Devolvé: resumen (1-3 líneas), hash del commit, estado de tests (passed/failed), lista de archivos tocados, y para cada criterio de aceptación del spec indicá si se cumplió (sí/no/parcial). NO devuelvas logs completos ni output de tests.
 2. Después del subagente, aplicá Reglas 2 + 2b + 2c (scope → tests → completitud)
 3. Registrá el resultado en `.ai/runs/results.tsv` (Regla 4)
 
 Al terminar todos los tickets:
-1. Ejecutá `/learn sprint-[LETRA] completo`
-2. Creá el PR: `gh pr create --title "Sprint [LETRA]: [Nombre temático]" --body "$(cat .ai/runs/results.tsv)"`
+1. Ejecutá `/learn [nombre-batch] completo`
+2. Creá el PR: `gh pr create --title "[Nombre del batch]" --body "$(cat .ai/runs/results.tsv)"`
 ```
 
 ---
@@ -88,12 +94,12 @@ Separar las reglas del prompt permite:
 ```markdown
 # Reglas de orquestación
 
-Estas reglas gobiernan la ejecución autónoma de un sprint.
+Estas reglas gobiernan la ejecución autónoma de los tickets.
 Seguílas estrictamente en el orden indicado.
 
 ## Regla 1: Cada ticket como subagente
 Para cada ticket, lanzá un **subagente general-purpose** con el prompt
-indicado en el prompt del sprint. El subagente lee el spec de disco.
+indicado en el prompt de ejecución. El subagente lee el spec de disco.
 NO implementes tickets directamente en el contexto principal
 (excepto correcciones menores post-rollback).
 
@@ -116,6 +122,10 @@ Después de cada subagente:
    Si no se resuelve, hacé rollback: `git reset --hard [hash anterior]`,
    registrá `discard` con `failure_category=test_failure`, y continuá.
    NO te quedes trabado intentando arreglar un ticket roto indefinidamente.
+
+**Commits atómicos:** Cada ticket DEBE terminar con un commit atómico
+que incluya el número de ticket en el mensaje (ej: `feat(T-3): ...`).
+Esto permite revertir cualquier ticket individualmente con `git revert`.
 
 ## Regla 2b: Auditoría de scope por diff
 Después de cada subagente, antes de correr tests:
@@ -191,7 +201,7 @@ failure_category del PRIMER paso que falló.
 Una vez que empieces a ejecutar los tickets, NO pares a preguntar
 "¿sigo?" o "¿es un buen punto para parar?". El usuario puede estar
 durmiendo o lejos de la computadora. Continuá ejecutando tickets
-hasta terminar el sprint completo o hasta que el usuario te interrumpa.
+hasta terminar todos o hasta que el usuario te interrumpa.
 
 Las únicas razones válidas para pausar son:
 - Necesitás que el usuario corra `/compact` (Regla 4)
@@ -214,18 +224,17 @@ instrucciones detalladas se parafrasean y pierden precisión. Por eso:
 - Los specs están en disco (el subagente los lee frescos)
 - NUNCA depender de "lo que recuerdo de tickets anteriores"
 
-## Regla 5: Punto de corte (sprints largos)
-Si el sprint tiene 5+ tickets, hay un **punto de corte** marcado en
-el prompt del sprint. Al llegar:
+## Regla 5: Punto de corte
+Al llegar a un punto de corte marcado en el prompt:
 1. Asegurate de que `.ai/runs/results.tsv` está actualizado
 2. Mostrá resumen de progreso parcial
 3. Decile al usuario: **"Llegamos al punto de corte. Recomiendo:
-   /clear y luego pegá de nuevo el prompt del sprint. Voy a retomar
+   /clear y luego pegá de nuevo la línea de ejecución. Voy a retomar
    automáticamente desde el ticket [N] leyendo .ai/runs/results.tsv."**
 
 ## Regla 6: Retomar después de /clear
 Si al empezar encontrás que `.ai/runs/results.tsv` ya tiene tickets
-completados de este sprint, **saltá los tickets ya completados** y
+completados, **saltá los tickets ya completados** y
 continuá con el siguiente pendiente.
 
 ## Patrón Heat Shield (retorno de subagentes)
@@ -248,18 +257,18 @@ antes de decidir keep/discard.
 Después de cada ticket con status `keep`, ejecutá `/learn ticket-[N] [título]`
 ANTES de pasar al siguiente ticket. Esto captura lecciones en caliente.
 
-El `/learn` de sprint al final (paso "Al terminar todos los tickets")
-sigue existiendo para síntesis y consolidación del sprint completo.
+El `/learn` final (paso "Al terminar todos los tickets")
+sigue existiendo para síntesis y consolidación.
 Son dos niveles complementarios:
 - `/learn` por ticket = captura en caliente, reglas específicas
-- `/learn` de sprint = síntesis, consolidación, sugerencia de infraestructura
+- `/learn` final = síntesis, consolidación, sugerencia de infraestructura
 
 Para tickets con status `discard`, NO correr /learn (no hay lección útil
 de una implementación que se descartó por completo).
 
 ## Formato de .ai/runs/results.tsv
 
-Crear `.ai/runs/results.tsv` al inicio del sprint (si no existe) con este header.
+Crear `.ai/runs/results.tsv` al inicio (si no existe) con este header.
 Usar tabs como separador (NO comas).
 
 ```
@@ -289,21 +298,21 @@ Categorías de fallo:
 1. Corré la suite completa de tests
 2. Si hay fallos, corregí
 3. Asegurate de que `.ai/runs/results.tsv` está completo
-4. Ejecutá `/learn sprint-[LETRA] completo`
-5. **Limpieza de artefactos de sprint:**
+4. Ejecutá `/learn [nombre-batch] completo`
+5. **Limpieza de artefactos:**
    Archivá los specs y borrá los artefactos temporales.
    **Ejecutá estos comandos exactos (no omitir mkdir -p):**
    ```bash
    # Crear carpeta de archivo si no existe
-   mkdir -p .ai/specs/archive/sprint-[LETRA]
+   mkdir -p .ai/specs/archive/[nombre-batch]
    # Mover specs al archivo
-   mv .ai/specs/active/* .ai/specs/archive/sprint-[LETRA]/
+   mv .ai/specs/active/* .ai/specs/archive/[nombre-batch]/
    # Borrar artefactos temporales
    rm -f .ai/rules.md .ai/plan.md .ai/runs/results.tsv
    # Commit de limpieza
-   git add -A && git commit -m "chore: archivar specs y limpiar sprint [LETRA]"
+   git add -A && git commit -m "chore: archivar specs y limpiar [nombre-batch]"
    ```
-   **NO borrar:** `.ai/done-tasks.md` (acumulativo entre sprints),
+   **NO borrar:** `.ai/done-tasks.md` (acumulativo),
    `.ai/prompts/*` (historial permanente), `.ai/standards/`,
    `CLAUDE.md`, ni nada en `.claude/`.
 6. Mostrá resumen final:
@@ -311,25 +320,23 @@ Categorías de fallo:
    - Cambios en CLAUDE.md
    - Infraestructura sugerida por /learn
    - Estado de tests
-   - Recomendación para el siguiente sprint
 ```
 
 ---
 
 ## Notas para el skill (NO incluir en los archivos generados)
 
-### Cómo generar el prompt del sprint
+### Cómo generar el prompt
 
 1. Crear la carpeta: `mkdir -p .ai/prompts`
-2. Listar los tickets del sprint en orden de ejecución
+2. Listar todos los tickets en orden de ejecución
 3. Para cada ticket: solo número, título, ruta del spec, y complejidad
 4. El prompt del subagente es genérico — apunta al spec en disco
-5. Si hay 5+ tickets: insertar punto de corte después del ticket 3
-   (o después del 3 y 6 si hay 7+)
+5. Insertar puntos de corte cada 3-4 tickets
 6. Nunca cortar entre tickets con dependencia directa
-7. Guardar como `.ai/prompts/sprint-[letra].md`
+7. Guardar como `.ai/prompts/[nombre-batch].md`
 8. Entregar al usuario la línea de ejecución:
-   `Lee .ai/prompts/sprint-[letra].md y ejecutá el Sprint [LETRA] completo.`
+   `Lee .ai/prompts/[nombre-batch].md y ejecutá todos los tickets.`
 
 ### Cómo generar .ai/rules.md
 
@@ -337,11 +344,11 @@ Categorías de fallo:
 2. Personalizar el comando de tests si el proyecto lo requiere
 3. Commitear al repo junto con los specs
 
-### Cuándo sacar un ticket del prompt del sprint
+### Cuándo sacar un ticket del prompt
 
 Si un ticket es de complejidad Alta Y tiene 4+ subtareas que
 individualmente tocan 5+ archivos cada una:
-- Sacarlo del prompt del sprint
+- Sacarlo del prompt
 - Ejecutarlo como ticket independiente en el contexto principal
   (para que pueda usar subagentes internos)
 - Marcar esto en el plan de ejecución con la nota "Ejecutar aparte"

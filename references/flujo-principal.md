@@ -17,15 +17,22 @@ Leer todos los tickets. Para cada uno, extraer:
 
 Presentar tabla-resumen al usuario antes de continuar.
 
-## Paso 2 — Agrupación en sprints
+## Paso 2 — Ordenar tickets y definir puntos de corte
 
-Agrupar tickets por estos criterios (en orden de prioridad):
+Ordenar TODOS los tickets en una sola secuencia de ejecución.
 
-1. **Dependencia técnica** — si B depende de A, van en el mismo sprint (A primero)
-2. **Dominio compartido** — tickets que tocan los mismos archivos juntos
-3. **Complejidad balanceada** — no más de 2 tickets de complejidad Alta por sprint
+**Criterios de orden (por prioridad):**
+1. **Dependencia técnica** — si B depende de A, A va primero
+2. **Dominio compartido** — tickets que tocan los mismos archivos van juntos
+3. **Complejidad intercalada** — evitar agrupar varios tickets de complejidad Alta seguidos
 
-Cada sprint = 1 rama de git = 1 prompt de sprint. Presentar propuesta al usuario.
+**Puntos de corte** (para gestión de contexto, NO son sprints separados):
+- Insertar un punto de corte cada 3-4 tickets
+- Nunca cortar entre tickets con dependencia directa
+- El punto de corte es una pausa para `/compact` o `/clear`, nada más
+- Toda la ejecución ocurre en **una sola rama y un solo PR**
+
+Presentar propuesta de orden al usuario.
 
 ## Paso 3 — Generar specs
 
@@ -33,8 +40,13 @@ Para CADA ticket, generar un archivo `.ai/specs/active/ticket-N.md`
 siguiendo la plantilla en `templates/spec-template.md`.
 
 **Ubicación:** Los specs van en `.ai/specs/active/` (relativo a la raíz
-del repositorio). Al finalizar el sprint, se archivan automáticamente
-en `.ai/specs/archive/sprint-[LETRA]/`.
+del repositorio). Al finalizar, se archivan automáticamente
+en `.ai/specs/archive/[nombre-batch]/`.
+
+**Commits atómicos obligatorios:**
+Cada ticket (o subtarea) termina con un commit atómico independiente.
+Esto permite `git revert [hash]` de cualquier ticket sin afectar al resto.
+El mensaje de commit debe incluir el número de ticket para trazabilidad.
 
 **Regla crítica de división en subtareas:**
 
@@ -50,7 +62,7 @@ Resumen rápido:
 
 ## Paso 3.5 — Preflight: validar specs antes de continuar
 
-ANTES de generar el prompt del sprint, validar TODOS los specs generados
+ANTES de generar el prompt, validar TODOS los specs generados
 usando la lógica definida en `commands/preflight.md`.
 
 **Esta validación es obligatoria.** No generar prompt si hay specs con FAIL.
@@ -82,12 +94,12 @@ Si hay solo WARNINGS:
 
 Nota: este es el MISMO motor que el comando `/preflight`.
 
-## Paso 4 — Generar prompt del sprint + reglas de orquestación
+## Paso 4 — Generar prompt + reglas de orquestación
 
-Para CADA sprint, generar estos archivos siguiendo `templates/orchestrator-prompt.md`:
+Generar estos archivos siguiendo `templates/orchestrator-prompt.md`:
 
-1. **Prompt del sprint** (~1-2K tokens) — archivo independiente en
-   `.ai/prompts/sprint-[letra].md`. Crear la carpeta si no existe:
+1. **Prompt de ejecución** (~1-2K tokens) — archivo independiente en
+   `.ai/prompts/[nombre-batch].md`. Crear la carpeta si no existe:
    `mkdir -p .ai/prompts`
    Solo contiene: instrucción de leer reglas + tabla de tickets con ruta al spec.
    Es ultra-lean para mantenerse en la zona de fidelidad total (0-5K tokens).
@@ -96,26 +108,26 @@ Para CADA sprint, generar estos archivos siguiendo `templates/orchestrator-promp
    Contiene: las 7 reglas (incluyendo 2b scope audit y 2c completitud),
    formato de .ai/runs/results.tsv, patrón Heat Shield, y paso final de `/learn`.
 
-**Cada prompt es un archivo independiente** para que el usuario solo
+**El prompt es un archivo independiente** para que el usuario solo
 necesite pegar una línea en Claude Code:
 ```
-Lee .ai/prompts/sprint-a.md y ejecutá el Sprint A completo.
+Lee .ai/prompts/[nombre-batch].md y ejecutá todos los tickets.
 ```
-Cowork genera esta línea por cada sprint en el Paso 6.
+Cowork genera esta línea en el Paso 6.
 
 **Principio de diseño (lazy loading):**
-- El prompt del sprint NO inlinea los prompts de cada ticket
+- El prompt NO inlinea los prompts de cada ticket
 - Cada subagente lee su spec directamente de `.ai/specs/active/ticket-N.md`
 - Los specs ya son autocontenidos (verificar checklist en spec-template.md)
 - Esto mantiene el prompt del orquestador lean, resiste /compact sin
-  paraphrase loss, y escala sin importar cuántos tickets tenga el sprint
+  paraphrase loss, y escala sin importar cuántos tickets haya
 
 ## Paso 5 — Generar artefactos de soporte (progresivo)
 
 La infraestructura no se pre-carga toda de una vez. Seguir este orden
 de **mínimo viable → crece según necesidad**:
 
-**Siempre generar (Sprint 1):**
+**Siempre generar:**
 1. **CLAUDE.md** del proyecto (si no existe o necesita actualización)
    - Leer `templates/claudemd-template.md` para la estructura
    - Mantener bajo 100 líneas / ~2500 tokens — se enriquece con `/learn`
@@ -131,22 +143,21 @@ de **mínimo viable → crece según necesidad**:
 3. **Plan de ejecución** — `.ai/plan.md`
    - Leer `templates/execution-plan-template.md`
 
-**Instalar en Sprint 1 (costo mínimo, protección máxima):**
+**Instalar (costo mínimo, protección máxima):**
 4. **Guard destructivo** (PreToolUse hook) — protege contra `rm -rf`, `git push --force`
    - Leer `templates/stop-hook.md` sección "Hook 1"
-   - Hook tipo `command` (~50ms), no afecta performance
+   - Script externo en `.claude/hooks/guard-destructive.sh`
    - Compatible con el rollback de Regla 2 (no bloquea `git reset --hard`)
 
-**Sugerir pero no instalar aún (evaluar después del Sprint 1):**
+**Sugerir pero no instalar aún (evaluar después de la primera ejecución):**
 5. **Agentes custom** en `.claude/agents/`
    - Leer `references/agent-patterns.md` para los patrones
-   - Solo crear si después del primer sprint `/learn` detecta que el mismo
-     tipo de error se repite 3+ veces en un dominio específico
+   - Solo crear si `/learn` detecta que el mismo tipo de error se repite 3+ veces
 6. **Hook anti-racionalización** (Stop hook)
    - Leer `templates/stop-hook.md` sección "Hook 2"
    - Solo instalar si durante la ejecución Claude declara victoria prematura
 7. **`/retrospective`** — análisis retroactivo de sesiones
-   - Instalar `commands/retrospective.md` después del primer sprint completo
+   - Instalar `commands/retrospective.md` después de la primera ejecución completa
 
 **Principio:** La complejidad emerge de la presión real, no se anticipa.
 
@@ -160,17 +171,16 @@ de **mínimo viable → crece según necesidad**:
 ## Paso 6 — Revisión con el usuario
 
 Presentar el paquete completo:
-- Tabla de sprints con tickets y modo de ejecución
+- Tabla de tickets en orden de ejecución, con puntos de corte marcados
 - Specs generados (resumen de cada uno)
 - Advertencias sobre tickets sacados del prompt (si los hay)
-- **Infraestructura diferida:** qué se podría agregar después del Sprint 1
+- **Infraestructura diferida:** qué se podría agregar después de la primera ejecución
 
-**Líneas de ejecución (una por sprint):**
-Para cada sprint, generar una línea lista para copiar-pegar en Claude Code:
+**Línea de ejecución:**
+Generar una sola línea lista para copiar-pegar en Claude Code:
 
 ```
-Lee .ai/prompts/sprint-a.md y ejecutá el Sprint A completo.
-Lee .ai/prompts/sprint-b.md y ejecutá el Sprint B completo.
+Lee .ai/prompts/[nombre-batch].md y ejecutá todos los tickets.
 ```
 
 Para tickets sacados del prompt (excepcionalmente complejos):
