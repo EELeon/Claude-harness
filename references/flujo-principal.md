@@ -84,15 +84,24 @@ Nota: este es el MISMO motor que el comando `/preflight`.
 
 ## Paso 4 — Generar prompt del sprint + reglas de orquestación
 
-Para CADA sprint, generar DOS archivos siguiendo `templates/orchestrator-prompt.md`:
+Para CADA sprint, generar estos archivos siguiendo `templates/orchestrator-prompt.md`:
 
-1. **Prompt del sprint** (~1-2K tokens) — Lo que el usuario pega en Claude Code.
+1. **Prompt del sprint** (~1-2K tokens) — archivo independiente en
+   `.ai/prompts/sprint-[letra].md`. Crear la carpeta si no existe:
+   `mkdir -p .ai/prompts`
    Solo contiene: instrucción de leer reglas + tabla de tickets con ruta al spec.
    Es ultra-lean para mantenerse en la zona de fidelidad total (0-5K tokens).
 
 2. **`.ai/rules.md`** — Reglas de orquestación que el agente lee de disco.
    Contiene: las 7 reglas (incluyendo 2b scope audit y 2c completitud),
    formato de .ai/runs/results.tsv, patrón Heat Shield, y paso final de `/learn`.
+
+**Cada prompt es un archivo independiente** para que el usuario solo
+necesite pegar una línea en Claude Code:
+```
+Lee .ai/prompts/sprint-a.md y ejecutá el Sprint A completo.
+```
+Cowork genera esta línea por cada sprint en el Paso 6.
 
 **Principio de diseño (lazy loading):**
 - El prompt del sprint NO inlinea los prompts de cada ticket
@@ -153,8 +162,20 @@ de **mínimo viable → crece según necesidad**:
 Presentar el paquete completo:
 - Tabla de sprints con tickets y modo de ejecución
 - Specs generados (resumen de cada uno)
-- **Prompts lean generados** (uno por sprint, listos para copiar y pegar)
 - Advertencias sobre tickets sacados del prompt (si los hay)
 - **Infraestructura diferida:** qué se podría agregar después del Sprint 1
+
+**Líneas de ejecución (una por sprint):**
+Para cada sprint, generar una línea lista para copiar-pegar en Claude Code:
+
+```
+Lee .ai/prompts/sprint-a.md y ejecutá el Sprint A completo.
+Lee .ai/prompts/sprint-b.md y ejecutá el Sprint B completo.
+```
+
+Para tickets sacados del prompt (excepcionalmente complejos):
+```
+Lee .ai/specs/active/ticket-[N].md e impleméntalo. Usa subagents.
+```
 
 Ajustar según feedback antes de empaquetar.

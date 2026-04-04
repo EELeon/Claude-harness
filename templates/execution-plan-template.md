@@ -34,64 +34,37 @@ Modo de ejecución:
 - **Rama:** `sprint-a-[nombre]`
 - **Tickets:** T-[N], T-[N], T-[N]
 - **Dependencias internas:** T-[X] antes de T-[Y]
+- **Prompt:** `.ai/prompts/sprint-a.md`
 - **Tickets fuera del prompt:** [ninguno | T-[N] (razón)]
 
 ### Sprint B — [Nombre temático]
 - **Rama:** `sprint-b-[nombre]`
 - **Tickets:** T-[N], T-[N]
 - **Dependencias:** Requiere Sprint A mergeado
+- **Prompt:** `.ai/prompts/sprint-b.md`
 - **Tickets fuera del prompt:** [ninguno | T-[N] (razón)]
 
 <!-- Repetir por sprint -->
 
 ---
 
-## Prompts por sprint
+## Ejecución — líneas para Claude Code
 
 <!--
-El prompt del sprint es LEAN (~1-2K tokens). Solo contiene:
-- Instrucción de leer .ai/rules.md
-- Tabla de tickets apuntando a sus specs en disco
-Los subagentes leen los specs directamente de disco (lazy loading).
+Los prompts ya NO están embebidos en este archivo.
+Cada sprint tiene su propio archivo en .ai/prompts/sprint-[letra].md.
+El usuario solo pega la línea correspondiente en Claude Code.
 -->
-
-### Prompt Sprint A
-
-<!-- Copiar y pegar este bloque en Claude Code -->
-
-```
-[PROMPT LEAN GENERADO POR EL SKILL]
-[Seguir el template en templates/orchestrator-prompt.md]
-```
-
-### Prompt Sprint B
-
-```
-[PROMPT LEAN DEL SPRINT B]
-```
-
-<!-- Repetir por sprint -->
-
----
-
-## Instrucciones de ejecución
-
-El prompt del sprint ya incluye la creación de rama y el PR al final,
-así que la ejecución es un solo paso:
 
 ```
 # Sprint A
-# Pegar el prompt del Sprint A (arriba) en Claude Code (CLI o Desktop).
-# El orquestador: crea la rama, lee .ai/rules.md, ejecuta
-# cada ticket como subagente leyendo su spec de .ai/specs/active/ticket-N.md,
-# y al final crea el PR con gh.
-#
-# Si hay tickets fuera del prompt (excepcionalmente complejos):
-#   > "Lee .ai/specs/active/ticket-[N].md e impleméntalo. Usa subagents."
-#   > /learn ticket-[N] [título]
+Lee .ai/prompts/sprint-a.md y ejecutá el Sprint A completo.
 
 # Sprint B (después de mergear Sprint A)
-# Mergear el PR del Sprint A, hacer pull de main, y pegar prompt Sprint B.
+Lee .ai/prompts/sprint-b.md y ejecutá el Sprint B completo.
+
+# Tickets fuera del prompt (excepcionalmente complejos)
+Lee .ai/specs/active/ticket-[N].md e impleméntalo. Usa subagents.
 ```
 
 ## Fallback: ejecución manual (si el prompt del sprint falla)
@@ -123,11 +96,14 @@ Si la ejecución autónoma falla a mitad del sprint:
 ├── specs/
 │   ├── active/          # Specs del sprint actual
 │   └── archive/         # Specs de sprints pasados
+│       └── sprint-A/    # mkdir -p al archivar
 ├── runs/
 │   └── results.tsv      # Tracking del sprint actual
-├── prompts/             # Prompts lean archivados
-├── rules.md             # Reglas de orquestación del sprint actual
-├── plan.md              # Plan de ejecución del sprint actual
+├── prompts/             # UN archivo por sprint (permanente)
+│   ├── sprint-a.md
+│   └── sprint-b.md
+├── rules.md             # Reglas de orquestación (temporal, se borra post-sprint)
+├── plan.md              # Este archivo (temporal, se borra post-sprint)
 └── done-tasks.md        # Lecciones acumulativas (NO borrar)
 ```
 

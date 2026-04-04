@@ -18,7 +18,7 @@ description: >
 ## Propósito
 
 Convertir un lote de tickets en un paquete que Claude Code ejecute
-de manera autónoma, con un solo prompt por sprint.
+de manera autónoma, con una sola línea por sprint.
 
 ## Modelo de ejecución
 
@@ -46,9 +46,9 @@ Leer `references/flujo-principal.md` para los pasos completos.
 | 2 | Agrupación en sprints | `references/flujo-principal.md` |
 | 3 | Generar specs por ticket | `references/reglas-specs.md` |
 | 3.5 | Preflight: validar specs | `commands/preflight.md` |
-| 4 | Prompt lean + .ai/rules.md | `templates/orchestrator-prompt.md` |
+| 4 | Prompt independiente → `.ai/prompts/sprint-[letra].md` + `.ai/rules.md` | `templates/orchestrator-prompt.md` |
 | 5 | Artefactos de soporte (progresivo) | `references/flujo-principal.md` |
-| 6 | Revisión con el usuario | `references/flujo-principal.md` |
+| 6 | Revisión + líneas de ejecución para el usuario | `references/flujo-principal.md` |
 
 ## Bootstrap de un repo nuevo
 
@@ -59,7 +59,11 @@ settings.json) → personalizar para el repo → reportar al usuario.
 
 ## Entrega de sprint
 
-Leer `references/entrega-sprint.md` para artefactos y flujo de ejecución.
+Leer `references/entrega-sprint.md` para artefactos, mapa de archivos,
+y flujo de ejecución.
+
+**Regla de carpetas:** Siempre `mkdir -p` antes de escribir a una ruta.
+Si la carpeta no existe, crearla. Esto aplica a Cowork y a Claude Code.
 
 ## Reglas de specs
 

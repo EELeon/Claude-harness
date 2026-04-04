@@ -2,8 +2,14 @@
 
 <!--
 Este template se llena por el skill code-orchestrator en Cowork.
-El resultado es un prompt LEAN que el usuario pega en Claude Code
-para ejecutar un sprint completo de manera autónoma.
+El resultado es un prompt LEAN que Claude Code lee de disco.
+
+UBICACIÓN DEL ARCHIVO GENERADO:
+  .ai/prompts/sprint-[letra].md
+Crear la carpeta si no existe: mkdir -p .ai/prompts
+
+El usuario NO copia el prompt manualmente. Cowork le da una línea:
+  Lee .ai/prompts/sprint-a.md y ejecutá el Sprint A completo.
 
 PRINCIPIO DE DISEÑO:
 El prompt del orquestador debe mantenerse en la zona segura de fidelidad
@@ -285,15 +291,21 @@ Categorías de fallo:
 3. Asegurate de que `.ai/runs/results.tsv` está completo
 4. Ejecutá `/learn sprint-[LETRA] completo`
 5. **Limpieza de artefactos de sprint:**
-   Archivá los specs y borrá los artefactos temporales:
-   ```
+   Archivá los specs y borrá los artefactos temporales.
+   **Ejecutá estos comandos exactos (no omitir mkdir -p):**
+   ```bash
+   # Crear carpeta de archivo si no existe
    mkdir -p .ai/specs/archive/sprint-[LETRA]
+   # Mover specs al archivo
    mv .ai/specs/active/* .ai/specs/archive/sprint-[LETRA]/
+   # Borrar artefactos temporales
    rm -f .ai/rules.md .ai/plan.md .ai/runs/results.tsv
+   # Commit de limpieza
    git add -A && git commit -m "chore: archivar specs y limpiar sprint [LETRA]"
    ```
-   **NO borrar:** `.ai/done-tasks.md` (es acumulativo entre sprints),
-   `.ai/standards/`, `CLAUDE.md`, ni nada en `.claude/`.
+   **NO borrar:** `.ai/done-tasks.md` (acumulativo entre sprints),
+   `.ai/prompts/*` (historial permanente), `.ai/standards/`,
+   `CLAUDE.md`, ni nada en `.claude/`.
 6. Mostrá resumen final:
    - Tickets: [N] keep / [N] discard / [N] crash
    - Cambios en CLAUDE.md
@@ -308,12 +320,16 @@ Categorías de fallo:
 
 ### Cómo generar el prompt del sprint
 
-1. Listar los tickets del sprint en orden de ejecución
-2. Para cada ticket: solo número, título, ruta del spec, y complejidad
-3. El prompt del subagente es genérico — apunta al spec en disco
-4. Si hay 5+ tickets: insertar punto de corte después del ticket 3
+1. Crear la carpeta: `mkdir -p .ai/prompts`
+2. Listar los tickets del sprint en orden de ejecución
+3. Para cada ticket: solo número, título, ruta del spec, y complejidad
+4. El prompt del subagente es genérico — apunta al spec en disco
+5. Si hay 5+ tickets: insertar punto de corte después del ticket 3
    (o después del 3 y 6 si hay 7+)
-5. Nunca cortar entre tickets con dependencia directa
+6. Nunca cortar entre tickets con dependencia directa
+7. Guardar como `.ai/prompts/sprint-[letra].md`
+8. Entregar al usuario la línea de ejecución:
+   `Lee .ai/prompts/sprint-[letra].md y ejecutá el Sprint [LETRA] completo.`
 
 ### Cómo generar .ai/rules.md
 

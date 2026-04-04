@@ -54,6 +54,57 @@ No invertir más esfuerzo en hooks que en los gates primarios.
 Bloquea comandos que pueden destruir estado irrecuperablemente.
 Tipo `command` para máxima velocidad (~50ms) y determinismo.
 
+**IMPORTANTE: Usar script externo, NO one-liner inline.**
+Los one-liners con bash -c + JSON escaping se corrompen al pasar por
+múltiples capas de parsing (JSON → shell → bash -c → case).
+
+### Paso 1: Crear el script
+
+Crear `.claude/hooks/guard-destructive.sh` con estos contenidos:
+
+```bash
+#!/usr/bin/env bash
+# Guard de comandos destructivos para Claude Code
+# Se ejecuta como PreToolUse hook antes de cada llamada a Bash.
+# Exit 0 = OK, Exit 2 = BLOCK
+
+# Leer el JSON del tool input desde stdin
+INPUT=$(cat)
+CMD=$(echo "$INPUT" | jq -r '.tool_input.command // empty' 2>/dev/null)
+
+# Si no hay comando, dejar pasar
+if [ -z "$CMD" ]; then
+  exit 0
+fi
+
+# Patrones destructivos a bloquear
+case "$CMD" in
+  *'rm -rf /'*|*'rm -rf ~'*)
+    echo "BLOCKED: rm -rf en ruta protegida" >&2
+    exit 2
+    ;;
+  *'git push --force'*|*'git push -f '*)
+    echo "BLOCKED: force push" >&2
+    exit 2
+    ;;
+  *'git clean -fd'*)
+    echo "BLOCKED: git clean destructivo" >&2
+    exit 2
+    ;;
+  *)
+    exit 0
+    ;;
+esac
+```
+
+Hacerlo ejecutable:
+```bash
+mkdir -p .claude/hooks
+chmod +x .claude/hooks/guard-destructive.sh
+```
+
+### Paso 2: Registrar en settings.json
+
 ```json
 {
   "hooks": {
@@ -63,7 +114,7 @@ Tipo `command` para máxima velocidad (~50ms) y determinismo.
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c \"CMD=$(cat | jq -r '.command // empty'); case \\\"$CMD\\\" in *'rm -rf /'*|*'rm -rf ~'*|*'git push --force'*|*'git push -f '*|*'git clean -fd'*) echo 'BLOCKED: comando destructivo detectado' >&2; exit 2;; *) exit 0;; esac\"",
+            "command": ".claude/hooks/guard-destructive.sh",
             "timeout": 5
           }
         ]
@@ -158,7 +209,7 @@ Para instalar ambos hooks en un solo settings.json:
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c \"CMD=$(cat | jq -r '.command // empty'); case \\\"$CMD\\\" in *'rm -rf /'*|*'rm -rf ~'*|*'git push --force'*|*'git push -f '*|*'git clean -fd'*) echo 'BLOCKED: comando destructivo detectado' >&2; exit 2;; *) exit 0;; esac\"",
+            "command": ".claude/hooks/guard-destructive.sh",
             "timeout": 5
           }
         ]
