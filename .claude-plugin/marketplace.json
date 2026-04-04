@@ -1,12 +1,19 @@
 {
   "name": "code-orchestrator-marketplace",
   "description": "Marketplace for the Code Orchestrator plugin",
+  "owner": {
+    "name": "EELeon",
+    "url": "https://github.com/EELeon"
+  },
   "plugins": [
     {
       "name": "code-orchestrator",
-      "description": "Orquestador de tickets para Claude Code. Convierte tickets en ejecución autónoma con specs, validación, auditoría recursiva contra meta, y aprendizaje continuo.",
+      "description": "Orquestador de tickets para Claude Code.",
       "version": "2.0.0",
-      "path": "."
+      "source": {
+        "type": "git",
+        "url": "https://github.com/EELeon/Claude-harness.git"
+      }
     }
   ]
 }
