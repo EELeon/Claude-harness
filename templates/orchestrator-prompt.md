@@ -266,6 +266,66 @@ Son dos niveles complementarios:
 Para tickets con status `discard`, NO correr /learn (no hay lección útil
 de una implementación que se descartó por completo).
 
+## Regla 8: /simplify como gate de calidad (opcional)
+Si `/simplify` está disponible, ejecutalo después de que un ticket pase
+todas las verificaciones (scope + tests + completitud) y ANTES de `/learn`.
+
+**Cuándo ejecutar /simplify:**
+- El ticket tiene status `keep` (pasó scope, tests, y completitud)
+- La complejidad del ticket es Media o Alta
+- Para tickets Simple, NO ejecutar /simplify (el overhead no se justifica)
+
+**Flujo con /simplify:**
+```
+Subagente implementa → Regla 2b (scope) → Regla 2 (tests) → Regla 2c (completitud)
+→ /simplify (si Media/Alta) → commit amend si hay cambios → /learn → siguiente ticket
+```
+
+**Si /simplify sugiere cambios:**
+1. Aplicar las sugerencias de /simplify
+2. Re-correr los tests del ticket (verificar que /simplify no rompió nada)
+3. Si los tests pasan → `git add -A && git commit --amend --no-edit`
+4. Si los tests fallan → descartar los cambios de /simplify con
+   `git checkout -- .` y mantener la implementación original
+5. Registrar en el Heat Shield: "simplify: applied/skipped"
+
+**Si /simplify no está disponible:** Saltear esta regla silenciosamente.
+NO es un gate bloqueante — es una mejora oportunista.
+
+## Regla 9: Ejecución paralela con /batch (opcional)
+Si el plan de ejecución marca tickets como "batch-eligible" (ver Paso 2),
+ejecutarlos en paralelo usando `/batch` en vez de secuencialmente.
+
+**Cuándo usar /batch:**
+- Hay 3+ tickets sin dependencias entre sí
+- Todos son de complejidad Simple o Media
+- No comparten archivos en sus scope fences
+- `/batch` está disponible
+
+**Cómo ejecutar:**
+1. Agrupar los tickets batch-eligible
+2. Generar un prompt para `/batch` que incluya todos los tickets del grupo:
+   ```
+   /batch Implementar los siguientes tickets independientes.
+   Para cada uno, leer el spec indicado e implementar siguiendo CLAUDE.md.
+   - T-[N]: .ai/specs/active/ticket-[N].md
+   - T-[M]: .ai/specs/active/ticket-[M].md
+   - T-[K]: .ai/specs/active/ticket-[K].md
+   ```
+3. `/batch` descompone, asigna worktrees, ejecuta en paralelo, y abre PRs
+4. Después de que todos terminen, verificar cada uno:
+   - Scope audit (Regla 2b) contra su spec
+   - Tests (Regla 2)
+   - Completitud (Regla 2c)
+5. Registrar resultados en `.ai/runs/results.tsv`
+6. Los tickets que pasaron `/batch` NO necesitan `/simplify` adicional
+   (batch ya incluye un review pass interno)
+
+**Si /batch no está disponible:** Ejecutar secuencialmente (Regla 1).
+
+**Los tickets con dependencias SIEMPRE se ejecutan secuencialmente.**
+`/batch` es solo para tickets verdaderamente independientes.
+
 ## Formato de .ai/runs/results.tsv
 
 Crear `.ai/runs/results.tsv` al inicio (si no existe) con este header.
@@ -320,6 +380,14 @@ Categorías de fallo:
    - Cambios en CLAUDE.md
    - Infraestructura sugerida por /learn
    - Estado de tests
+7. **Monitor post-PR con /loop (opcional):**
+   Si `/loop` está disponible y el proyecto tiene CI configurado,
+   sugerir al usuario:
+   "¿Querés que monitoree el PR? Puedo correr /loop 5m para vigilar
+   CI status y review comments, y auto-fix si hay fallos."
+   Si el usuario acepta: `/loop 5m Verificá el estado del PR más
+   reciente. Si hay CI failures, intentá corregirlos. Si hay review
+   comments, evaluá si son accionables y respondé o implementá fixes.`
 ```
 
 ---

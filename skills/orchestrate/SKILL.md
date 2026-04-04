@@ -32,6 +32,7 @@ cada subagente empieza con contexto en blanco.
 - Primaria (siempre activa): Preflight → Scope fence + diff audit →
   Tests → Completitud → Ledger
 - Secundaria (hooks opcionales): Guard destructivo + Anti-racionalización
+- Terciaria (integraciones Claude Code): /simplify (calidad) + /batch (paralelismo) + /loop (monitor PR)
 
 ## Flujo principal (6 pasos)
 
