@@ -2,6 +2,29 @@
 
 Todas las rutas son relativas a este skill.
 
+## Paso 0 — Meta del proyecto (condicional)
+
+Si el usuario quiere usar auditoría recursiva o menciona "meta":
+
+**Si no existe `.ai/meta.md`:**
+1. Preguntar al usuario (AskUserQuestion): "¿Cuál es la visión general del sistema?
+   Describilo en 2-3 párrafos."
+2. Con la respuesta, generar un borrador de `.ai/meta.md` siguiendo
+   `templates/meta-template.md`: identificar dominios, extraer capacidades,
+   definir criterios verificables
+3. Presentar el borrador al usuario para revisión
+4. Iterar hasta que el usuario apruebe
+5. Validar con lógica de `commands/validate-meta.md`
+6. Guardar `.ai/meta.md` en el repo
+
+**Si ya existe `.ai/meta.md`:**
+1. Validar con lógica de `commands/validate-meta.md`
+2. Si FAIL → mostrar errores, corregir con el usuario
+3. Si PASS → continuar
+
+**Este paso es condicional** — solo se ejecuta si el usuario quiere auditoría
+recursiva. Para sprints normales de tickets, saltar directamente al Paso 1.
+
 ## Paso 1 — Inventario y análisis
 
 Leer todos los tickets. Para cada uno, extraer:

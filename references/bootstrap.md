@@ -19,6 +19,7 @@ repo-target/
 │   ├── specs/
 │   │   ├── active/             # Crear vacío (se llena al preparar sprints)
 │   │   └── archive/            # Crear vacío (se llena al finalizar sprints)
+│   ├── audit/                  # Crear vacío (se llena con /recursive-audit)
 │   ├── runs/                   # Crear vacío (results.tsv se genera por sprint)
 │   ├── prompts/                # Crear vacío (prompts archivados)
 │   └── done-tasks.md           # NO crear aún — se crea con el primer /learn
@@ -27,7 +28,9 @@ repo-target/
 │   │   ├── learn.md            # Adaptar: paths y comandos reales del repo
 │   │   ├── next-ticket.md      # Adaptar: paths
 │   │   ├── status.md           # Adaptar: paths
-│   │   └── preflight.md        # Copiar IDÉNTICO del skill (lógica universal)
+│   │   ├── preflight.md        # Copiar IDÉNTICO del skill (lógica universal)
+│   │   ├── validate-meta.md    # Copiar IDÉNTICO del skill (lógica universal)
+│   │   └── recursive-audit.md  # Copiar IDÉNTICO del skill (lógica universal)
 │   ├── agents/                 # NO instalar aún — esperar evidencia
 │   └── settings.json           # Hook PreToolUse del skill (NO permissions.deny)
 ├── CLAUDE.md                   # Personalizado para este repo (≤100 líneas)
@@ -73,4 +76,6 @@ Para generar cada archivo, leer las plantillas del skill:
 | `commands/next-ticket.md` | `commands/next-ticket.md` |
 | `commands/status.md` | `commands/status.md` |
 | `commands/preflight.md` | `commands/preflight.md` |
+| `commands/validate-meta.md` | `commands/validate-meta.md` |
+| `commands/recursive-audit.md` | `commands/recursive-audit.md` |
 | `settings.json` | `templates/stop-hook.md` sección "Hook 1" |

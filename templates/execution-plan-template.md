@@ -92,16 +92,25 @@ git revert [hash] --no-edit
 | `/next-ticket` | `.claude/commands/next-ticket.md` | Inicia siguiente ticket pendiente |
 | `/status` | `.claude/commands/status.md` | Muestra progreso |
 | `/preflight` | `.claude/commands/preflight.md` | Validación pre-ejecución de specs |
+| `/validate-meta` | `.claude/commands/validate-meta.md` | Validación del documento meta |
+| `/recursive-audit` | `.claude/commands/recursive-audit.md` | Loop recursivo de auditoría contra meta |
 
 ### Estructura .ai/
 
 ```
 .ai/
 ├── standards/           # Harness de auditoría (ChatGPT) — no tocar
+├── meta.md              # Meta del proyecto (permanente) — visión de alto nivel
 ├── specs/
 │   ├── active/          # Specs del batch actual
 │   └── archive/         # Specs de batches pasados
 │       └── [nombre]/    # mkdir -p al archivar
+├── audit/               # Artifacts de auditoría recursiva (permanente)
+│   ├── iteration-N/     # Una carpeta por iteración
+│   │   ├── raw-gaps.md  # Gaps encontrados
+│   │   ├── plan.md      # Plan priorizado
+│   │   └── results.tsv  # Copia del tracking
+│   └── summary.md       # Reporte final del loop
 ├── runs/
 │   └── results.tsv      # Tracking (temporal, se borra post-ejecución)
 ├── prompts/             # UN archivo por batch (permanente)

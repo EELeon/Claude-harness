@@ -168,6 +168,50 @@ a `/learn` si hay patrones de error recurrentes en tu proyecto.
 
 ---
 
+## Auditoría recursiva contra meta
+
+El loop recursivo permite que el orquestador audite, escriba specs para
+cerrar gaps, e implemente — todo autónomamente hasta que el sistema esté
+completo según la visión de alto nivel (el "meta").
+
+### Definir el meta
+
+El meta es un documento que describe QUÉ debe hacer el sistema, no CÓMO.
+Cada capacidad tiene un criterio verificable por un agente.
+
+1. Decile a Cowork: "Quiero definir el meta de este proyecto"
+2. El skill te guía con preguntas para extraer dominios y capacidades
+3. Resultado: `.ai/meta.md` con capacidades verificables y parámetros del loop
+
+O crealo manualmente siguiendo `templates/meta-template.md`.
+
+### Ejecutar el loop
+
+```bash
+claude
+# Pegar: /recursive-audit
+# O: Lee .ai/meta.md y ejecutá auditoría recursiva.
+```
+
+El loop:
+1. **Audita** código vs meta → encuentra gaps
+2. **Analiza** y prioriza los gaps
+3. **Genera specs** para cerrar los gaps
+4. **Implementa** usando el orquestador existente
+5. **Repite** hasta: gaps = 0, max iterations, o diminishing returns
+
+### Parámetros configurables (en .ai/meta.md)
+
+| Parámetro | Default | Descripción |
+|-----------|---------|-------------|
+| max_iterations | 3 | Máximo de ciclos |
+| coverage_threshold | 90% | % para considerar FIN |
+| diminishing_returns | 2 | Si cierra < N gaps en un ciclo → FIN |
+| priority_cutoff | Media | Hasta qué prioridad auditar |
+| audit_split | single | 1 o 2 auditores paralelos |
+
+---
+
 ## Ejemplo: flujo completo con un proyecto Node.js
 
 ```bash
