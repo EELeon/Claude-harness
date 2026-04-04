@@ -1,0 +1,12 @@
+{
+  "name": "code-orchestrator-marketplace",
+  "description": "Marketplace for the Code Orchestrator plugin",
+  "plugins": [
+    {
+      "name": "code-orchestrator",
+      "description": "Orquestador de tickets para Claude Code. Convierte tickets en ejecución autónoma con specs, validación, auditoría recursiva contra meta, y aprendizaje continuo.",
+      "version": "2.0.0",
+      "path": "."
+    }
+  ]
+}
