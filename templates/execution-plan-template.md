@@ -12,17 +12,19 @@ Rama: `[nombre-rama]`
 
 | # | Ticket | Título | Complejidad | Modo | Subtareas | Estado |
 |---|--------|--------|-------------|------|-----------|--------|
-| 1 | T-[N]  | [título] | [S/M/A] | Subagente | [N] | ⬜ |
-| 2 | T-[N]  | [título] | [S/M/A] | Subagente | [N] | ⬜ |
-| 3 | T-[N]  | [título] | [S/M/A] | Subagente | [N] | ⬜ |
+| B | T-3, T-5, T-7 | [títulos] | S, S, M | /batch (paralelo) | — | ⬜ |
 | — | **PUNTO DE CORTE** | /compact o /clear | — | — | — | — |
-| 4 | T-[N]  | [título] | Alta | Subagente | [N] | ⬜ |
-| 5 | T-[N]  | [título] | [S/M/A] | Sesión principal | [N] | ⬜ |
+| 4 | T-[N]  | [título] | [S/M/A] | Subagente | [N] | ⬜ |
+| 5 | T-[N]  | [título] | [S/M/A] | Subagente | [N] | ⬜ |
+| 6 | T-[N]  | [título] | Alta | Sesión principal | [N] | ⬜ |
 
 <!--
 Estados: ⬜ pendiente | 🔄 en progreso | ✅ completado | ❌ bloqueado
 
 Modo de ejecución:
+  /batch (paralelo): tickets sin dependencias ni archivos compartidos,
+    ejecutados en paralelo con /batch. Cada uno en su worktree.
+    Solo para tickets Simple o Media. Requiere 3+ tickets elegibles.
   Subagente (default): corre como subagente dentro del prompt.
   Sesión principal: corre fuera del prompt, directamente en el
     contexto principal de Claude Code. Usar SOLO cuando el ticket
@@ -92,16 +94,25 @@ git revert [hash] --no-edit
 | `/next-ticket` | `.claude/commands/next-ticket.md` | Inicia siguiente ticket pendiente |
 | `/status` | `.claude/commands/status.md` | Muestra progreso |
 | `/preflight` | `.claude/commands/preflight.md` | Validación pre-ejecución de specs |
+| `/validate-meta` | `.claude/commands/validate-meta.md` | Validación del documento meta |
+| `/recursive-audit` | `.claude/commands/recursive-audit.md` | Loop recursivo de auditoría contra meta |
 
 ### Estructura .ai/
 
 ```
 .ai/
 ├── standards/           # Harness de auditoría (ChatGPT) — no tocar
+├── meta.md              # Meta del proyecto (permanente) — visión de alto nivel
 ├── specs/
 │   ├── active/          # Specs del batch actual
 │   └── archive/         # Specs de batches pasados
 │       └── [nombre]/    # mkdir -p al archivar
+├── audit/               # Artifacts de auditoría recursiva (permanente)
+│   ├── iteration-N/     # Una carpeta por iteración
+│   │   ├── raw-gaps.md  # Gaps encontrados
+│   │   ├── plan.md      # Plan priorizado
+│   │   └── results.tsv  # Copia del tracking
+│   └── summary.md       # Reporte final del loop
 ├── runs/
 │   └── results.tsv      # Tracking (temporal, se borra post-ejecución)
 ├── prompts/             # UN archivo por batch (permanente)
@@ -143,6 +154,14 @@ para humanos y para que `/retrospective` analice.
 Ambos archivos se commitean al repo.
 
 ---
+
+## Integraciones con Claude Code (se activan automáticamente si disponibles)
+
+| Integración | Regla | Cuándo se activa |
+|-------------|-------|-----------------|
+| `/simplify` | Regla 8 | Post-ticket para tickets Media/Alta |
+| `/batch` | Regla 9 | Si hay 3+ tickets batch-eligible sin dependencias |
+| `/loop` | Post-PR | Si el usuario acepta monitoreo post-PR |
 
 ## Infraestructura diferida (evaluar después de la primera ejecución)
 

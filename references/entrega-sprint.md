@@ -7,6 +7,7 @@ artefactos en el repo montado:
 repo-target/
 ├── .ai/
 │   ├── standards/              # Harness de auditoría (ChatGPT) — NO tocar
+│   ├── meta.md                 # Meta del proyecto (visión de alto nivel)
 │   ├── specs/
 │   │   ├── active/             # Specs del batch actual
 │   │   │   ├── ticket-1.md
@@ -14,6 +15,12 @@ repo-target/
 │   │   │   └── ...
 │   │   └── archive/            # Specs de batches pasados
 │   │       └── [nombre-batch]/ # Se crea al archivar
+│   ├── audit/                  # Artifacts de auditoría recursiva
+│   │   ├── iteration-1/        # Una carpeta por iteración del loop
+│   │   │   ├── raw-gaps.md     # Gaps encontrados por el auditor
+│   │   │   ├── plan.md         # Plan priorizado de implementación
+│   │   │   └── results.tsv     # Copia del results.tsv de esa iteración
+│   │   └── summary.md          # Reporte final del loop recursivo
 │   ├── runs/
 │   │   └── results.tsv         # Tracking (se crea vacío con header)
 │   ├── prompts/                # UN archivo .md por batch — listo para pegar
@@ -33,6 +40,10 @@ repo-target/
 
 | Artefacto | Ruta exacta | Quién lo genera | Cuándo |
 |-----------|-------------|-----------------|--------|
+| Meta del proyecto | `.ai/meta.md` | Usuario + Cowork | Al iniciar proyecto |
+| Gaps de auditoría | `.ai/audit/iteration-N/raw-gaps.md` | Subagente auditor | Por iteración del loop |
+| Plan de auditoría | `.ai/audit/iteration-N/plan.md` | Subagente analista | Por iteración del loop |
+| Resumen de auditoría | `.ai/audit/summary.md` | Orquestador | Al finalizar loop |
 | Spec de ticket | `.ai/specs/active/ticket-N.md` | Cowork (Paso 3) | Al preparar batch |
 | Prompt de ejecución | `.ai/prompts/[nombre-batch].md` | Cowork (Paso 4) | Al preparar batch |
 | Reglas de orquestación | `.ai/rules.md` | Cowork (Paso 4) | Al preparar batch |
@@ -51,8 +62,8 @@ al generar artefactos como a Claude Code al archivar.
 `.ai/specs/active/*`, `.ai/rules.md`, `.ai/plan.md`, `.ai/runs/results.tsv`
 
 **Permanentes (sobreviven entre ejecuciones):**
-`.ai/done-tasks.md`, `.ai/prompts/*`, `.ai/specs/archive/*`,
-`.ai/standards/`, `CLAUDE.md`, `.claude/`
+`.ai/meta.md`, `.ai/audit/*`, `.ai/done-tasks.md`, `.ai/prompts/*`,
+`.ai/specs/archive/*`, `.ai/standards/`, `CLAUDE.md`, `.claude/`
 
 ## Modelo de ejecución
 

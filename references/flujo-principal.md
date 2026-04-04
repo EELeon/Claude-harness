@@ -2,6 +2,29 @@
 
 Todas las rutas son relativas a este skill.
 
+## Paso 0 — Meta del proyecto (condicional)
+
+Si el usuario quiere usar auditoría recursiva o menciona "meta":
+
+**Si no existe `.ai/meta.md`:**
+1. Preguntar al usuario (AskUserQuestion): "¿Cuál es la visión general del sistema?
+   Describilo en 2-3 párrafos."
+2. Con la respuesta, generar un borrador de `.ai/meta.md` siguiendo
+   `templates/meta-template.md`: identificar dominios, extraer capacidades,
+   definir criterios verificables
+3. Presentar el borrador al usuario para revisión
+4. Iterar hasta que el usuario apruebe
+5. Validar con lógica de `commands/validate-meta.md`
+6. Guardar `.ai/meta.md` en el repo
+
+**Si ya existe `.ai/meta.md`:**
+1. Validar con lógica de `commands/validate-meta.md`
+2. Si FAIL → mostrar errores, corregir con el usuario
+3. Si PASS → continuar
+
+**Este paso es condicional** — solo se ejecuta si el usuario quiere auditoría
+recursiva. Para sprints normales de tickets, saltar directamente al Paso 1.
+
 ## Paso 1 — Inventario y análisis
 
 Leer todos los tickets. Para cada uno, extraer:
@@ -17,7 +40,7 @@ Leer todos los tickets. Para cada uno, extraer:
 
 Presentar tabla-resumen al usuario antes de continuar.
 
-## Paso 2 — Ordenar tickets y definir puntos de corte
+## Paso 2 — Ordenar tickets, detectar paralelismo, y definir puntos de corte
 
 Ordenar TODOS los tickets en una sola secuencia de ejecución.
 
@@ -26,11 +49,45 @@ Ordenar TODOS los tickets en una sola secuencia de ejecución.
 2. **Dominio compartido** — tickets que tocan los mismos archivos van juntos
 3. **Complejidad intercalada** — evitar agrupar varios tickets de complejidad Alta seguidos
 
+### Detección de tickets batch-eligible (para /batch)
+
+Después de ordenar, identificar clusters de tickets que pueden ejecutarse
+en paralelo con `/batch`:
+
+**Un ticket es batch-eligible si:**
+- No tiene dependencias hacia otros tickets del batch
+- Ningún otro ticket depende de él dentro del batch
+- Su complejidad es Simple o Media (NO Alta)
+- Su scope fence no se solapa con el de otros tickets batch-eligible
+  (no comparten archivos en sus allowlists)
+
+**Agrupar batch-eligible:**
+1. Construir grafo de dependencias
+2. Tickets sin aristas (nodos aislados) son candidatos
+3. Verificar que no comparten archivos
+4. Si hay 3+ candidatos → marcar como grupo batch-eligible
+5. Si hay <3 → no justifica /batch, ejecutar secuencialmente
+
+**En el plan de ejecución, marcar los tickets batch-eligible:**
+```
+| # | Ticket | Modo |
+| B | T-3, T-5, T-7 | /batch (paralelo) |
+| 4 | T-8 | Subagente (secuencial) |
+| 5 | T-9 | Subagente (secuencial) |
+```
+
+**Si /batch no está disponible:** Todos se ejecutan secuencialmente.
+El plan sigue siendo válido — los batch-eligible simplemente se corren uno por uno.
+
+### Puntos de corte
+
 **Puntos de corte** (para gestión de contexto, NO son sprints separados):
 - Insertar un punto de corte cada 3-4 tickets
 - Nunca cortar entre tickets con dependencia directa
 - El punto de corte es una pausa para `/compact` o `/clear`, nada más
 - Toda la ejecución ocurre en **una sola rama y un solo PR**
+- Si hay grupo batch-eligible, insertar punto de corte DESPUÉS del grupo
+  (el batch consume menos contexto del orquestador pero genera muchos resultados)
 
 Presentar propuesta de orden al usuario.
 
@@ -105,8 +162,9 @@ Generar estos archivos siguiendo `templates/orchestrator-prompt.md`:
    Es ultra-lean para mantenerse en la zona de fidelidad total (0-5K tokens).
 
 2. **`.ai/rules.md`** — Reglas de orquestación que el agente lee de disco.
-   Contiene: las 7 reglas (incluyendo 2b scope audit y 2c completitud),
-   formato de .ai/runs/results.tsv, patrón Heat Shield, y paso final de `/learn`.
+   Contiene: las 9 reglas (incluyendo 2b scope audit, 2c completitud,
+   8 /simplify gate, y 9 /batch paralelo), formato de .ai/runs/results.tsv,
+   patrón Heat Shield, y paso final de `/learn`.
 
 **El prompt es un archivo independiente** para que el usuario solo
 necesite pegar una línea en Claude Code:
@@ -149,15 +207,29 @@ de **mínimo viable → crece según necesidad**:
    - Script externo en `.claude/hooks/guard-destructive.sh`
    - Compatible con el rollback de Regla 2 (no bloquea `git reset --hard`)
 
+**Activar si están disponibles (integraciones con Claude Code):**
+5. **`/simplify`** — gate de calidad post-implementación (Regla 8)
+   - Se activa automáticamente si `/simplify` está disponible
+   - Solo para tickets de complejidad Media o Alta
+   - NO requiere configuración — las reglas en `.ai/rules.md` lo manejan
+6. **`/batch`** — ejecución paralela de tickets independientes (Regla 9)
+   - Se activa si hay 3+ tickets batch-eligible (detectados en Paso 2)
+   - Requiere que `/batch` esté disponible en Claude Code
+   - NO requiere configuración — el orquestador detecta y delega
+
 **Sugerir pero no instalar aún (evaluar después de la primera ejecución):**
-5. **Agentes custom** en `.claude/agents/`
+7. **Agentes custom** en `.claude/agents/`
    - Leer `references/agent-patterns.md` para los patrones
    - Solo crear si `/learn` detecta que el mismo tipo de error se repite 3+ veces
-6. **Hook anti-racionalización** (Stop hook)
+8. **Hook anti-racionalización** (Stop hook)
    - Leer `templates/stop-hook.md` sección "Hook 2"
    - Solo instalar si durante la ejecución Claude declara victoria prematura
-7. **`/retrospective`** — análisis retroactivo de sesiones
+9. **`/retrospective`** — análisis retroactivo de sesiones
    - Instalar `commands/retrospective.md` después de la primera ejecución completa
+10. **`/loop`** — monitor post-PR para CI y review comments
+    - Ejecutar después de crear el PR: `/loop 5m` para monitorear CI status,
+      review comments, y auto-fix failures
+    - Solo sugerir si el proyecto tiene CI configurado
 
 **Principio:** La complejidad emerge de la presión real, no se anticipa.
 
