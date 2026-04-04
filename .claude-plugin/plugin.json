@@ -1,0 +1,11 @@
+{
+  "name": "code-orchestrator",
+  "version": "2.0.0",
+  "description": "Orquestador de tickets para Claude Code. Convierte tickets en ejecución autónoma con specs, validación, auditoría recursiva contra meta, y aprendizaje continuo.",
+  "author": {
+    "name": "EELeon"
+  },
+  "repository": "https://github.com/EELeon/Claude-harness",
+  "license": "MIT",
+  "keywords": ["orchestrator", "tickets", "specs", "autonomous", "audit", "meta"]
+}

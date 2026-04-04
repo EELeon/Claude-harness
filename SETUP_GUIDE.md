@@ -1,30 +1,46 @@
-# Guía de implementación — Code Orchestrator
+# Guía de implementación — Code Orchestrator Plugin
 
-Cómo instalar y usar este sistema en cualquier repositorio.
+Cómo instalar y usar este plugin en cualquier repositorio.
 
 ## Requisitos previos
 
 - Claude Code instalado y funcionando
-- Cowork con el skill `code-orchestrator` instalado
 - Un repositorio git con al menos un commit
 - Tickets/tareas definidos (pueden ser informales)
 
-## Paso 1 — Instalar el skill (una sola vez)
-
-Crear un symlink del repo Claude-harness al skill folder de Cowork:
+## Paso 1 — Instalar el plugin (una sola vez)
 
 ```bash
-ln -s "/ruta/a/Claude harness" ~/.claude/skills/code-orchestrator
-```
+# Opción A: Desde directorio local
+claude --plugin-dir "/ruta/a/Claude-harness"
 
-Con el symlink, cada cambio al repo actualiza el skill automáticamente.
-No hay que copiar ni sincronizar nada.
+# Opción B: Symlink permanente (recomendado para desarrollo)
+# El plugin se auto-descubre si está en la ruta del proyecto o en ~/.claude/plugins/
+```
 
 Para verificar que funciona:
 ```bash
-ls -la ~/.claude/skills/code-orchestrator/SKILL.md
-# Debe apuntar al SKILL.md del repo
+# Dentro de Claude Code, los skills aparecen con namespace:
+/code-orchestrator:orchestrate
+/code-orchestrator:bootstrap
+/code-orchestrator:preflight
+/code-orchestrator:recursive-audit
+/code-orchestrator:define-meta
+/code-orchestrator:validate-meta
+/code-orchestrator:retrospective
 ```
+
+## Skills disponibles
+
+| Skill | Comando | Cuándo usarlo |
+|-------|---------|--------------|
+| **orchestrate** | `/code-orchestrator:orchestrate` | Pipeline completo: tickets → specs → ejecución |
+| **bootstrap** | `/code-orchestrator:bootstrap` | Instalar harness en un repo nuevo |
+| **preflight** | `/code-orchestrator:preflight` | Validar specs antes de ejecutar |
+| **recursive-audit** | `/code-orchestrator:recursive-audit` | Auditoría recursiva contra meta |
+| **define-meta** | `/code-orchestrator:define-meta` | Definir/editar la visión del proyecto |
+| **validate-meta** | `/code-orchestrator:validate-meta` | Validar meta antes de auditoría |
+| **retrospective** | `/code-orchestrator:retrospective` | Análisis panorámico multi-sesión |
 
 ## Paso 2 — Bootstrap de un repo nuevo
 
@@ -49,14 +65,26 @@ cuando cada ticket incluye al menos:
 
 No necesitás formato formal — el skill se encarga de estructurar todo.
 
-## Paso 4 — Activar el skill en Cowork
+## Paso 4 — Usar los skills
 
-Decile a Cowork algo como:
-- "Tengo estos tickets para implementar con Claude Code"
-- "Preparar specs para Code"
-- "Organizar este batch de features"
+Cada skill se activa por separado según lo que necesites:
 
-El skill te va a guiar por el flujo de 6 pasos:
+```bash
+# Pipeline completo de tickets
+/code-orchestrator:orchestrate
+# "Tengo estos tickets para implementar con Claude Code"
+
+# Solo validar specs existentes
+/code-orchestrator:preflight
+
+# Definir el meta del proyecto
+/code-orchestrator:define-meta
+
+# Auditoría recursiva contra meta
+/code-orchestrator:recursive-audit
+```
+
+El skill `orchestrate` te guía por el flujo de 6 pasos:
 inventario → orden + cortes → specs → prompt + reglas → artefactos → revisión.
 
 Al final te da una sola línea para pegar en Claude Code:
@@ -179,7 +207,7 @@ completo según la visión de alto nivel (el "meta").
 El meta es un documento que describe QUÉ debe hacer el sistema, no CÓMO.
 Cada capacidad tiene un criterio verificable por un agente.
 
-1. Decile a Cowork: "Quiero definir el meta de este proyecto"
+1. Ejecutar `/code-orchestrator:define-meta`
 2. El skill te guía con preguntas para extraer dominios y capacidades
 3. Resultado: `.ai/meta.md` con capacidades verificables y parámetros del loop
 
@@ -189,8 +217,7 @@ O crealo manualmente siguiendo `templates/meta-template.md`.
 
 ```bash
 claude
-# Pegar: /recursive-audit
-# O: Lee .ai/meta.md y ejecutá auditoría recursiva.
+# Ejecutar: /code-orchestrator:recursive-audit
 ```
 
 El loop:
