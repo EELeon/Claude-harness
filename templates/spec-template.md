@@ -176,6 +176,16 @@ a "contexto del proyecto" en el prompt del subagente.
 - NUNCA [restricción 2]
 - NUNCA [restricción 3]
 
+## Decisiones de diseño (opcional)
+<!-- Registrar aquí las decisiones significativas tomadas al escribir este spec.
+     Solo llenar si hubo alternativas consideradas y descartadas.
+     Esta sección NO se valida en preflight — es puramente informativa. -->
+
+### D-1 — [Título de la decisión]
+- **Decisión:** [Qué se decidió]
+- **Motivo:** [Por qué]
+- **Alternativas descartadas:** [Qué se consideró y se rechazó, y por qué]
+
 ---
 
 ## Checklist de autocontención

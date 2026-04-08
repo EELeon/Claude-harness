@@ -275,6 +275,7 @@ El subagente devuelve SOLO:
 - Estado de tests (passed/failed + nombre del test fallido si aplica)
 - Archivos tocados
 - Estado de criterios de aceptación (sí/no/parcial por cada uno)
+- Desviaciones tácticas (si hubo): [decisiones que el subagente tomó que no estaban en el spec, máximo 2 líneas]
 
 NO devuelve logs completos, contenido de archivos, ni output de tests.
 Esto protege tu contexto de acumular información innecesaria.

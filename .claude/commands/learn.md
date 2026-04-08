@@ -123,6 +123,16 @@ Basado en los patrones de este ticket y los anteriores:
 NO crear la infraestructura automáticamente — sugerir al usuario
 y dejar que decida.
 
+## 8.5. Registrar decisiones
+
+Si durante este ticket hubo decisiones significativas (cambios de approach, desviaciones del spec, alternativas evaluadas):
+1. Crear o actualizar `.ai/decisions/[nombre-batch].decisions.md`
+2. Agregar cada decisión con el formato de `references/decision-capture.md`
+3. Si el spec tenía sección "Decisiones de diseño", incluir esas también
+4. Si el subagente reportó desviaciones tácticas en Heat Shield, registrarlas como decisiones de fase "implementación"
+
+Si no hubo decisiones significativas, saltar este paso.
+
 ## 9. Registrar en .ai/done-tasks.md
 
 Agregar al archivo `.ai/done-tasks.md` (crear si no existe):
