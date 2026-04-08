@@ -52,6 +52,12 @@ LIMITACIONES:
 1. Creá la rama: `git checkout -b [nombre-rama]`
 2. Lee las reglas de orquestación en `.ai/rules.md` y seguílas estrictamente.
 
+## Consulta de experiencia previa
+Antes de ejecutar el primer ticket, leé los archivos en `.ai/experience/` (si existen).
+Buscá insights cuyo **Perfil** coincida con los tickets de este sprint.
+Si encontrás insights relevantes, tenelos en cuenta al verificar resultados de subagentes.
+NO dejes que la experience library modifique los specs — los specs son la fuente de verdad.
+
 ## Tickets (en orden de ejecución)
 
 | # | Ticket | Spec | Complejidad |

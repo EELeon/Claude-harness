@@ -139,6 +139,19 @@ Agregar al archivo `.ai/done-tasks.md` (crear si no existe):
 - Tiempo aproximado de contexto usado: [bajo/medio/alto]
 ```
 
+## 9.5. Alimentar Experience Library
+
+Para cada lección significativa de este ticket:
+1. Leer los archivos relevantes en `.ai/experience/`
+2. Evaluar si la lección es un insight nuevo (ADD), refuerza uno existente (MERGE), o invalida uno (PRUNE)
+3. Aplicar la operación según `references/experience-library.md`
+4. Si es ADD: crear con utilidad inicial 1/1
+5. Si es MERGE: incrementar el contador de utilidad
+6. Reportar: "Experience library: [N] ADD, [N] MERGE, [N] PRUNE"
+
+Solo alimentar insights que pasaron el test de sustracción causal del Paso 3.
+Insights menores (1 ocurrencia, sin rollback) van solo a done-tasks.md, NO a la library.
+
 ## 10. Preparar para el siguiente
 
 Reporta:
