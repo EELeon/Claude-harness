@@ -207,7 +207,8 @@ Después de que scope (2b) y tests (2) pasen, verificar criterios de aceptación
 significa que el objetivo del ticket NO se logró. En duda, tratarlo como crítico.
 
 4. Si `incomplete`: intentá una corrección rápida (máximo 1 intento).
-   Si no se resuelve, rollback y registrar `incomplete` en .ai/runs/results.tsv.
+   Si no se resuelve, rollback y registrar `incomplete` en .ai/runs/results.tsv
+   (incluí `iterations`, `scope_warnings`, `complexity`).
 
 **Orden completo de verificación post-subagente:**
 Regla 2b (scope) → Regla 2 paso 4 (tests) → Regla 2c (completitud)
@@ -372,7 +373,7 @@ ejecutarlos en paralelo usando `/batch` en vez de secuencialmente.
    - Scope audit (Regla 2b) contra su spec
    - Tests (Regla 2)
    - Completitud (Regla 2c)
-7. Registrar resultados en `.ai/runs/results.tsv`
+7. Registrar resultados en `.ai/runs/results.tsv` (incluí todas las columnas: iterations, scope_warnings, complexity)
 8. Los tickets que pasaron `/batch` NO necesitan `/simplify` adicional
    (batch ya incluye un review pass interno)
 
@@ -406,6 +407,10 @@ Ejemplo:
 T-1	a1b2c3d	passed	keep	none	1	0	Simple	result budgeting formal
 T-5	c3d4e5f	failed	discard	test_failure	2	1	Media	compactación — falló en primer intento
 ```
+
+**Backward-compatibility:** Si un results.tsv de un sprint anterior no tiene las columnas
+`iterations`, `scope_warnings`, y `complexity`, tratarlas como vacías. /retrospective y
+/status deben funcionar sin error con el formato viejo (6 columnas) o el nuevo (9 columnas).
 
 Categorías de fallo:
 | Categoría | Quién la detecta | Cuándo se escribe | Criterio operativo |

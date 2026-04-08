@@ -69,6 +69,19 @@ git log --oneline --since="[fecha inicio]" | head -50
 - Commits revertidos (señal de problemas)
 - Frecuencia de commits por ticket (muchos = implementación difícil)
 
+## Análisis de métricas operacionales
+
+Si `.ai/runs/results.tsv` (o los archivados en `.ai/specs/archive/*/`) tienen columnas de métricas:
+
+1. **Iteraciones por complejidad:** ¿Los tickets Media/Alta necesitan más intentos? ¿Hay un umbral donde la complejidad predice fallos?
+2. **Scope warnings:** ¿Hay tickets que consistentemente tocan archivos fuera de scope? Esto sugiere scope fences demasiado estrictos o specs mal definidos.
+3. **Ratio keep/discard por complejidad:** ¿Los tickets Alta fallan más? ¿Deberían subdividirse más agresivamente?
+4. **Tendencias entre sprints:** ¿Las iteraciones promedio bajan con el tiempo? (señal de que /learn y experience library están funcionando)
+
+Reportar hallazgos como insights candidatos para la experience library.
+
+**Backward-compatibility:** Si el results.tsv no tiene las columnas `iterations`, `scope_warnings`, y `complexity` (formato viejo de 6 columnas), omitir esta sección silenciosamente. No fallar por columnas faltantes.
+
 ## Fase 3: Sintetizar
 
 Después de que todos los subagentes terminen, combinar hallazgos
