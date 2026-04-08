@@ -248,6 +248,11 @@ El subagente devuelve SOLO:
 NO devuelve logs completos, contenido de archivos, ni output de tests.
 Esto protege tu contexto de acumular información innecesaria.
 
+**Result Budgeting:** Si un output excede los límites definidos en
+`references/output-budgets.md`, persistir el output completo a
+`.ai/artifacts/` y retornar solo preview + ruta del archivo.
+Consultá ese documento para los límites exactos por tipo de salida.
+
 **Uso del reporte de criterios:** El orquestador usa este reporte en
 Regla 2c para verificar completitud. Si el subagente reporta "parcial"
 o "no" en algún criterio, el orquestador verifica independientemente
