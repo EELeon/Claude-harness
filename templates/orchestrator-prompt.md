@@ -52,6 +52,12 @@ LIMITACIONES:
 1. Creá la rama: `git checkout -b [nombre-rama]`
 2. Lee las reglas de orquestación en `.ai/rules.md` y seguílas estrictamente.
 
+## Consulta de experiencia previa
+Antes de ejecutar el primer ticket, leé los archivos en `.ai/experience/` (si existen).
+Buscá insights cuyo **Perfil** coincida con los tickets de este sprint.
+Si encontrás insights relevantes, tenelos en cuenta al verificar resultados de subagentes.
+NO dejes que la experience library modifique los specs — los specs son la fuente de verdad.
+
 ## Tickets (en orden de ejecución)
 
 | # | Ticket | Spec | Complejidad |
@@ -208,14 +214,28 @@ Las únicas razones válidas para pausar son:
 - Llegaste a un punto de corte (Regla 5)
 - Un error sistémico impide continuar (ej: el repo está roto)
 
-## Regla 4: Gestión de contexto
-Después de cada ticket completado o descartado:
+## Regla 4: Gestión de contexto (3 niveles de compactación)
+Para detalles completos de la política, ver `references/compaction-policy.md`.
+
+Después de cada ticket completado o descartado, aplicar compactación progresiva:
+
+### Nivel 1 — Microcompact (automático, después de cada subagente)
+- Sustituir outputs repetidos por referencias a artifact paths (ver `references/output-budgets.md`)
+- Colapsar resultados de tests idénticos: "Tests: N passed (sin cambios desde iteración anterior)"
+- Reemplazar diffs repetidos por "sin cambios desde iteración N"
+- Usar SOLO Heat Shield (resumen ≤4 líneas + ruta) — NO retener output completo
+
+### Nivel 2 — Snip (semi-automático, entre tickets)
 1. Registrá el resultado en `.ai/runs/results.tsv` (ver formato abajo)
-2. Evaluá tu uso de contexto
-3. Si sentís que tu contexto está pesado o llevás 3+ tickets completados,
-   decile al usuario: **"Recomiendo correr /compact antes de continuar
-   con el siguiente ticket. Tu progreso está guardado en .ai/runs/results.tsv."**
+2. Mantener en contexto SOLO la cola protegida: spec del ticket actual,
+   últimos 2 resultados de results.tsv, reglas activas (.ai/rules.md), CLAUDE.md
+3. Si llevás 3+ tickets completados, decile al usuario:
+   **"Recomiendo correr /compact antes de continuar con el siguiente ticket.
+   Tu progreso está guardado en .ai/runs/results.tsv."**
 4. Después de /compact, retomá leyendo `.ai/runs/results.tsv` para saber qué falta
+
+### Nivel 3 — Reset resumible (manual, en puntos de corte)
+Se activa en Regla 5 (puntos de corte). Ver instrucciones completas allí.
 
 **AVISO (paraphrase loss):** Cuando se comprime el contexto, las
 instrucciones detalladas se parafrasean y pierden precisión. Por eso:
@@ -224,13 +244,24 @@ instrucciones detalladas se parafrasean y pierden precisión. Por eso:
 - Los specs están en disco (el subagente los lee frescos)
 - NUNCA depender de "lo que recuerdo de tickets anteriores"
 
-## Regla 5: Punto de corte
-Al llegar a un punto de corte marcado en el prompt:
+## Regla 5: Punto de corte (Nivel 3 — Reset resumible)
+Al llegar a un punto de corte marcado en el prompt, o si el contexto está
+estimado >80% de capacidad, ejecutar reset resumible (Nivel 3 de la
+política de compactación — ver `references/compaction-policy.md`):
 1. Asegurate de que `.ai/runs/results.tsv` está actualizado
-2. Mostrá resumen de progreso parcial
-3. Decile al usuario: **"Llegamos al punto de corte. Recomiendo:
-   /clear y luego pegá de nuevo la línea de ejecución. Voy a retomar
-   automáticamente desde el ticket [N] leyendo .ai/runs/results.tsv."**
+2. Verificá que `.ai/plan.md` refleja el progreso actual
+3. Mostrá resumen de progreso parcial
+4. Decile al usuario: **"Llegamos al punto de corte. Recomiendo:
+   1. Ejecutá /clear
+   2. Después pegá de nuevo la línea de ejecución.
+   3. Voy a retomar automáticamente desde el ticket [N] leyendo .ai/runs/results.tsv."**
+
+Al retomar después del /clear, la secuencia es:
+1. Leer `.ai/runs/results.tsv` → identificar tickets completados
+2. Leer `.ai/plan.md` → identificar siguiente ticket pendiente
+3. Leer `.ai/rules.md` → cargar reglas de orquestación
+4. Leer `CLAUDE.md` → cargar contexto del proyecto
+5. Continuar con el primer ticket NO registrado en results.tsv
 
 ## Regla 6: Retomar después de /clear
 Si al empezar encontrás que `.ai/runs/results.tsv` ya tiene tickets
@@ -244,6 +275,7 @@ El subagente devuelve SOLO:
 - Estado de tests (passed/failed + nombre del test fallido si aplica)
 - Archivos tocados
 - Estado de criterios de aceptación (sí/no/parcial por cada uno)
+- Desviaciones tácticas (si hubo): [decisiones que el subagente tomó que no estaban en el spec, máximo 2 líneas]
 
 NO devuelve logs completos, contenido de archivos, ni output de tests.
 Esto protege tu contexto de acumular información innecesaria.
@@ -309,7 +341,12 @@ ejecutarlos en paralelo usando `/batch` en vez de secuencialmente.
 
 **Cómo ejecutar:**
 1. Agrupar los tickets batch-eligible
-2. Generar un prompt para `/batch` que incluya todos los tickets del grupo:
+2. **Adquirir locks antes de lanzar:** Para cada ticket del grupo,
+   crear `.ai/locks/[task_id].lock.json` siguiendo el protocolo de
+   `references/task-locks.md`. Si algún lock no se puede adquirir
+   (otro agente lo tiene), excluir ese ticket del batch y continuar
+   con los demás.
+3. Generar un prompt para `/batch` que incluya todos los tickets del grupo:
    ```
    /batch Implementar los siguientes tickets independientes.
    Para cada uno, leer el spec indicado e implementar siguiendo CLAUDE.md.
@@ -317,13 +354,15 @@ ejecutarlos en paralelo usando `/batch` en vez de secuencialmente.
    - T-[M]: .ai/specs/active/ticket-[M].md
    - T-[K]: .ai/specs/active/ticket-[K].md
    ```
-3. `/batch` descompone, asigna worktrees, ejecuta en paralelo, y abre PRs
-4. Después de que todos terminen, verificar cada uno:
+4. `/batch` descompone, asigna worktrees, ejecuta en paralelo, y abre PRs
+5. **Liberar locks:** Al terminar cada subagente (éxito o fallo),
+   borrar su `.ai/locks/[task_id].lock.json` inmediatamente.
+6. Después de que todos terminen, verificar cada uno:
    - Scope audit (Regla 2b) contra su spec
    - Tests (Regla 2)
    - Completitud (Regla 2c)
-5. Registrar resultados en `.ai/runs/results.tsv`
-6. Los tickets que pasaron `/batch` NO necesitan `/simplify` adicional
+7. Registrar resultados en `.ai/runs/results.tsv`
+8. Los tickets que pasaron `/batch` NO necesitan `/simplify` adicional
    (batch ya incluye un review pass interno)
 
 **Si /batch no está disponible:** Ejecutar secuencialmente (Regla 1).
@@ -446,3 +485,7 @@ el prompt es lean y los subagentes retornan solo Heat Shield.
 ### Recuperación ante errores
 
 Cuando detectes una anomalía durante la ejecución, consultá `references/recovery-matrix.md` para la acción estándar. No improvisar recuperaciones — seguir el protocolo documentado.
+
+### Locks para auditoría recursiva
+
+Si se ejecutan auditorías recursivas en paralelo con spec writers u otros subagentes, usar el protocolo de locks (`references/task-locks.md`) para evitar colisiones. El auditor debe adquirir un lock sobre el ticket que está auditando antes de escribir resultados, y liberarlo al terminar. Esto previene que un auditor y un spec writer modifiquen el mismo artifact simultáneamente.

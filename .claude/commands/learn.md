@@ -123,6 +123,16 @@ Basado en los patrones de este ticket y los anteriores:
 NO crear la infraestructura automáticamente — sugerir al usuario
 y dejar que decida.
 
+## 8.5. Registrar decisiones
+
+Si durante este ticket hubo decisiones significativas (cambios de approach, desviaciones del spec, alternativas evaluadas):
+1. Crear o actualizar `.ai/decisions/[nombre-batch].decisions.md`
+2. Agregar cada decisión con el formato de `references/decision-capture.md`
+3. Si el spec tenía sección "Decisiones de diseño", incluir esas también
+4. Si el subagente reportó desviaciones tácticas en Heat Shield, registrarlas como decisiones de fase "implementación"
+
+Si no hubo decisiones significativas, saltar este paso.
+
 ## 9. Registrar en .ai/done-tasks.md
 
 Agregar al archivo `.ai/done-tasks.md` (crear si no existe):
@@ -138,6 +148,19 @@ Agregar al archivo `.ai/done-tasks.md` (crear si no existe):
 - Infraestructura sugerida: [ninguna | agente para X | hook Stop | etc.]
 - Tiempo aproximado de contexto usado: [bajo/medio/alto]
 ```
+
+## 9.5. Alimentar Experience Library
+
+Para cada lección significativa de este ticket:
+1. Leer los archivos relevantes en `.ai/experience/`
+2. Evaluar si la lección es un insight nuevo (ADD), refuerza uno existente (MERGE), o invalida uno (PRUNE)
+3. Aplicar la operación según `references/experience-library.md`
+4. Si es ADD: crear con utilidad inicial 1/1
+5. Si es MERGE: incrementar el contador de utilidad
+6. Reportar: "Experience library: [N] ADD, [N] MERGE, [N] PRUNE"
+
+Solo alimentar insights que pasaron el test de sustracción causal del Paso 3.
+Insights menores (1 ocurrencia, sin rollback) van solo a done-tasks.md, NO a la library.
 
 ## 10. Preparar para el siguiente
 

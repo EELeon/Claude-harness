@@ -45,6 +45,15 @@ Ver references/concurrency-classes.md para definiciones completas y árbol de de
 Si hay duda entre isolated_write y shared_write, elegir shared_write (más conservador).
 -->
 
+## Lock requirements (opcional — solo para batch/audit)
+
+<!--
+Solo llenar si el ticket puede correr en paralelo con otros.
+Ver references/task-locks.md para el protocolo completo de locks.
+-->
+- Archivos que requieren lock exclusivo: [lista]
+- Lease estimado: [Simple=10min | Media=15min | Alta=30min]
+
 ---
 
 ## Scope fence (alcance permitido)
@@ -166,6 +175,16 @@ a "contexto del proyecto" en el prompt del subagente.
 - NUNCA [restricción 1 — qué evitar y por qué]
 - NUNCA [restricción 2]
 - NUNCA [restricción 3]
+
+## Decisiones de diseño (opcional)
+<!-- Registrar aquí las decisiones significativas tomadas al escribir este spec.
+     Solo llenar si hubo alternativas consideradas y descartadas.
+     Esta sección NO se valida en preflight — es puramente informativa. -->
+
+### D-1 — [Título de la decisión]
+- **Decisión:** [Qué se decidió]
+- **Motivo:** [Por qué]
+- **Alternativas descartadas:** [Qué se consideró y se rechazó, y por qué]
 
 ---
 
