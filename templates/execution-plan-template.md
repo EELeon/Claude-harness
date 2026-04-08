@@ -7,6 +7,8 @@
 Generado: [fecha]
 Total tickets: [N]
 Rama: `[nombre-rama]`
+Perfil de permiso: `[conservative | standard | aggressive]`
+<!-- Ver references/permission-profiles.md para detalles de cada perfil -->
 
 ## Orden de ejecución
 

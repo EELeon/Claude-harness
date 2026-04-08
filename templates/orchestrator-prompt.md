@@ -51,12 +51,19 @@ LIMITACIONES:
 ## Setup inicial
 1. Creá la rama: `git checkout -b [nombre-rama]`
 2. Lee las reglas de orquestación en `.ai/rules.md` y seguílas estrictamente.
+3. Lee el perfil de permiso en `.ai/plan.md`. Ajustá tu comportamiento según `references/permission-profiles.md`.
+   Si no hay perfil definido, usá `standard` como default.
 
 ## Consulta de experiencia previa
 Antes de ejecutar el primer ticket, leé los archivos en `.ai/experience/` (si existen).
 Buscá insights cuyo **Perfil** coincida con los tickets de este sprint.
 Si encontrás insights relevantes, tenelos en cuenta al verificar resultados de subagentes.
 NO dejes que la experience library modifique los specs — los specs son la fuente de verdad.
+
+## Consulta de project notes
+Si existe `.ai/docs/project_notes/`, leé `bugs.md` y `key_facts.md` para contexto del proyecto.
+Tené en cuenta bugs conocidos al verificar resultados de subagentes.
+NO modifiques archivos en project_notes/ — son mantenidos por el usuario.
 
 ## Tickets (en orden de ejecución)
 
@@ -121,12 +128,16 @@ Después de cada subagente:
 4. Corré los tests del ticket (el comando está en el spec)
 5. **Si scope OK + tests pasan:** ejecutá Regla 2c (auditoría de completitud).
    Si completitud OK → registrá `keep` en `.ai/runs/results.tsv` y continuá.
+   Incluí las columnas de métricas: `iterations` (intentos totales),
+   `scope_warnings` (archivos fuera de allowlist), `complexity` (del spec).
 6. **Si scope violation (archivos prohibidos tocados):** rollback inmediato:
    `git reset --hard [hash anterior]`, registrá `discard` con
-   `failure_category=scope_violation` en `.ai/runs/results.tsv`, continuá
+   `failure_category=scope_violation` en `.ai/runs/results.tsv`
+   (incluí `iterations`, `scope_warnings`, `complexity`), continuá
 7. **Si los tests fallan:** intentá una corrección rápida (máximo 2 intentos).
    Si no se resuelve, hacé rollback: `git reset --hard [hash anterior]`,
-   registrá `discard` con `failure_category=test_failure`, y continuá.
+   registrá `discard` con `failure_category=test_failure`
+   (incluí `iterations`, `scope_warnings`, `complexity`), y continuá.
    NO te quedes trabado intentando arreglar un ticket roto indefinidamente.
 
 **Commits atómicos:** Cada ticket DEBE terminar con un commit atómico
@@ -196,7 +207,8 @@ Después de que scope (2b) y tests (2) pasen, verificar criterios de aceptación
 significa que el objetivo del ticket NO se logró. En duda, tratarlo como crítico.
 
 4. Si `incomplete`: intentá una corrección rápida (máximo 1 intento).
-   Si no se resuelve, rollback y registrar `incomplete` en .ai/runs/results.tsv.
+   Si no se resuelve, rollback y registrar `incomplete` en .ai/runs/results.tsv
+   (incluí `iterations`, `scope_warnings`, `complexity`).
 
 **Orden completo de verificación post-subagente:**
 Regla 2b (scope) → Regla 2 paso 4 (tests) → Regla 2c (completitud)
@@ -361,7 +373,7 @@ ejecutarlos en paralelo usando `/batch` en vez de secuencialmente.
    - Scope audit (Regla 2b) contra su spec
    - Tests (Regla 2)
    - Completitud (Regla 2c)
-7. Registrar resultados en `.ai/runs/results.tsv`
+7. Registrar resultados en `.ai/runs/results.tsv` (incluí todas las columnas: iterations, scope_warnings, complexity)
 8. Los tickets que pasaron `/batch` NO necesitan `/simplify` adicional
    (batch ya incluye un review pass interno)
 
@@ -376,7 +388,7 @@ Crear `.ai/runs/results.tsv` al inicio (si no existe) con este header.
 Usar tabs como separador (NO comas).
 
 ```
-ticket	commit	tests	status	failure_category	description
+ticket	commit	tests	status	failure_category	iterations	scope_warnings	complexity	description
 ```
 
 Columnas:
@@ -385,7 +397,20 @@ Columnas:
 3. **tests** — passed / failed / crash
 4. **status** — keep / discard / crash
 5. **failure_category** — categoría del fallo (ver tabla). "none" si keep
-6. **description** — qué se intentó hacer (1 línea)
+6. **iterations** — número de intentos para completar el ticket (1 = primera vez, 2 = un retry, etc.)
+7. **scope_warnings** — número de archivos tocados fuera de allowlist (0 = limpio)
+8. **complexity** — complejidad del spec (Simple/Media/Alta) — para correlacionar con iteraciones
+9. **description** — qué se intentó hacer (1 línea)
+
+Ejemplo:
+```
+T-1	a1b2c3d	passed	keep	none	1	0	Simple	result budgeting formal
+T-5	c3d4e5f	failed	discard	test_failure	2	1	Media	compactación — falló en primer intento
+```
+
+**Backward-compatibility:** Si un results.tsv de un sprint anterior no tiene las columnas
+`iterations`, `scope_warnings`, y `complexity`, tratarlas como vacías. /retrospective y
+/status deben funcionar sin error con el formato viejo (6 columnas) o el nuevo (9 columnas).
 
 Categorías de fallo:
 | Categoría | Quién la detecta | Cuándo se escribe | Criterio operativo |

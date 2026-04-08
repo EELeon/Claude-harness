@@ -50,13 +50,24 @@ Una regla que referencia archivos borrados o APIs deprecated → eliminar.
 
 ## Reglas de dominio
 <!-- Reglas que Claude viola sin esta guía — forma imperativa obligatoria -->
+<!-- Categorías de reglas:
+  [OP YYYY-MM-DD] = Regla operacional (corrección reciente). Caduca si no se activa en 3 sprints.
+  [BP] = Principio de comportamiento (validado por 2+ sprints). Permanente salvo prueba en contra.
+  Sin marcador = regla original del proyecto (pre-evolución). Tratar como [BP].
+  Ver protocolo completo en references/prompt-evolution.md
+-->
 - [NUNCA mezclar datos de producción con staging]
 - [SIEMPRE separar validación de input vs lógica de negocio vs output]
 - [Un pedido SOLO puede tener un estado a la vez]
 
-## 🚫 NO hacer (lecciones aprendidas)
+## NO hacer (lecciones aprendidas)
 <!-- Se actualiza con /learn después de cada ticket -->
 <!-- Formato: "NUNCA [hacer X] — [por qué falla] → [qué hacer en su lugar]" -->
+<!-- Categorías de reglas:
+  [OP YYYY-MM-DD] = Regla operacional (corrección reciente). Caduca si no se activa en 3 sprints.
+  [BP] = Principio de comportamiento (validado por 2+ sprints). Permanente salvo prueba en contra.
+  Sin marcador = regla original del proyecto (pre-evolución). Tratar como [BP].
+-->
 
 ## ❌ Intentos fallidos
 <!-- Caminos muertos que Claude NO debe volver a explorar -->

@@ -83,6 +83,12 @@ No todo va a CLAUDE.md. Clasificar cada regla que pasó el umbral:
 
 Después de pasar el gate de sustracción causal:
 
+**Categorización de reglas nuevas:**
+- SIEMPRE marcar reglas nuevas como operacionales con fecha: `[OP YYYY-MM-DD]`
+- Ejemplo: `[OP 2026-04-07] NUNCA usar rm -rf sin path absoluto`
+- Reglas existentes sin marcador se tratan como [BP] (principio validado)
+- Ver protocolo completo en `references/prompt-evolution.md`
+
 **Para "NO hacer" (lecciones):**
 - Formato IMPERATIVO: "NUNCA [hacer X] — [por qué falla] → [qué hacer en su lugar]"
 - Solo agregar si la regla es generalizable (no específica a este ticket)
@@ -103,6 +109,17 @@ de CLAUDE.md. Si supera 100 líneas, aplicar:
 - Simplificar redacción sin perder protección → siempre vale la pena
 
 Un CLAUDE.md corto y preciso es más efectivo que uno largo y exhaustivo.
+
+**Consolidación periódica (solo en /learn de sprint completo):**
+Si este es el /learn final de un sprint (el argumento contiene "completo"):
+1. Revisar todas las reglas [OP] en CLAUDE.md
+2. Consultar `.ai/experience/` para validar utilidad de cada regla
+3. Promover, fusionar, o eliminar según `references/prompt-evolution.md`:
+   - [OP] con 2+ activaciones exitosas → promover a [BP]
+   - [OP] redundantes → fusionar en una sola regla
+   - [OP] con 0 activaciones en 3+ sprints → eliminar
+4. Si CLAUDE.md supera 90 líneas o han pasado 3+ sprints: ejecutar consolidación profunda (cross-reference con experience library, sustracción causal a todas las reglas)
+5. Reportar: "Consolidación: [N] promovidas, [N] fusionadas, [N] eliminadas"
 
 ## 7. Actualizar agentes (si aplica)
 
