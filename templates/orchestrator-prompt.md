@@ -208,14 +208,28 @@ Las únicas razones válidas para pausar son:
 - Llegaste a un punto de corte (Regla 5)
 - Un error sistémico impide continuar (ej: el repo está roto)
 
-## Regla 4: Gestión de contexto
-Después de cada ticket completado o descartado:
+## Regla 4: Gestión de contexto (3 niveles de compactación)
+Para detalles completos de la política, ver `references/compaction-policy.md`.
+
+Después de cada ticket completado o descartado, aplicar compactación progresiva:
+
+### Nivel 1 — Microcompact (automático, después de cada subagente)
+- Sustituir outputs repetidos por referencias a artifact paths (ver `references/output-budgets.md`)
+- Colapsar resultados de tests idénticos: "Tests: N passed (sin cambios desde iteración anterior)"
+- Reemplazar diffs repetidos por "sin cambios desde iteración N"
+- Usar SOLO Heat Shield (resumen ≤4 líneas + ruta) — NO retener output completo
+
+### Nivel 2 — Snip (semi-automático, entre tickets)
 1. Registrá el resultado en `.ai/runs/results.tsv` (ver formato abajo)
-2. Evaluá tu uso de contexto
-3. Si sentís que tu contexto está pesado o llevás 3+ tickets completados,
-   decile al usuario: **"Recomiendo correr /compact antes de continuar
-   con el siguiente ticket. Tu progreso está guardado en .ai/runs/results.tsv."**
+2. Mantener en contexto SOLO la cola protegida: spec del ticket actual,
+   últimos 2 resultados de results.tsv, reglas activas (.ai/rules.md), CLAUDE.md
+3. Si llevás 3+ tickets completados, decile al usuario:
+   **"Recomiendo correr /compact antes de continuar con el siguiente ticket.
+   Tu progreso está guardado en .ai/runs/results.tsv."**
 4. Después de /compact, retomá leyendo `.ai/runs/results.tsv` para saber qué falta
+
+### Nivel 3 — Reset resumible (manual, en puntos de corte)
+Se activa en Regla 5 (puntos de corte). Ver instrucciones completas allí.
 
 **AVISO (paraphrase loss):** Cuando se comprime el contexto, las
 instrucciones detalladas se parafrasean y pierden precisión. Por eso:
@@ -224,13 +238,24 @@ instrucciones detalladas se parafrasean y pierden precisión. Por eso:
 - Los specs están en disco (el subagente los lee frescos)
 - NUNCA depender de "lo que recuerdo de tickets anteriores"
 
-## Regla 5: Punto de corte
-Al llegar a un punto de corte marcado en el prompt:
+## Regla 5: Punto de corte (Nivel 3 — Reset resumible)
+Al llegar a un punto de corte marcado en el prompt, o si el contexto está
+estimado >80% de capacidad, ejecutar reset resumible (Nivel 3 de la
+política de compactación — ver `references/compaction-policy.md`):
 1. Asegurate de que `.ai/runs/results.tsv` está actualizado
-2. Mostrá resumen de progreso parcial
-3. Decile al usuario: **"Llegamos al punto de corte. Recomiendo:
-   /clear y luego pegá de nuevo la línea de ejecución. Voy a retomar
-   automáticamente desde el ticket [N] leyendo .ai/runs/results.tsv."**
+2. Verificá que `.ai/plan.md` refleja el progreso actual
+3. Mostrá resumen de progreso parcial
+4. Decile al usuario: **"Llegamos al punto de corte. Recomiendo:
+   1. Ejecutá /clear
+   2. Después pegá de nuevo la línea de ejecución.
+   3. Voy a retomar automáticamente desde el ticket [N] leyendo .ai/runs/results.tsv."**
+
+Al retomar después del /clear, la secuencia es:
+1. Leer `.ai/runs/results.tsv` → identificar tickets completados
+2. Leer `.ai/plan.md` → identificar siguiente ticket pendiente
+3. Leer `.ai/rules.md` → cargar reglas de orquestación
+4. Leer `CLAUDE.md` → cargar contexto del proyecto
+5. Continuar con el primer ticket NO registrado en results.tsv
 
 ## Regla 6: Retomar después de /clear
 Si al empezar encontrás que `.ai/runs/results.tsv` ya tiene tickets
