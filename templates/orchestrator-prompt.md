@@ -248,6 +248,11 @@ El subagente devuelve SOLO:
 NO devuelve logs completos, contenido de archivos, ni output de tests.
 Esto protege tu contexto de acumular información innecesaria.
 
+**Result Budgeting:** Si un output excede los límites definidos en
+`references/output-budgets.md`, persistir el output completo a
+`.ai/artifacts/` y retornar solo preview + ruta del archivo.
+Consultá ese documento para los límites exactos por tipo de salida.
+
 **Uso del reporte de criterios:** El orquestador usa este reporte en
 Regla 2c para verificar completitud. Si el subagente reporta "parcial"
 o "no" en algún criterio, el orquestador verifica independientemente
@@ -437,3 +442,7 @@ Con un contexto de ~200k tokens para el orquestador:
 
 Nota: las estimaciones del orquestador son menores que antes porque
 el prompt es lean y los subagentes retornan solo Heat Shield.
+
+### Recuperación ante errores
+
+Cuando detectes una anomalía durante la ejecución, consultá `references/recovery-matrix.md` para la acción estándar. No improvisar recuperaciones — seguir el protocolo documentado.

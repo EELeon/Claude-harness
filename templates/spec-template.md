@@ -31,6 +31,20 @@ Sesión principal: solo para tickets Alta complejidad + 4 subtareas
   para sus subtareas, pero se ejecutan fuera del prompt orquestador.
 -->
 
+## Clase de ejecución: [read_only | isolated_write | shared_write | repo_wide]
+
+<!--
+Clase de concurrencia que determina cómo el orquestador puede programar este ticket.
+Ver references/concurrency-classes.md para definiciones completas y árbol de decisión.
+
+  read_only:       NO modifica archivos del repo. Paralelo libre con cualquier ticket.
+  isolated_write:  Modifica archivos que NINGÚN otro ticket toca. Paralelo en worktree.
+  shared_write:    Comparte archivos con otro ticket del sprint. Secuencial estricto.
+  repo_wide:       Modifica config global o archivos transversales. Solo en sesión principal.
+
+Si hay duda entre isolated_write y shared_write, elegir shared_write (más conservador).
+-->
+
 ---
 
 ## Scope fence (alcance permitido)
