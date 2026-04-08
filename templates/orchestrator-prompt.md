@@ -442,3 +442,7 @@ Con un contexto de ~200k tokens para el orquestador:
 
 Nota: las estimaciones del orquestador son menores que antes porque
 el prompt es lean y los subagentes retornan solo Heat Shield.
+
+### Recuperación ante errores
+
+Cuando detectes una anomalía durante la ejecución, consultá `references/recovery-matrix.md` para la acción estándar. No improvisar recuperaciones — seguir el protocolo documentado.
