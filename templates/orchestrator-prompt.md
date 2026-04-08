@@ -128,12 +128,16 @@ Después de cada subagente:
 4. Corré los tests del ticket (el comando está en el spec)
 5. **Si scope OK + tests pasan:** ejecutá Regla 2c (auditoría de completitud).
    Si completitud OK → registrá `keep` en `.ai/runs/results.tsv` y continuá.
+   Incluí las columnas de métricas: `iterations` (intentos totales),
+   `scope_warnings` (archivos fuera de allowlist), `complexity` (del spec).
 6. **Si scope violation (archivos prohibidos tocados):** rollback inmediato:
    `git reset --hard [hash anterior]`, registrá `discard` con
-   `failure_category=scope_violation` en `.ai/runs/results.tsv`, continuá
+   `failure_category=scope_violation` en `.ai/runs/results.tsv`
+   (incluí `iterations`, `scope_warnings`, `complexity`), continuá
 7. **Si los tests fallan:** intentá una corrección rápida (máximo 2 intentos).
    Si no se resuelve, hacé rollback: `git reset --hard [hash anterior]`,
-   registrá `discard` con `failure_category=test_failure`, y continuá.
+   registrá `discard` con `failure_category=test_failure`
+   (incluí `iterations`, `scope_warnings`, `complexity`), y continuá.
    NO te quedes trabado intentando arreglar un ticket roto indefinidamente.
 
 **Commits atómicos:** Cada ticket DEBE terminar con un commit atómico
