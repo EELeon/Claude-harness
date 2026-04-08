@@ -45,6 +45,15 @@ Ver references/concurrency-classes.md para definiciones completas y árbol de de
 Si hay duda entre isolated_write y shared_write, elegir shared_write (más conservador).
 -->
 
+## Lock requirements (opcional — solo para batch/audit)
+
+<!--
+Solo llenar si el ticket puede correr en paralelo con otros.
+Ver references/task-locks.md para el protocolo completo de locks.
+-->
+- Archivos que requieren lock exclusivo: [lista]
+- Lease estimado: [Simple=10min | Media=15min | Alta=30min]
+
 ---
 
 ## Scope fence (alcance permitido)

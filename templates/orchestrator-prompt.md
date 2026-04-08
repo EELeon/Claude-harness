@@ -334,7 +334,12 @@ ejecutarlos en paralelo usando `/batch` en vez de secuencialmente.
 
 **Cómo ejecutar:**
 1. Agrupar los tickets batch-eligible
-2. Generar un prompt para `/batch` que incluya todos los tickets del grupo:
+2. **Adquirir locks antes de lanzar:** Para cada ticket del grupo,
+   crear `.ai/locks/[task_id].lock.json` siguiendo el protocolo de
+   `references/task-locks.md`. Si algún lock no se puede adquirir
+   (otro agente lo tiene), excluir ese ticket del batch y continuar
+   con los demás.
+3. Generar un prompt para `/batch` que incluya todos los tickets del grupo:
    ```
    /batch Implementar los siguientes tickets independientes.
    Para cada uno, leer el spec indicado e implementar siguiendo CLAUDE.md.
@@ -342,13 +347,15 @@ ejecutarlos en paralelo usando `/batch` en vez de secuencialmente.
    - T-[M]: .ai/specs/active/ticket-[M].md
    - T-[K]: .ai/specs/active/ticket-[K].md
    ```
-3. `/batch` descompone, asigna worktrees, ejecuta en paralelo, y abre PRs
-4. Después de que todos terminen, verificar cada uno:
+4. `/batch` descompone, asigna worktrees, ejecuta en paralelo, y abre PRs
+5. **Liberar locks:** Al terminar cada subagente (éxito o fallo),
+   borrar su `.ai/locks/[task_id].lock.json` inmediatamente.
+6. Después de que todos terminen, verificar cada uno:
    - Scope audit (Regla 2b) contra su spec
    - Tests (Regla 2)
    - Completitud (Regla 2c)
-5. Registrar resultados en `.ai/runs/results.tsv`
-6. Los tickets que pasaron `/batch` NO necesitan `/simplify` adicional
+7. Registrar resultados en `.ai/runs/results.tsv`
+8. Los tickets que pasaron `/batch` NO necesitan `/simplify` adicional
    (batch ya incluye un review pass interno)
 
 **Si /batch no está disponible:** Ejecutar secuencialmente (Regla 1).
@@ -471,3 +478,7 @@ el prompt es lean y los subagentes retornan solo Heat Shield.
 ### Recuperación ante errores
 
 Cuando detectes una anomalía durante la ejecución, consultá `references/recovery-matrix.md` para la acción estándar. No improvisar recuperaciones — seguir el protocolo documentado.
+
+### Locks para auditoría recursiva
+
+Si se ejecutan auditorías recursivas en paralelo con spec writers u otros subagentes, usar el protocolo de locks (`references/task-locks.md`) para evitar colisiones. El auditor debe adquirir un lock sobre el ticket que está auditando antes de escribir resultados, y liberarlo al terminar. Esto previene que un auditor y un spec writer modifiquen el mismo artifact simultáneamente.
