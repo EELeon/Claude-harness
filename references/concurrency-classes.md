@@ -50,3 +50,33 @@
 - Cambiar hooks de pre-commit o post-commit
 - Reestructurar directorios del proyecto
 - Actualizar `settings.json` o configuración de CI
+
+## Protocolo de integración post-worktree
+
+Cuando tickets `isolated_write` o `shared_write` se ejecutan en worktrees paralelos,
+sus commits deben integrarse al branch del sprint. Este protocolo define cómo.
+
+Ver Regla 10 en `templates/orchestrator-prompt.md` para las reglas detalladas de cherry-pick.
+
+### Para `isolated_write` (paralelo en worktree)
+
+1. Crear worktree desde HEAD del branch del sprint (NUNCA desde main)
+2. Subagente ejecuta y hace commit en el worktree
+3. Cherry-pick al branch del sprint: `git cherry-pick [hash]`
+4. Si no hay conflicto → OK
+5. Si hay conflicto (raro para isolated_write, pero posible en archivos transversales
+   como imports o __init__.py) → resolver preservando HEAD + agregar líneas nuevas
+6. Correr tests después del cherry-pick
+
+### Para `shared_write` (secuencial estricto)
+
+Los tickets `shared_write` NO deben ejecutarse en worktrees paralelos.
+Se ejecutan secuencialmente en la sesión principal. Si por error se ejecutan
+en paralelo y hay colisión, aplicar situación #9 de `references/recovery-matrix.md`.
+
+### Antipatrón: `--theirs` en cherry-pick
+
+NUNCA resolver conflictos con `git cherry-pick --theirs`. Esto reemplaza el archivo
+completo con la versión del worktree, perdiendo todos los cambios que tickets
+anteriores del sprint ya integraron al branch. Esta es la causa más frecuente
+de regresiones silenciosas en sprints multi-ticket.

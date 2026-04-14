@@ -50,18 +50,38 @@ Una regla que referencia archivos borrados o APIs deprecated → eliminar.
 
 ## Reglas de dominio
 <!-- Reglas que Claude viola sin esta guía — forma imperativa obligatoria -->
+<!-- Categorías de reglas:
+  [OP YYYY-MM-DD] = Regla operacional (corrección reciente). Caduca si no se activa en 3 sprints.
+  [BP] = Principio de comportamiento (validado por 2+ sprints). Permanente salvo prueba en contra.
+  Sin marcador = regla original del proyecto (pre-evolución). Tratar como [BP].
+  Ver protocolo completo en references/prompt-evolution.md
+-->
 - [NUNCA mezclar datos de producción con staging]
 - [SIEMPRE separar validación de input vs lógica de negocio vs output]
 - [Un pedido SOLO puede tener un estado a la vez]
 
-## 🚫 NO hacer (lecciones aprendidas)
+## NO hacer (lecciones aprendidas)
 <!-- Se actualiza con /learn después de cada ticket -->
 <!-- Formato: "NUNCA [hacer X] — [por qué falla] → [qué hacer en su lugar]" -->
+<!-- Categorías de reglas:
+  [OP YYYY-MM-DD] = Regla operacional (corrección reciente). Caduca si no se activa en 3 sprints.
+  [BP] = Principio de comportamiento (validado por 2+ sprints). Permanente salvo prueba en contra.
+  Sin marcador = regla original del proyecto (pre-evolución). Tratar como [BP].
+-->
 
 ## ❌ Intentos fallidos
 <!-- Caminos muertos que Claude NO debe volver a explorar -->
 <!-- Sin esta sección, Claude reintenta soluciones que ya fracasaron, inflando costos -->
 <!-- Formato: "Intenté [X] y falló porque [Y] — usar [Z] en su lugar" -->
+
+## Al compactar, preservar
+<!-- Claude Code auto-compacta cuando el contexto se llena.
+     Esta sección le dice QUÉ preservar durante la compactación. -->
+- El objetivo del ticket actual y sus criterios de aceptación
+- Rutas de archivos leídos o modificados en el ticket actual
+- Resultados de tests y mensajes de error
+- El estado del sprint (qué tickets van completados)
+- Las reglas de este archivo
 
 ## Workflow
 - SIEMPRE empezar leyendo el spec en `.ai/specs/active/ticket-N.md`
@@ -69,5 +89,5 @@ Una regla que referencia archivos borrados o APIs deprecated → eliminar.
 - SIEMPRE commit atómico después de cada subtarea
 - SIEMPRE correr tests antes de marcar como completado
 - SIEMPRE ejecutar `/learn` al terminar cada ticket
-- Si se usa prompt del sprint: el orquestador maneja las transiciones entre tickets
+- Si se usa prompt del sprint: el orquestador maneja transiciones + checkpoint dinámico entre tickets
 - Si se ejecuta manualmente: `/clear` entre tickets para contexto fresco

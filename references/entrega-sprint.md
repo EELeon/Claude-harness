@@ -10,8 +10,8 @@ repo-target/
 │   ├── meta.md                 # Meta del proyecto (visión de alto nivel)
 │   ├── specs/
 │   │   ├── active/             # Specs del batch actual
-│   │   │   ├── ticket-1.md
-│   │   │   ├── ticket-2.md
+│   │   │   ├── [prefix]-01-[slug].md
+│   │   │   ├── [prefix]-02-[slug].md
 │   │   │   └── ...
 │   │   └── archive/            # Specs de batches pasados
 │   │       └── [nombre-batch]/ # Se crea al archivar
@@ -22,7 +22,9 @@ repo-target/
 │   │   │   └── results.tsv     # Copia del results.tsv de esa iteración
 │   │   └── summary.md          # Reporte final del loop recursivo
 │   ├── runs/
-│   │   └── results.tsv         # Tracking (se crea vacío con header)
+│   │   ├── results.tsv         # Tracking (se crea vacío con header)
+│   │   └── archive/            # results.tsv archivados por sprint
+│   │       └── [nombre-batch].tsv
 │   ├── prompts/                # UN archivo .md por batch — listo para pegar
 │   │   └── [nombre-batch].md
 │   ├── rules.md                # Reglas de orquestación (leídas de disco)
@@ -44,7 +46,7 @@ repo-target/
 | Gaps de auditoría | `.ai/audit/iteration-N/raw-gaps.md` | Subagente auditor | Por iteración del loop |
 | Plan de auditoría | `.ai/audit/iteration-N/plan.md` | Subagente analista | Por iteración del loop |
 | Resumen de auditoría | `.ai/audit/summary.md` | Orquestador | Al finalizar loop |
-| Spec de ticket | `.ai/specs/active/ticket-N.md` | Cowork (Paso 3) | Al preparar batch |
+| Spec de ticket | `.ai/specs/active/[prefix]-[seq]-[slug].md` | Cowork (Paso 3) | Al preparar batch |
 | Prompt de ejecución | `.ai/prompts/[nombre-batch].md` | Cowork (Paso 4) | Al preparar batch |
 | Reglas de orquestación | `.ai/rules.md` | Cowork (Paso 4) | Al preparar batch |
 | Plan de ejecución | `.ai/plan.md` | Cowork (Paso 5) | Al preparar batch |
@@ -59,11 +61,13 @@ al generar artefactos como a Claude Code al archivar.
 ## Artefactos temporales vs permanentes
 
 **Temporales (se archivan/borran al terminar):**
-`.ai/specs/active/*`, `.ai/rules.md`, `.ai/plan.md`, `.ai/runs/results.tsv`
+`.ai/specs/active/*`, `.ai/rules.md`, `.ai/plan.md`, `.ai/runs/results.tsv` (se archiva antes de borrar en `.ai/runs/archive/`)
 
 **Permanentes (sobreviven entre ejecuciones):**
 `.ai/meta.md`, `.ai/audit/*`, `.ai/done-tasks.md`, `.ai/prompts/*`,
-`.ai/specs/archive/*`, `.ai/standards/`, `CLAUDE.md`, `.claude/`
+`.ai/specs/archive/*`, `.ai/standards/`, `.ai/sprint-registry.md`,
+`.ai/runs/archive/*` -- historial de results.tsv por sprint,
+`CLAUDE.md`, `.claude/`
 
 ## Modelo de ejecución
 
@@ -85,8 +89,23 @@ Al finalizar, el orquestador archiva y limpia automáticamente
 # 1. Crear carpeta de archivo si no existe
 mkdir -p .ai/specs/archive/[nombre-batch]
 
+# 1b. Registrar en sprint registry
+# Si no existe, crear con header
+if [ ! -f .ai/sprint-registry.md ]; then
+  echo "# Sprint Registry" > .ai/sprint-registry.md
+  echo "" >> .ai/sprint-registry.md
+  echo "| Sprint | Rama | Fecha | PR | Tickets | Keep | Discard | Rollbacks | Results |" >> .ai/sprint-registry.md
+  echo "|--------|------|-------|----|---------|------|---------|-----------|---------|" >> .ai/sprint-registry.md
+fi
+# Agregar fila (el orquestador calcula los valores leyendo results.tsv)
+echo "| [sprint] | [rama] | [fecha] | #[pr] | [total] | [keep] | [discard] | [rollbacks] | .ai/runs/archive/[sprint].tsv |" >> .ai/sprint-registry.md
+
 # 2. Mover specs al archivo
 mv .ai/specs/active/* .ai/specs/archive/[nombre-batch]/
+
+# 2b. Archivar results.tsv antes de borrar
+mkdir -p .ai/runs/archive
+cp .ai/runs/results.tsv .ai/runs/archive/[nombre-batch].tsv
 
 # 3. Borrar artefactos temporales
 rm -f .ai/rules.md .ai/plan.md .ai/runs/results.tsv
@@ -99,6 +118,8 @@ git add -A && git commit -m "chore: archivar specs y limpiar [nombre-batch]"
 - `.ai/done-tasks.md` — acumulativo entre ejecuciones
 - `.ai/prompts/*` — historial permanente
 - `.ai/standards/` — harness de auditoría
+- `.ai/sprint-registry.md` — historial acumulativo de sprints
+- `.ai/runs/archive/*` — historial de results.tsv por sprint
 - `CLAUDE.md`, `.claude/` — infraestructura de Claude Code
 
 ## Instrucciones para el usuario

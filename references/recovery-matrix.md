@@ -21,6 +21,8 @@
 | 7 | Spec ambiguo | Subagente reporta "asumí" o "interpreté" | `split ticket` | Dividir + re-spec con usuario |
 | 8 | Output demasiado grande | Salida excede límites de result budgeting | `archive artifact` | Truncar + persistir a disco |
 | 9 | Batch con colisión | Dos subagentes tocaron mismo archivo | `rollback` | Reclasificar execution_class |
+| 10 | Cherry-pick conflict | Cherry-pick retorna conflicto en archivo compartido | `resolve` | Abort, resolver manual preservando HEAD, tests post-merge |
+| 11 | Subagente sin commit | Hash pre/post subagente idénticos | `discard` | Registrar no_commit, re-ejecutar subagente |
 
 ---
 
@@ -193,6 +195,56 @@
 
 ---
 
+### 10. Cherry-pick conflict — `resolve`
+
+**Señales de detección:**
+- `git cherry-pick [hash]` retorna conflicto (exit code ≠ 0)
+- Archivos en conflicto son archivos que otros tickets del sprint ya tocaron
+- El worktree tiene una versión divergente del archivo (basado en un commit anterior)
+
+**Pasos exactos:**
+1. Ejecutar `git cherry-pick --abort` para cancelar el cherry-pick
+2. Ejecutar `git cherry-pick --no-commit [hash]` para aplicar sin commit
+3. Para CADA archivo en conflicto:
+   a. Si el archivo fue tocado por un ticket anterior del sprint →
+      resolver preservando HEAD y agregando solo las líneas nuevas del worktree
+   b. Si el archivo NO fue tocado por tickets anteriores →
+      aceptar la versión del worktree: `git checkout --theirs -- [archivo]`
+   c. Si el archivo está fuera del scope del ticket →
+      descartar: `git checkout HEAD -- [archivo]`
+4. Después de resolver todos los conflictos: `git add -A && git commit`
+5. Correr tests ANTES de continuar con el siguiente cherry-pick
+6. Si los tests fallan después de la resolución → el merge fue incorrecto:
+   `git reset --hard HEAD~1` y repetir desde paso 2 con más cuidado
+
+**Ejemplo concreto:** El ticket B3c migra `close_engagement.py` a beta contract
+en un worktree. Pero el worktree se creó desde main, no desde el sprint branch.
+Al hacer cherry-pick, hay conflicto porque B3a ya modificó el import section.
+Resolución: preservar HEAD (que tiene los imports de B3a) y agregar solo el
+código nuevo de B3c. NUNCA usar `--theirs` que borraría los cambios de B3a.
+
+---
+
+### 11. Subagente sin commit — `discard`
+
+**Señales de detección:**
+- `git rev-parse HEAD` antes y después del subagente son idénticos
+- El subagente reporta "completado" pero no hay commit nuevo
+- Hay cambios uncommitted en el working directory
+
+**Pasos exactos:**
+1. Registrar `discard` con `failure_category=no_commit` en results.tsv
+2. Descartar cualquier cambio uncommitted: `git checkout -- .` y `git clean -fd`
+3. Re-ejecutar el subagente con el mismo spec (cuenta como iteración 2)
+4. Si falla de nuevo → registrar como `discard` definitivo y continuar
+
+**Ejemplo concreto:** El subagente de F-4 termina sin commit. Git status muestra
+archivos modificados. En vez de commitear manualmente (riesgo de scope violation),
+descartar y re-ejecutar. Si el spec es correcto, el subagente debería poder
+completar en un segundo intento.
+
+---
+
 ## Referencia rápida de acciones
 
 | Acción | Qué hace | Cuándo usarla |
@@ -205,3 +257,4 @@
 | `continue` | Retomar desde disco | Cuando la sesión se cortó |
 | `split ticket` | Dividir el ticket | Cuando el spec es ambiguo |
 | `archive artifact` | Persistir a disco | Cuando el output excede límites |
+| `resolve` | Resolver conflicto manual | Cuando cherry-pick tiene conflictos en archivos compartidos |

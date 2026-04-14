@@ -37,7 +37,7 @@ templates/        # Plantillas para specs, prompts, CLAUDE.md, meta, hooks
 - NUNCA exceder 100 líneas en CLAUDE.md de repos target — simplicidad > exhaustividad
 - SIEMPRE usar Heat Shield para reportar resultados de subagentes (resumen ≤4 líneas + ruta)
 - NUNCA permitir sub-subagentes — máximo 1 nivel de profundidad
-- SIEMPRE persistir estado a disco antes de puntos de corte (/compact, /clear)
+- SIEMPRE persistir estado a disco antes de /compact o /clear
 - Un spec SIEMPRE tiene: objetivo, scope fence, archivos, tests, criterios de aceptación, commit message
 - El ledger (.ai/runs/results.tsv) es la fuente de verdad — SIEMPRE registrar
 - SIEMPRE usar /compact antes de pausas largas (>5 min) — el cache de Anthropic expira y re-procesa todo el contexto
@@ -58,5 +58,5 @@ templates/        # Plantillas para specs, prompts, CLAUDE.md, meta, hooks
 - SIEMPRE commit atómico después de cada subtarea
 - SIEMPRE correr validación antes de marcar como completado
 - SIEMPRE ejecutar `/learn` al terminar cada ticket
-- Si se usa prompt del sprint: el orquestador maneja las transiciones entre tickets
+- Si se usa prompt del sprint: el orquestador maneja transiciones + checkpoint dinámico entre tickets
 - Si se ejecuta manualmente: `/clear` entre tickets para contexto fresco

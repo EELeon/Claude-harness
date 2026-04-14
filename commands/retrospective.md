@@ -69,6 +69,30 @@ git log --oneline --since="[fecha inicio]" | head -50
 - Commits revertidos (señal de problemas)
 - Frecuencia de commits por ticket (muchos = implementación difícil)
 
+## Análisis de métricas operacionales
+
+Si `.ai/runs/results.tsv` (o los archivados en `.ai/specs/archive/*/`) tienen columnas de métricas:
+
+### Métricas de proceso (v2+: iterations, scope_warnings, complexity)
+1. **Iteraciones por complejidad:** ¿Los tickets Media/Alta necesitan más intentos? ¿Hay un umbral donde la complejidad predice fallos?
+2. **Scope warnings:** ¿Hay tickets que consistentemente tocan archivos fuera de scope? Esto sugiere scope fences demasiado estrictos o specs mal definidos.
+3. **Ratio keep/discard por complejidad:** ¿Los tickets Alta fallan más? ¿Deberían subdividirse más agresivamente?
+4. **Tendencias entre sprints:** ¿Las iteraciones promedio bajan con el tiempo? (señal de que /learn y experience library están funcionando)
+
+### Métricas de topología (v3+: tokens_used, duration_s, rollback_count)
+5. **Eficiencia por ticket:** tokens_used / complejidad. ¿Tickets Simple consumen proporcionalmente menos? Si un Simple consume tanto como un Alta, el spec probablemente está mal dimensionado.
+6. **Velocidad de ejecución:** duration_s promedio por complejidad. Detectar outliers — un ticket Simple que tardó >5 min sugiere bloqueo o loops.
+7. **Costo de rollbacks:** rollback_count total del sprint y correlación con failure_category. Muchos rollbacks por scope_violation = specs con scope fences ambiguos.
+8. **Ratio tokens/rollback:** Si los tickets con rollbacks consumen >2x tokens que los limpios, considerar subdividir o mejorar los specs.
+9. **Tendencia de eficiencia entre sprints:** ¿El tokens_used promedio por ticket baja entre sprints? (señal de que los prompts y specs están madurando)
+10. **Top-3 tickets más caros:** Listar los 3 tickets con mayor tokens_used — analizar si la complejidad lo justifica o si hubo loops evitables.
+
+Reportar hallazgos como insights candidatos para la experience library.
+
+**Backward-compatibility:** El formato tiene 3 generaciones (v1=6 cols, v2=9 cols, v3=12 cols).
+Detectar versión contando columnas. Omitir silenciosamente las secciones de métricas que
+correspondan a columnas faltantes. NUNCA fallar por formato viejo.
+
 ## Fase 3: Sintetizar
 
 Después de que todos los subagentes terminen, combinar hallazgos

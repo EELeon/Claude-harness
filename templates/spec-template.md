@@ -1,4 +1,8 @@
-# Ticket [N] — [Título descriptivo]
+# [sprint-prefix]-[seq] — [Título descriptivo]
+
+<!-- Naming convention: ver references/spec-naming.md
+     Formato del archivo: [sprint-prefix]-[seq]-[slug].md
+     Ejemplo: hardening-01-cherrypick-safe.md -->
 
 ## Objetivo
 
@@ -77,6 +81,7 @@ alcance del ticket, causando efectos colaterales no deseados.
 <!-- Archivos que NUNCA deben tocarse, aunque parezca útil -->
 - `ruta/config_produccion.py` — [razón: configuración compartida]
 - `ruta/otro_modulo.py` — [razón: fuera del alcance de este ticket]
+- `.ai/*` — [razón: archivos de estado del orquestador — NUNCA tocar desde subagente]
 
 ### Archivos condicionales (opcional)
 <!--
@@ -88,6 +93,25 @@ La condición debe describir un CAMBIO OBSERVABLE en el diff:
   ❌ Malo: "solo si tiene sentido" (subjetivo)
 -->
 - `ruta/shared_utils.py` — solo si se agrega una función helper nueva
+
+---
+
+## Archivos de lectura (dependencias implícitas)
+
+<!--
+Archivos que este ticket LEE pero NO modifica.
+Listar aquí permite al orquestador detectar dependencias ocultas:
+si Ticket A lee `events.py` y Ticket B lo modifica, A no debería
+correr en paralelo con B (aunque sus scope fences de ESCRITURA no se solapen).
+
+Solo listar archivos que otros tickets del sprint podrían modificar.
+No listar archivos estables como CLAUDE.md o librerías externas.
+
+Si no hay dependencias de lectura relevantes, escribir "Ninguna".
+-->
+
+- `ruta/archivo_que_lee.py` — [qué dato lee de este archivo]
+- Ninguna
 
 ---
 
@@ -120,7 +144,8 @@ Regla de división (ver references/subagent-sizing.md):
 1. [Paso concreto con archivo y función]
 2. [Paso concreto]
 3. Correr tests: `[comando exacto]`
-4. Commit: `"[tipo]: [descripción]"`
+4. Lint pre-commit: `ruff check [archivos_tocados] --fix && ruff format [archivos_tocados]`
+5. Commit: `"[tipo]: [descripción]"`
 
 ### [Opción B: Con subtareas]
 
@@ -131,6 +156,7 @@ Regla de división (ver references/subagent-sizing.md):
   1. [Paso concreto]
   2. [Paso concreto]
 - **Tests:** `[comando]`
+- **Lint:** `ruff check [archivos] --fix && ruff format [archivos]`
 - **Commit:** `"[tipo]: [descripción]"`
 
 #### Subtarea 2 — [Nombre descriptivo]
@@ -140,6 +166,7 @@ Regla de división (ver references/subagent-sizing.md):
   1. [Paso concreto]
   2. [Paso concreto]
 - **Tests:** `[comando]`
+- **Lint:** `ruff check [archivos] --fix && ruff format [archivos]`
 - **Commit:** `"[tipo]: [descripción]"`
 
 <!-- Repetir para cada subtarea adicional -->
@@ -201,6 +228,7 @@ Por eso este spec debe ser AUTOCONTENIDO. Verificar:
 -->
 
 - [ ] ¿Tiene scope fence (archivos permitidos + prohibidos)?
+- [ ] ¿Tiene dependencias de lectura listadas (o "Ninguna" explícito)?
 - [ ] ¿Tiene rutas EXACTAS de archivos a modificar/crear?
 - [ ] ¿Tiene pasos concretos (no "investigar" o "explorar")?
 - [ ] ¿Tiene comando exacto de tests?

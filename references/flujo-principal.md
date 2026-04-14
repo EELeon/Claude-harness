@@ -79,15 +79,18 @@ en paralelo con `/batch`:
 **Si /batch no está disponible:** Todos se ejecutan secuencialmente.
 El plan sigue siendo válido — los batch-eligible simplemente se corren uno por uno.
 
-### Puntos de corte
+### Gestión de contexto (auto-compact + checkpoint)
 
-**Puntos de corte** (para gestión de contexto, NO son sprints separados):
-- Insertar un punto de corte cada 3-4 tickets
-- Nunca cortar entre tickets con dependencia directa
-- El punto de corte es una pausa para `/compact` o `/clear`, nada más
+NO insertar puntos de corte hardcoded en el plan. El contexto se gestiona así:
+
+- **Auto-compact:** Claude Code compacta automáticamente cuando el contexto
+  se acerca al límite. NUNCA pedir /compact manualmente.
+- **Checkpoint (Regla 5):** Después de cada ticket, el orquestador verifica
+  si hay degradación real (relectura de archivos, pérdida de track).
+  Solo pide `/clear` si detecta degradación que el auto-compact no resolvió.
 - Toda la ejecución ocurre en **una sola rama y un solo PR**
-- Si hay grupo batch-eligible, insertar punto de corte DESPUÉS del grupo
-  (el batch consume menos contexto del orquestador pero genera muchos resultados)
+- Para que el auto-compact preserve lo importante, SIEMPRE incluir
+  instrucciones de compactación en CLAUDE.md del proyecto (ver Paso 5)
 
 Presentar propuesta de orden al usuario.
 

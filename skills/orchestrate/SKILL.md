@@ -22,8 +22,7 @@ de manera autónoma, con una sola línea.
 - **Commits atómicos por ticket** — revertibles individualmente con `git revert`
 - **Subagentes por ticket** — contexto fresco (~200k tokens) por cada uno
 - **Estado en disco** — `.ai/runs/results.tsv` permite retomar si se pierde contexto
-- **Compactación proactiva** — pedir `/compact` después de 3+ tickets
-- **Puntos de corte** — pausas para `/clear` (NO son fronteras de git)
+- **Checkpoint dinámico** — después de cada ticket, evaluar contexto y decidir si compactar
 
 **Límites:** máx 5 subagentes concurrentes, no sub-subagentes,
 cada subagente empieza con contexto en blanco.
@@ -48,6 +47,39 @@ Leer `${CLAUDE_PLUGIN_ROOT}/references/flujo-principal.md` para los pasos comple
 | 4 | Prompt → `.ai/prompts/[batch].md` + `.ai/rules.md` | `${CLAUDE_PLUGIN_ROOT}/templates/orchestrator-prompt.md` |
 | 5 | Artefactos de soporte (progresivo) | `${CLAUDE_PLUGIN_ROOT}/references/flujo-principal.md` |
 | 6 | Revisión + línea de ejecución para el usuario | `${CLAUDE_PLUGIN_ROOT}/references/flujo-principal.md` |
+
+## Entregables obligatorios — NUNCA omitir
+
+Los specs son solo el paso intermedio. El paquete NO está completo sin estos 3 archivos:
+
+1. **`.ai/rules.md`** — Reglas de orquestación (9 reglas + Heat Shield + ledger).
+   Generar siguiendo `${CLAUDE_PLUGIN_ROOT}/templates/orchestrator-prompt.md`.
+   SIEMPRE leer esa plantilla antes de escribir rules.md.
+
+2. **`.ai/prompts/[nombre-batch].md`** — Prompt de ejecución ultra-lean (~1-2K tokens).
+   Solo contiene: instrucción de leer rules.md + tabla de tickets con ruta a cada spec.
+   Crear carpeta con `mkdir -p .ai/prompts` si no existe.
+
+3. **Línea de ejecución para el usuario** — Una sola línea copy-paste para Claude Code:
+   ```
+   Lee .ai/prompts/[nombre-batch].md y ejecutá todos los tickets.
+   ```
+   SIEMPRE presentar esta línea al final de la entrega.
+
+**REGLA:** Si los specs están listos pero rules.md y el prompt NO existen,
+el flujo está incompleto. NUNCA detenerse después del preflight sin continuar
+a Paso 4 → 5 → 6.
+
+## Checklist de cierre — verificar antes de entregar
+
+- [ ] Specs creados en `.ai/specs/active/` (uno por ticket)
+- [ ] Preflight pasado (0 FAIL)
+- [ ] `.ai/rules.md` generado
+- [ ] `.ai/prompts/[batch].md` generado
+- [ ] Artefactos de soporte: CLAUDE.md, comandos base, plan de ejecución
+- [ ] Línea de ejecución entregada al usuario
+
+NUNCA entregar un paquete con ítems sin marcar.
 
 ## Reglas de specs
 
