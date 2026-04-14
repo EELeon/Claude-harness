@@ -3,3 +3,16 @@ T-10	317f36e	passed	keep	none	1	0	Simple	?	?	0	perfiles de permiso configurables
 T-11	9546c8d	passed	keep	none	1	0	Simple	?	?	0	estructura y guía de project_notes/ para conocimiento estático
 T-12	fee1c20	passed	keep	none	1	0	Simple	?	?	0	métricas de iteraciones, scope warnings, y complejidad en results.tsv
 T-9	ad4f507	passed	keep	none	1	0	Media	?	?	0	protocolo de prompt evolution con separación operacional/principios
+hardening-01	77749ef	passed	keep	none	1	0	Simple	?	?	0	protocolo cherry-pick seguro — Regla 10 en orchestrator prompt
+hardening-02	77749ef	passed	keep	none	1	0	Simple	?	?	0	worktree obligatorio desde punta del branch del sprint
+hardening-05	4695ca6	passed	keep	none	1	0	Simple	45000	57	0	lint obligatorio pre-commit en spec template y orchestrator prompt
+hardening-06	621904a	passed	keep	none	1	0	Simple	45000	46	0	scope fence estricto — revertir archivos fuera de lista
+hardening-07	50f0fa1	passed	keep	none	1	0	Simple	45000	72	0	validación commit post-subagente — Regla 2d + recovery #11
+hardening-08	b280b62	passed	keep	none	1	0	Simple	28000	53	0	results.tsv exclusivo del orquestador — propiedad de .ai/
+hardening-09	912c4d6	passed	keep	none	1	0	Simple	28000	93	0	convención naming specs — [sprint]-[seq]-[slug].md
+hardening-10	f7872af	passed	keep	none	1	0	Simple	45000	81	0	sprint registry — trazabilidad de sprints ejecutados
+hardening-12	c8adc32	passed	keep	none	1	0	Simple	45000	61	0	trigger cuantitativo de compact — 8 tickets + smoke test
+hardening-13	4934e04	passed	keep	none	1	0	Simple	12000	73	0	dependencias de lectura en spec template
+hardening-03	1453c55	passed	keep	none	1	0	Simple	14000	41	0	protocolo integración post-worktree en concurrency-classes
+hardening-04	d129492	passed	keep	none	1	0	Simple	12000	71	0	situación #10 cherry-pick conflict en recovery-matrix
+hardening-11	827e41a	passed	keep	none	1	0	Simple	45000	80	0	archivar results.tsv por sprint antes de limpiar
