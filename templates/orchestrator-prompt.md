@@ -285,11 +285,19 @@ evaluar el estado del contexto:
 **Paso 1 — Detectar degradación:**
 - ¿Estoy releyendo rules.md, specs, o CLAUDE.md porque "no recuerdo"?
 - ¿Estoy perdiendo track del orden de tickets o confundiendo resultados?
+- ¿Llevo 8+ tickets completados desde el último /clear o inicio de sesión?
+  Si sí → evaluar activamente los otros dos indicadores. Con 8+ tickets,
+  la probabilidad de degradación es alta aunque no sea obvia.
 - Si la respuesta a cualquiera es sí → el contexto está degradado.
 
 **Paso 2 — Decidir acción:**
-- **Sin señales de degradación** → Continuar al siguiente ticket.
+- **Sin señales de degradación Y menos de 8 tickets desde último reset** →
+  Continuar al siguiente ticket.
   Claude Code auto-compacta cuando se acerca al límite — no intervenir.
+- **8+ tickets sin reset pero sin señales obvias** →
+  Hacer un "smoke test" rápido: releer el spec del próximo ticket y verificar
+  que las reglas de scope fence siguen claras. Si algo se siente vago
+  o necesitás releer rules.md, eso ES degradación — proceder con reset.
 - **Señales de degradación** → Ejecutar protocolo de reset:
   1. Asegurate de que `.ai/runs/results.tsv` está actualizado
   2. Verificá que `.ai/plan.md` refleja el progreso actual

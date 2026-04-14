@@ -80,9 +80,17 @@ Subagente T-4 devuelve:
 
 ## Nivel 3 -- Reset resumible (solo si hay degradacion real)
 
-**Trigger:** Checkpoint dinamico (Regla 5) detecta degradacion de fidelidad:
-el orquestador relee archivos que ya leyo, pierde track del orden de tickets,
-o confunde resultados. Esto es raro si Heat Shield y auto-compact funcionan bien.
+**Trigger:** Cualquiera de estas condiciones:
+1. Checkpoint dinamico (Regla 5) detecta degradacion de fidelidad:
+   el orquestador relee archivos que ya leyo, pierde track del orden de tickets,
+   o confunde resultados.
+2. Se completaron 8+ tickets desde el ultimo /clear o inicio de sesion,
+   Y el "smoke test" de Regla 5 indica vaguedad al leer el proximo spec.
+
+Nota: la condicion 2 es una heuristica conservadora. En sprints observados,
+las sesiones que excedieron 8 tickets sin reset consistentemente perdieron
+contexto (evidencia: C3 con 31 tickets agoto contexto, C4 con 24 tickets
+necesito 2 continuaciones).
 
 **Responsable:** El usuario (con guia del orquestador).
 
