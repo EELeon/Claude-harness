@@ -77,6 +77,24 @@ Cada spec DEBE iniciar con un bloque YAML frontmatter (delimitado por `---`) inm
 - NUNCA agregar campos subjetivos al frontmatter (nada que no sea verificable por tooling)
 - Las secciones markdown (`## Objetivo`, `## Scope fence`, etc.) expanden el detalle para el subagente ejecutor; el frontmatter es el contrato parseable
 
+## Campos de iteración
+
+Cada spec define en su frontmatter los límites de reintento y escalamiento.
+Estos campos son usados por el orquestador para tomar decisiones automáticas.
+
+| Campo | Tipo | Default por complejidad | Propósito |
+|-------|------|------------------------|-----------|
+| max_attempts | int | Simple=2, Media=3, Alta=4 | Intentos totales antes de descartar |
+| retry_only_if | list[str] | ["tests fallan por causa identificable"] | Condiciones para reintentar |
+| escalate_if | list[str] | ["mismo error 2+ veces"] | Cuándo pedir intervención |
+| blocked_if | list[str] | ["dependencia no resuelta"] | Precondiciones faltantes |
+| discard_if | list[str] | ["max_attempts alcanzado"] | Cuándo abandonar |
+
+**Relación con permission-profiles.md:**
+Los perfiles de permisos definen `max_fix_attempts` como default global.
+El campo `max_attempts` del frontmatter sobreescribe el default del perfil
+si está presente. El perfil es el floor; el spec puede ser más estricto.
+
 ## Referencia
 
 Para la plantilla completa con todos los campos opcionales y

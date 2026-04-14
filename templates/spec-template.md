@@ -22,7 +22,19 @@ closure_criteria:
   - "Criterio observable y verificable"
 required_validations:
   - "comando o check específico"
-max_attempts: 3
+max_attempts: 3  # Default: Simple=2, Media=3, Alta=4
+retry_only_if:
+  - "tests fallan por causa identificable"
+  - "scope violation en archivo no-denylist"
+escalate_if:
+  - "el mismo test falla 2 veces seguidas con fix diferente"
+  - "subagente reporta ambigüedad en el spec"
+blocked_if:
+  - "dependencia no resuelta"
+  - "archivo requerido no existe en el repo"
+discard_if:
+  - "max_attempts alcanzado sin tests passing"
+  - "scope violation en archivo denylist"
 decomposition_signals: 0  # Número de señales activas (0-6)
 decomposition_decision: "unico | partido_en_N"
 ---
@@ -151,6 +163,19 @@ Señales activas: [N]/6
 
 Decisión: [unico | partido_en_N]
 Justificación: [Por qué se mantiene junto / cómo se partió]
+
+---
+
+## Política de iteración
+
+<!-- Los campos de iteración están en el frontmatter.
+     Esta sección documenta las condiciones específicas de este ticket.
+     El orquestador usa el frontmatter para decisiones automáticas. -->
+
+- **Reintentar solo si:** [condiciones específicas de este ticket]
+- **Escalar si:** [cuándo pedir intervención humana]
+- **Bloquear si:** [precondiciones que impiden ejecución]
+- **Descartar si:** [cuándo abandonar el ticket]
 
 ---
 
