@@ -56,6 +56,51 @@ Si se pasó un argumento (ej: `/preflight ticket-3`), validar solo ese spec.
 Estas validaciones son mecánicas — no requieren interpretación semántica.
 Ejecutarlas PRIMERO, antes de las validaciones de contenido.
 
+**Nivel 0: Frontmatter YAML (FAIL si falta o inválido)**
+
+El spec DEBE tener un bloque YAML frontmatter válido entre `---` markers.
+Ejecutar PRIMERO — si no hay frontmatter, no continuar con otros niveles.
+
+Validaciones:
+1. El archivo empieza con `---` en la primera línea (después del H1 si hay)
+   o tiene un bloque delimitado por `---` al inicio
+2. El bloque YAML es parseable (no tiene errores de sintaxis)
+3. Campos obligatorios presentes (FAIL si falta alguno):
+
+| Campo | Tipo | Valores válidos |
+|-------|------|-----------------|
+| id | string | No vacío, formato `[prefix]-[seq]` |
+| title | string | No vacío |
+| goal | string | No vacío, 1-2 frases |
+| complexity | enum | Simple, Media, Alta |
+| execution_mode | enum | Subagente, Sesion_principal |
+| execution_class | enum | read_only, isolated_write, shared_write, repo_wide |
+| allowed_paths | list[str] | Al menos 1 entrada |
+| denied_paths | list[str] | Al menos 1 entrada |
+| closure_criteria | list[str] | Al menos 1 entrada |
+| required_validations | list[str] | Al menos 1 entrada |
+| max_attempts | int | > 0 |
+
+4. Campos de iteración presentes si complexity != Simple:
+
+| Campo | Tipo | Requerido si |
+|-------|------|-------------|
+| retry_only_if | list[str] | complexity = Media o Alta |
+| escalate_if | list[str] | complexity = Media o Alta |
+| blocked_if | list[str] | Siempre (puede ser vacío) |
+| discard_if | list[str] | Siempre |
+
+5. Campos de descomposición presentes si complexity != Simple:
+
+| Campo | Tipo | Requerido si |
+|-------|------|-------------|
+| decomposition_signals | int | complexity = Media o Alta |
+| decomposition_decision | enum | complexity = Media o Alta. Valores: unico, partido_en_N |
+
+Si el frontmatter falta completamente → FAIL con "frontmatter YAML no encontrado".
+Si un campo obligatorio falta → FAIL con "campo faltante: [nombre]".
+Si un valor es inválido → FAIL con "valor inválido para [campo]: [valor]".
+
 **Nivel 1: Existencia de headings (FAIL si falta)**
 
 Verificar que el spec contiene EXACTAMENTE estos headings markdown:
@@ -101,15 +146,39 @@ Método: contar líneas de contenido. Si = 0 → FAIL con "[heading] está vací
 | Criterios de aceptación ≥ 1 | count(checkboxes en Criterios) | FAIL si = 0 |
 | Tests ≥ 1 | count(checkboxes en Tests) | FAIL si = 0 |
 
+**Nivel 5: Validación de descomposición (FAIL si incoherente)**
+
+Solo para specs con complexity = Media o Alta.
+Para specs Simple, saltar este nivel.
+
+Validaciones:
+1. La sección `## Análisis de descomposición` existe y no está vacía
+2. El campo `decomposition_signals` del frontmatter coincide con el
+   conteo de señales marcadas como "sí" en la sección
+3. Coherencia señales → decisión:
+   - Si decomposition_signals ≥ 2 Y decomposition_decision = "unico" → FAIL
+     con "ticket con ≥2 señales de complejidad debe partirse en sub-tickets"
+   - Si decomposition_signals < 2 Y decomposition_decision = "unico" → OK
+   - Si decomposition_decision = "partido_en_N" → OK (ya se partió)
+4. Verificación cruzada de señales contra datos del spec:
+   - Señal "más de 8 archivos": contar allowed_paths del frontmatter.
+     Si count > 8 y señal marcada "no" → WARN "posible señal no detectada"
+   - Señal "más de 4 criterios independientes": contar closure_criteria.
+     Si count > 4 y señal marcada "no" → WARN
+   - Señal "más de 2 módulos": contar directorios únicos en allowed_paths.
+     Si count > 2 y señal marcada "no" → WARN
+
 **Orden de ejecución:**
-1. Nivel 1 (headings) — si falla, no continuar con niveles 2-4
-2. Nivel 2 (no vacío) — si falla, reportar pero continuar con nivel 3-4
+0. Nivel 0 (frontmatter) — si falla, no continuar
+1. Nivel 1 (headings) — si falla, no continuar con niveles 2-5
+2. Nivel 2 (no vacío) — si falla, reportar pero continuar con nivel 3-5
 3. Nivel 3 (formato) — reportar todo
 4. Nivel 4 (cruces numéricos) — reportar todo
-5. Validaciones semánticas (las de arriba: campos obligatorios + warnings + cruzadas)
+5. Nivel 5 (descomposición) — solo para Media/Alta
+6. Validaciones semánticas (campos obligatorios + warnings + cruzadas)
 
-Esto separa lo que se puede verificar mecánicamente (niveles 1-4) de lo
-que requiere interpretación (campos semánticos). Los niveles 1-4 son
+Esto separa lo que se puede verificar mecánicamente (niveles 0-5) de lo
+que requiere interpretación (campos semánticos). Los niveles 0-5 son
 deterministas: el mismo spec siempre produce el mismo resultado.
 
 ## Formato de salida
@@ -120,10 +189,15 @@ Para cada spec, reportar:
 ## .ai/specs/active/ticket-[N].md — [PASS | PASS WITH WARNINGS | FAIL]
 
 ### Estructural (determinista)
+✅ Frontmatter: 11/11 campos obligatorios, YAML válido
 ✅ Headings: 8/8 presentes
 ✅ Contenido no vacío: 8/8 secciones
 ❌ Formato: commit message sin formato "[tipo]: descripción"
 ✅ Cruces: 4 permitidos ≥ 3 archivos, 2 prohibidos, 2 criterios, 3 tests
+
+### Descomposición
+✅ Señales: 1/6 activas, decisión "unico" coherente
+❌ Señales: 3/6 activas, decisión "unico" INCOHERENTE — debe partirse
 
 ### Semántico
 ✅ Objetivo: presente, 1 frase
