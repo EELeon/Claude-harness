@@ -120,7 +120,8 @@ Regla de división (ver references/subagent-sizing.md):
 1. [Paso concreto con archivo y función]
 2. [Paso concreto]
 3. Correr tests: `[comando exacto]`
-4. Commit: `"[tipo]: [descripción]"`
+4. Lint pre-commit: `ruff check [archivos_tocados] --fix && ruff format [archivos_tocados]`
+5. Commit: `"[tipo]: [descripción]"`
 
 ### [Opción B: Con subtareas]
 
@@ -131,6 +132,7 @@ Regla de división (ver references/subagent-sizing.md):
   1. [Paso concreto]
   2. [Paso concreto]
 - **Tests:** `[comando]`
+- **Lint:** `ruff check [archivos] --fix && ruff format [archivos]`
 - **Commit:** `"[tipo]: [descripción]"`
 
 #### Subtarea 2 — [Nombre descriptivo]
@@ -140,6 +142,7 @@ Regla de división (ver references/subagent-sizing.md):
   1. [Paso concreto]
   2. [Paso concreto]
 - **Tests:** `[comando]`
+- **Lint:** `ruff check [archivos] --fix && ruff format [archivos]`
 - **Commit:** `"[tipo]: [descripción]"`
 
 <!-- Repetir para cada subtarea adicional -->

@@ -83,7 +83,7 @@ NO modifiques archivos en project_notes/ — son mantenidos por el usuario.
 
 Para cada ticket:
 1. Lanzá un **subagente general-purpose** con este prompt:
-   > Lee e implementa el spec en `.ai/specs/active/ticket-[N].md`. Leé CLAUDE.md para contexto del proyecto. Seguí los pasos del spec, corré los tests, y hacé un commit atómico con el número de ticket en el mensaje. Devolvé: resumen (1-3 líneas), hash del commit, estado de tests (passed/failed), lista de archivos tocados, conteo estimado de caracteres procesados (input+output del subagente), y para cada criterio de aceptación del spec indicá si se cumplió (sí/no/parcial). NO devuelvas logs completos ni output de tests.
+   > Lee e implementa el spec en `.ai/specs/active/ticket-[N].md`. Leé CLAUDE.md para contexto del proyecto. Seguí los pasos del spec, corré los tests, y hacé un commit atómico con el número de ticket en el mensaje. Antes de hacer commit, corré `ruff check [archivos_que_tocaste] --fix && ruff format [archivos_que_tocaste]` para asegurar que el código pasa lint. Si ruff no está disponible en el proyecto, saltá este paso silenciosamente. Devolvé: resumen (1-3 líneas), hash del commit, estado de tests (passed/failed), lista de archivos tocados, conteo estimado de caracteres procesados (input+output del subagente), y para cada criterio de aceptación del spec indicá si se cumplió (sí/no/parcial). NO devuelvas logs completos ni output de tests.
 2. Después del subagente, aplicá Reglas 2 + 2b + 2c (scope → tests → completitud)
 3. Registrá el resultado en `.ai/runs/results.tsv` (Regla 4)
 
