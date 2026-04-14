@@ -21,7 +21,7 @@ El prompt del orquestador debe mantenerse en la zona segura de fidelidad
 (~2-3K tokens). Para lograrlo:
 - Las reglas de orquestación viven en un archivo separado en disco
   (.ai/rules.md) que el orquestador lee al inicio
-- Los specs están en archivos separados (.ai/specs/active/ticket-N.md) que cada
+- Los specs están en archivos separados (.ai/specs/active/[prefix]-[seq]-[slug].md) que cada
   subagente lee desde su propio contexto fresco
 - El prompt solo contiene: instrucción de leer reglas + lista de tickets
 
@@ -74,12 +74,12 @@ NO modifiques archivos en project_notes/ — son mantenidos por el usuario.
 
 | # | Ticket | Spec | Complejidad |
 |---|--------|------|-------------|
-| 1 | T-[N] — [Título] | `.ai/specs/active/ticket-[N].md` | [Simple/Media/Alta] |
-| 2 | T-[N] — [Título] | `.ai/specs/active/ticket-[N].md` | [Simple/Media/Alta] |
-| 3 | T-[N] — [Título] | `.ai/specs/active/ticket-[N].md` | [Simple/Media/Alta] |
-| 4 | T-[N] — [Título] | `.ai/specs/active/ticket-[N].md` | [Simple/Media/Alta] |
-| 5 | T-[N] — [Título] | `.ai/specs/active/ticket-[N].md` | [Simple/Media/Alta] |
-| 6 | T-[N] — [Título] | `.ai/specs/active/ticket-[N].md` | [Simple/Media/Alta] |
+| 1 | [prefix]-[seq] — [Título] | `.ai/specs/active/[prefix]-[seq]-[slug].md` | [Simple/Media/Alta] |
+| 2 | [prefix]-[seq] — [Título] | `.ai/specs/active/[prefix]-[seq]-[slug].md` | [Simple/Media/Alta] |
+| 3 | [prefix]-[seq] — [Título] | `.ai/specs/active/[prefix]-[seq]-[slug].md` | [Simple/Media/Alta] |
+| 4 | [prefix]-[seq] — [Título] | `.ai/specs/active/[prefix]-[seq]-[slug].md` | [Simple/Media/Alta] |
+| 5 | [prefix]-[seq] — [Título] | `.ai/specs/active/[prefix]-[seq]-[slug].md` | [Simple/Media/Alta] |
+| 6 | [prefix]-[seq] — [Título] | `.ai/specs/active/[prefix]-[seq]-[slug].md` | [Simple/Media/Alta] |
 
 Para cada ticket:
 1. Lanzá un **subagente general-purpose** con este prompt:
@@ -400,9 +400,9 @@ ejecutarlos en paralelo usando `/batch` en vez de secuencialmente.
    ```
    /batch Implementar los siguientes tickets independientes.
    Para cada uno, leer el spec indicado e implementar siguiendo CLAUDE.md.
-   - T-[N]: .ai/specs/active/ticket-[N].md
-   - T-[M]: .ai/specs/active/ticket-[M].md
-   - T-[K]: .ai/specs/active/ticket-[K].md
+   - [prefix]-[N]: .ai/specs/active/[prefix]-[N]-[slug].md
+   - [prefix]-[M]: .ai/specs/active/[prefix]-[M]-[slug].md
+   - [prefix]-[K]: .ai/specs/active/[prefix]-[K]-[slug].md
    ```
 4. `/batch` descompone, asigna worktrees, ejecuta en paralelo, y abre PRs
 5. **Liberar locks:** Al terminar cada subagente (éxito o fallo),

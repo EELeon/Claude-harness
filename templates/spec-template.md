@@ -1,4 +1,8 @@
-# Ticket [N] — [Título descriptivo]
+# [sprint-prefix]-[seq] — [Título descriptivo]
+
+<!-- Naming convention: ver references/spec-naming.md
+     Formato del archivo: [sprint-prefix]-[seq]-[slug].md
+     Ejemplo: hardening-01-cherrypick-safe.md -->
 
 ## Objetivo
 

@@ -10,8 +10,8 @@ repo-target/
 │   ├── meta.md                 # Meta del proyecto (visión de alto nivel)
 │   ├── specs/
 │   │   ├── active/             # Specs del batch actual
-│   │   │   ├── ticket-1.md
-│   │   │   ├── ticket-2.md
+│   │   │   ├── [prefix]-01-[slug].md
+│   │   │   ├── [prefix]-02-[slug].md
 │   │   │   └── ...
 │   │   └── archive/            # Specs de batches pasados
 │   │       └── [nombre-batch]/ # Se crea al archivar
@@ -44,7 +44,7 @@ repo-target/
 | Gaps de auditoría | `.ai/audit/iteration-N/raw-gaps.md` | Subagente auditor | Por iteración del loop |
 | Plan de auditoría | `.ai/audit/iteration-N/plan.md` | Subagente analista | Por iteración del loop |
 | Resumen de auditoría | `.ai/audit/summary.md` | Orquestador | Al finalizar loop |
-| Spec de ticket | `.ai/specs/active/ticket-N.md` | Cowork (Paso 3) | Al preparar batch |
+| Spec de ticket | `.ai/specs/active/[prefix]-[seq]-[slug].md` | Cowork (Paso 3) | Al preparar batch |
 | Prompt de ejecución | `.ai/prompts/[nombre-batch].md` | Cowork (Paso 4) | Al preparar batch |
 | Reglas de orquestación | `.ai/rules.md` | Cowork (Paso 4) | Al preparar batch |
 | Plan de ejecución | `.ai/plan.md` | Cowork (Paso 5) | Al preparar batch |
