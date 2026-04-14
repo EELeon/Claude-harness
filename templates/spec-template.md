@@ -77,6 +77,7 @@ alcance del ticket, causando efectos colaterales no deseados.
 <!-- Archivos que NUNCA deben tocarse, aunque parezca útil -->
 - `ruta/config_produccion.py` — [razón: configuración compartida]
 - `ruta/otro_modulo.py` — [razón: fuera del alcance de este ticket]
+- `.ai/*` — [razón: archivos de estado del orquestador — NUNCA tocar desde subagente]
 
 ### Archivos condicionales (opcional)
 <!--
