@@ -1,7 +1,7 @@
 {
   "name": "code-orchestrator",
-  "version": "3.2.0",
-  "description": "Orquestador de tickets para Claude Code. Convierte tickets en ejecución autónoma con specs, validación, auditoría recursiva, aprendizaje continuo, contratos operativos, métricas de topología, y evolución de prompts.",
+  "version": "4.0.0",
+  "description": "Orquestador de tickets para Claude Code. Convierte tickets en ejecución autónoma con specs, validación, auditoría recursiva, aprendizaje continuo, contratos operativos, métricas de topología, evolución de prompts, cherry-pick seguro, scope fence estricto, y sprint registry.",
   "author": {
     "name": "EELeon",
     "url": "https://github.com/EELeon"
