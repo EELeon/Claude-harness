@@ -228,9 +228,44 @@ significa que el objetivo del ticket NO se logró. En duda, tratarlo como críti
    (incluí `iterations`, `scope_warnings`, `complexity`).
 
 **Orden completo de verificación post-subagente:**
-Regla 2d (commit) → Regla 2b (scope) → Regla 2 paso 5 (tests) → Regla 2c (completitud)
+Regla 2d (commit) → Regla 2b (scope) → Regla 2 paso 5 (tests) → Regla 2c (completitud) → Regla 2e (verificadores determinísticos)
 Si cualquier paso falla, NO ejecutar los siguientes. Registrar la
 failure_category del PRIMER paso que falló.
+
+## Regla 2e: Verificadores determinísticos de cierre
+Antes de declarar `keep`, ejecutar estos checks mecánicos.
+Cada check es binario (pasa/falla) y NO requiere interpretación del LLM.
+
+**Checks obligatorios (FAIL si alguno falla):**
+
+| # | Check | Comando | Criterio de fallo |
+|---|-------|---------|-------------------|
+| 1 | Commit existe | `git rev-parse HEAD` vs hash anterior | Hashes iguales → FAIL (ya cubierto por 2d, pero verificar) |
+| 2 | Diff no vacío | `git diff --stat [hash anterior]..HEAD` | 0 archivos tocados → FAIL |
+| 3 | Archivos tocados ⊆ allowed_paths | `git diff --name-only [hash]..HEAD` vs frontmatter.allowed_paths | Archivo fuera de allowed_paths → ya cubierto por 2b |
+| 4 | Artefactos requeridos existen | Para cada archivo en frontmatter.allowed_paths que sea "a crear": `ls [ruta]` | Archivo faltante → FAIL |
+| 5 | Tests requeridos corrieron | Exit code del comando de tests del spec | Exit code ≠ 0 → ya cubierto por Regla 2 |
+| 6 | Criterios de aceptación cubiertos | Para cada criterio en frontmatter.closure_criteria: verificar con el tipo correspondiente (ver tabla en Regla 2c) | <80% → FAIL |
+
+**Checks de coherencia (WARN):**
+
+| # | Check | Cómo verificar | Resultado |
+|---|-------|---------------|-----------|
+| 7 | Spec pedía código + docs → ambos presentes | Clasificar archivos tocados por extensión (.py, .md, etc.) | WARN si falta una categoría esperada |
+| 8 | max_attempts no excedido | Contar intentos en results.tsv para este ticket | WARN si attempts = max_attempts (límite alcanzado) |
+| 9 | Desviaciones tácticas mínimas | Contar líneas de "desviaciones tácticas" en Heat Shield | WARN si > 2 líneas |
+
+**Orden de ejecución completo post-subagente (actualizado):**
+```
+Regla 2d (commit) → Regla 2b (scope) → Regla 2 paso 5 (tests)
+→ Regla 2c (completitud semántica) → Regla 2e (verificadores determinísticos)
+→ keep/discard
+```
+
+Si Regla 2e falla en checks obligatorios (1-6): `discard` con
+`failure_category=verification_failed`.
+Si solo falla en checks de coherencia (7-9): `keep` con warnings
+registrados en la columna description de results.tsv.
 
 ## Regla 3: Autonomía total (NEVER STOP)
 Una vez que empieces a ejecutar los tickets, NO pares a preguntar
@@ -476,6 +511,7 @@ Categorías de fallo:
 | `rationalization` | Hook Stop → Orquestador | Cuando el hook bloquea | El hook Stop devuelve exit code 2 (bloqueo). Si no hay hook instalado, el orquestador detecta: subagente reporta "completado" pero el diff tiene 0 archivos tocados, o los archivos tocados no coinciden con ningún paso del spec |
 | `spec_ambiguity` | Orquestador | Después de resultado anómalo | El subagente devuelve resultado que NO corresponde al objetivo del spec (ej: implementó algo diferente a lo pedido), O el subagente reporta que tuvo que "interpretar" o "asumir" algo no definido en el spec |
 | `no_commit` | Orquestador (Regla 2d) | Después de validación de commit | Hash pre/post subagente idénticos — subagente no completó commit atómico |
+| `verification_failed` | Orquestador (Regla 2e) | Después de verificadores | Check determinístico falla: artefacto faltante, diff vacío cuando debía haber cambios, o coherencia de tipos de archivos |
 
 ## Al terminar todos los tickets
 

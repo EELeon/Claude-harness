@@ -4,11 +4,47 @@
      Formato del archivo: [sprint-prefix]-[seq]-[slug].md
      Ejemplo: hardening-01-cherrypick-safe.md -->
 
+---
+id: "[sprint-prefix]-[seq]"
+title: "[Título descriptivo]"
+goal: "[1-2 frases — mismo contenido que ## Objetivo]"
+complexity: Simple | Media | Alta
+execution_mode: Subagente | Sesion_principal
+execution_class: read_only | isolated_write | shared_write | repo_wide
+allowed_paths:
+  - "ruta/exacta/archivo.py"
+denied_paths:
+  - "ruta/config_produccion.py"
+dependencies:
+  requires: [] | ["harden-01"]
+  blocks: [] | ["harden-02"]
+closure_criteria:
+  - "Criterio observable y verificable"
+required_validations:
+  - "comando o check específico"
+max_attempts: 3  # Default: Simple=2, Media=3, Alta=4
+retry_only_if:
+  - "tests fallan por causa identificable"
+  - "scope violation en archivo no-denylist"
+escalate_if:
+  - "el mismo test falla 2 veces seguidas con fix diferente"
+  - "subagente reporta ambigüedad en el spec"
+blocked_if:
+  - "dependencia no resuelta"
+  - "archivo requerido no existe en el repo"
+discard_if:
+  - "max_attempts alcanzado sin tests passing"
+  - "scope violation en archivo denylist"
+decomposition_signals: 0  # Número de señales activas (0-6)
+decomposition_decision: "unico | partido_en_N"
+---
+
+<!-- El frontmatter es la fuente de verdad para validación automática.
+     Las secciones markdown expanden el detalle para el subagente ejecutor. -->
+
 ## Objetivo
 
 [1-2 frases. Qué cambia en el sistema después de implementar este ticket.]
-
-## Complejidad: [Simple | Media | Alta]
 
 ## Dependencias
 
@@ -22,31 +58,6 @@ un contrato explícito (interfaz, tipo, stub) que ambos tickets respeten.
 Esto permite desarrollo paralelo sin bloqueo.
 Ejemplo: Si Ticket B consume una API de Ticket A, definir el schema
 de request/response como stub antes de implementar cualquiera.
--->
-
-## Modo de ejecución: [Subagente | Sesión principal]
-
-<!--
-Subagente (default): se ejecuta dentro del prompt orquestador.
-  El subagente NO puede lanzar sub-subagentes. Si hay subtareas,
-  las ejecuta secuencialmente dentro de su propia ventana de contexto.
-Sesión principal: solo para tickets Alta complejidad + 4 subtareas
-  de 5+ archivos cada una. Estos tickets SÍ pueden usar subagentes
-  para sus subtareas, pero se ejecutan fuera del prompt orquestador.
--->
-
-## Clase de ejecución: [read_only | isolated_write | shared_write | repo_wide]
-
-<!--
-Clase de concurrencia que determina cómo el orquestador puede programar este ticket.
-Ver references/concurrency-classes.md para definiciones completas y árbol de decisión.
-
-  read_only:       NO modifica archivos del repo. Paralelo libre con cualquier ticket.
-  isolated_write:  Modifica archivos que NINGÚN otro ticket toca. Paralelo en worktree.
-  shared_write:    Comparte archivos con otro ticket del sprint. Secuencial estricto.
-  repo_wide:       Modifica config global o archivos transversales. Solo en sesión principal.
-
-Si hay duda entre isolated_write y shared_write, elegir shared_write (más conservador).
 -->
 
 ## Lock requirements (opcional — solo para batch/audit)
@@ -126,6 +137,45 @@ Si no hay dependencias de lectura relevantes, escribir "Ninguna".
 | Archivo | Contenido |
 |---------|-----------|
 | `ruta/exacta/nuevo.py` | [Qué contiene y por qué] |
+
+---
+
+## Análisis de descomposición
+
+<!-- OBLIGATORIO para tickets de complejidad Media o Alta.
+     Responder ANTES de escribir el resto del spec.
+     Para tickets Simple, escribir "N/A — ticket Simple" y continuar. -->
+
+Señales de complejidad evaluadas:
+- [ ] Objetivo tiene múltiples responsabilidades conectadas con "y": [sí/no — si sí, cuáles]
+- [ ] Más de 8 archivos en scope fence (allowed_paths): [sí/no — count: N]
+- [ ] Más de 4 criterios de aceptación que verifican cosas independientes: [sí/no — count: N]
+- [ ] Subtareas no comparten archivos entre sí (señal de tickets independientes disfrazados): [sí/no]
+- [ ] Toca más de 2 módulos/directorios distintos del repo: [sí/no — cuáles]
+- [ ] Complejidad Alta + más de 3 subtareas: [sí/no]
+
+Señales activas: [N]/6
+
+<!-- REGLA DE DECISIÓN:
+     - Si ≥ 2 señales activas → OBLIGATORIO partir en sub-tickets
+     - Si < 2 señales activas → puede mantenerse como ticket único
+     - Si dice "unico" con ≥ 2 señales → FAIL en preflight -->
+
+Decisión: [unico | partido_en_N]
+Justificación: [Por qué se mantiene junto / cómo se partió]
+
+---
+
+## Política de iteración
+
+<!-- Los campos de iteración están en el frontmatter.
+     Esta sección documenta las condiciones específicas de este ticket.
+     El orquestador usa el frontmatter para decisiones automáticas. -->
+
+- **Reintentar solo si:** [condiciones específicas de este ticket]
+- **Escalar si:** [cuándo pedir intervención humana]
+- **Bloquear si:** [precondiciones que impiden ejecución]
+- **Descartar si:** [cuándo abandonar el ticket]
 
 ---
 

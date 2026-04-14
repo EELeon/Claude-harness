@@ -1,0 +1,7 @@
+ticket	commit	tests	status	failure_category	iterations	scope_warnings	complexity	tokens_used	duration_s	rollback_count	description
+harden-01	ec2f4ef	passed	keep	-	1	0	Simple	115943	82	0	YAML frontmatter parseable en spec-template + reglas-specs
+harden-02	215ebaa	passed	keep	-	1	0	Simple	112925	58	0	Gate descomposicion obligatorio en spec-template + subagent-sizing
+harden-03	61c3744	passed	keep	-	1	0	Simple	114279	64	0	Politica iteracion + escalamiento en contrato de ticket
+harden-04	bdf2d96	passed	keep	-	1	0	Media	118690	88	0	Preflight deterministico con Nivel 0 (frontmatter) y Nivel 5 (descomposicion)
+harden-05	abedd45	passed	keep	-	1	0	Simple	120714	83	0	Verificadores deterministicos de cierre (Regla 2e) en orchestrator-prompt
+harden-06	e17854e	passed	keep	-	1	0	Simple	121806	114	0	Taxonomia failure modes + clasificacion automatica en /learn
