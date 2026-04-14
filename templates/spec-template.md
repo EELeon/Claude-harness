@@ -4,11 +4,33 @@
      Formato del archivo: [sprint-prefix]-[seq]-[slug].md
      Ejemplo: hardening-01-cherrypick-safe.md -->
 
+---
+id: "[sprint-prefix]-[seq]"
+title: "[Título descriptivo]"
+goal: "[1-2 frases — mismo contenido que ## Objetivo]"
+complexity: Simple | Media | Alta
+execution_mode: Subagente | Sesion_principal
+execution_class: read_only | isolated_write | shared_write | repo_wide
+allowed_paths:
+  - "ruta/exacta/archivo.py"
+denied_paths:
+  - "ruta/config_produccion.py"
+dependencies:
+  requires: [] | ["harden-01"]
+  blocks: [] | ["harden-02"]
+closure_criteria:
+  - "Criterio observable y verificable"
+required_validations:
+  - "comando o check específico"
+max_attempts: 3
+---
+
+<!-- El frontmatter es la fuente de verdad para validación automática.
+     Las secciones markdown expanden el detalle para el subagente ejecutor. -->
+
 ## Objetivo
 
 [1-2 frases. Qué cambia en el sistema después de implementar este ticket.]
-
-## Complejidad: [Simple | Media | Alta]
 
 ## Dependencias
 
@@ -22,31 +44,6 @@ un contrato explícito (interfaz, tipo, stub) que ambos tickets respeten.
 Esto permite desarrollo paralelo sin bloqueo.
 Ejemplo: Si Ticket B consume una API de Ticket A, definir el schema
 de request/response como stub antes de implementar cualquiera.
--->
-
-## Modo de ejecución: [Subagente | Sesión principal]
-
-<!--
-Subagente (default): se ejecuta dentro del prompt orquestador.
-  El subagente NO puede lanzar sub-subagentes. Si hay subtareas,
-  las ejecuta secuencialmente dentro de su propia ventana de contexto.
-Sesión principal: solo para tickets Alta complejidad + 4 subtareas
-  de 5+ archivos cada una. Estos tickets SÍ pueden usar subagentes
-  para sus subtareas, pero se ejecutan fuera del prompt orquestador.
--->
-
-## Clase de ejecución: [read_only | isolated_write | shared_write | repo_wide]
-
-<!--
-Clase de concurrencia que determina cómo el orquestador puede programar este ticket.
-Ver references/concurrency-classes.md para definiciones completas y árbol de decisión.
-
-  read_only:       NO modifica archivos del repo. Paralelo libre con cualquier ticket.
-  isolated_write:  Modifica archivos que NINGÚN otro ticket toca. Paralelo en worktree.
-  shared_write:    Comparte archivos con otro ticket del sprint. Secuencial estricto.
-  repo_wide:       Modifica config global o archivos transversales. Solo en sesión principal.
-
-Si hay duda entre isolated_write y shared_write, elegir shared_write (más conservador).
 -->
 
 ## Lock requirements (opcional — solo para batch/audit)
