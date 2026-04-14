@@ -74,11 +74,20 @@ Una regla que referencia archivos borrados o APIs deprecated → eliminar.
 <!-- Sin esta sección, Claude reintenta soluciones que ya fracasaron, inflando costos -->
 <!-- Formato: "Intenté [X] y falló porque [Y] — usar [Z] en su lugar" -->
 
+## Al compactar, preservar
+<!-- Claude Code auto-compacta cuando el contexto se llena.
+     Esta sección le dice QUÉ preservar durante la compactación. -->
+- El objetivo del ticket actual y sus criterios de aceptación
+- Rutas de archivos leídos o modificados en el ticket actual
+- Resultados de tests y mensajes de error
+- El estado del sprint (qué tickets van completados)
+- Las reglas de este archivo
+
 ## Workflow
 - SIEMPRE empezar leyendo el spec en `.ai/specs/active/ticket-N.md`
 - SIEMPRE usar subagentes para subtareas marcadas en el spec
 - SIEMPRE commit atómico después de cada subtarea
 - SIEMPRE correr tests antes de marcar como completado
 - SIEMPRE ejecutar `/learn` al terminar cada ticket
-- Si se usa prompt del sprint: el orquestador maneja las transiciones entre tickets
+- Si se usa prompt del sprint: el orquestador maneja transiciones + checkpoint dinámico entre tickets
 - Si se ejecuta manualmente: `/clear` entre tickets para contexto fresco

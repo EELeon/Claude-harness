@@ -9,13 +9,14 @@ Cada ticket se ejecuta en un subagente general-purpose. El prompt incluye ruta a
 - 2c (Completitud): Cada criterio cumplido? si parcial, decidir keep/retry
 
 ## Regla 3 — Heat Shield
-Subagente devuelve SOLO: resumen (1-3 líneas), hash commit, tests (passed/failed), archivos tocados, criterios (sí/no/parcial). NO logs, NO output de tests, NO contenido.
+Subagente devuelve SOLO: resumen (1-3 líneas), hash commit, tests (passed/failed), archivos tocados, conteo estimado de caracteres procesados (input+output), criterios de aceptación (sí/no/parcial). NO logs, NO output de tests, NO contenido de archivos.
 
 ## Regla 4 — Registro en ledger
-Registrar en .ai/runs/results.tsv con formato (tab-separated):
-ticket | commit | tests | status | failure_category | iterations | scope_warnings | complexity | description
+Registrar en .ai/runs/results.tsv con formato v3 (tab-separated, 12 columnas):
+ticket | commit | tests | status | failure_category | iterations | scope_warnings | complexity | tokens_used | duration_s | rollback_count | description
 
-Columnas nuevas vs P1/P2: iterations (intentos, 1=primera vez), scope_warnings (0=limpio), complexity (Simple/Media/Alta)
+Columnas v2 (vs P1): iterations (intentos, 1=primera vez), scope_warnings (0=limpio), complexity (Simple/Media/Alta)
+Columnas v3 (vs P2): tokens_used (caracteres/4 o "?"), duration_s (wall-clock), rollback_count (git resets ejecutados)
 
 ## Regla 5 — Punto de corte
 Después de T-12 (antes de T-9):

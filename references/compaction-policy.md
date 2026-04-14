@@ -50,51 +50,39 @@ Subagente T-4 devuelve:
 
 ---
 
-## Nivel 2 -- Snip (semi-automatico, entre tickets)
+## Nivel 2 -- Auto-compact (automatico, gestionado por Claude Code)
 
-**Trigger:** Al completar un ticket (despues de registrar en `.ai/runs/results.tsv`).
+**Trigger:** Claude Code compacta automaticamente cuando el contexto se acerca al limite.
 
-**Responsable:** Regla 4 del orquestador.
+**Responsable:** Claude Code (no el orquestador).
 
-**Acciones:**
-1. Mantener en contexto SOLO la cola protegida:
-   - Spec del ticket actual (el que se va a ejecutar, no el que acaba de terminar)
-   - Ultimos 2 resultados de `.ai/runs/results.tsv`
-   - Reglas activas (`.ai/rules.md`)
-   - `CLAUDE.md`
-2. Todo output de tickets anteriores ya esta persistido a disco por Heat Shield y Result Budgeting
-3. Sugerir `/compact` si el contexto acumulado supera ~3 tickets completados
+**Que sobrevive al auto-compact:**
+- Instrucciones en CLAUDE.md (por eso SIEMPRE incluir instrucciones de compactacion ahi)
+- Interacciones recientes
+- Decisiones clave
 
-**Ejemplo -- antes:**
+**Acciones del orquestador (para facilitar auto-compact limpio):**
+1. Usar SOLO Heat Shield para resultados de subagentes (no retener outputs completos)
+2. Persistir todo a disco (results.tsv, plan.md) — no depender del contexto
+3. Incluir instrucciones de compactacion en CLAUDE.md del proyecto (ver claudemd-template.md)
+4. NUNCA pedir /compact manualmente — Claude Code lo maneja
+
+**Ejemplo -- auto-compact transparente:**
 ```
-[En contexto del orquestador despues de T-3, T-4, T-5:]
-- Spec de T-3 (ya completado)
-- Resultado Heat Shield de T-3
-- Spec de T-4 (ya completado)
-- Resultado Heat Shield de T-4
-- Spec de T-5 (ya completado)
-- Resultado Heat Shield de T-5
-- Reglas, CLAUDE.md, plan
-Total: ~15K tokens de contexto acumulado
-```
-
-**Ejemplo -- despues (Snip aplicado antes de T-6):**
-```
-[Cola protegida:]
-- Spec de T-6 (siguiente a ejecutar)
-- Resultados de T-4 y T-5 en results.tsv (ultimos 2)
-- .ai/rules.md
-- CLAUDE.md
-Total: ~5K tokens
-[Mensaje al usuario: "Recomiendo correr /compact antes de continuar con T-6.
-Tu progreso esta guardado en .ai/runs/results.tsv."]
+[Despues de T-5, Claude Code auto-compacta:]
+- Preserva: CLAUDE.md, interacciones recientes (T-4, T-5), reglas
+- Descarta: outputs detallados de T-1, T-2, T-3
+- El orquestador NO se entera — simplemente continua con T-6
+- Si necesita datos de T-1-T-3, los lee de .ai/runs/results.tsv
 ```
 
 ---
 
-## Nivel 3 -- Reset resumible (manual, entre bloques de trabajo)
+## Nivel 3 -- Reset resumible (solo si hay degradacion real)
 
-**Trigger:** Punto de corte marcado en el plan, o contexto estimado >80% de capacidad.
+**Trigger:** Checkpoint dinamico (Regla 5) detecta degradacion de fidelidad:
+el orquestador relee archivos que ya leyo, pierde track del orden de tickets,
+o confunde resultados. Esto es raro si Heat Shield y auto-compact funcionan bien.
 
 **Responsable:** El usuario (con guia del orquestador).
 
@@ -109,7 +97,7 @@ Tu progreso esta guardado en .ai/runs/results.tsv."]
 
 El orquestador muestra al usuario:
 ```
-Llegamos al punto de corte. Recomiendo:
+El contexto esta alto. Recomiendo:
 1. Ejecuta /clear
 2. Despues pega esta linea:
    Lee .ai/prompts/[nombre-batch].md y ejecuta todos los tickets.
@@ -149,15 +137,15 @@ Al retomar, el orquestador ejecuta esta secuencia:
 | Nivel | Nombre | Trigger | Automatico? | Responsable | Impacto en contexto |
 |-------|--------|---------|-------------|-------------|-------------------|
 | 1 | Microcompact | Despues de cada subagente | Si | Prompt del orquestador | Reduce ~30% de outputs repetidos |
-| 2 | Snip | Entre tickets (3+ completados) | Semi (sugiere /compact) | Regla 4 | Reduce a cola protegida (~5K tokens) |
-| 3 | Reset | Punto de corte o >80% contexto | No (manual) | Usuario + guia | Contexto fresco (0 tokens previos) |
+| 2 | Auto-compact | Contexto cerca del limite | Si (Claude Code) | Claude Code | Preserva CLAUDE.md + interacciones recientes |
+| 3 | Reset | Checkpoint detecta degradacion real | No (manual) | Usuario + guia | Contexto fresco (0 tokens previos) |
 
 ---
 
 ## Relacion con otros documentos
 
 - `references/output-budgets.md` -- Define los limites de chars por tipo de salida. Nivel 1 lo usa para decidir cuando persistir a disco vs retener en contexto.
-- `templates/orchestrator-prompt.md` -- Regla 4 implementa Nivel 1 y 2. Regla 5 implementa Nivel 3.
+- `templates/orchestrator-prompt.md` -- Regla 4 implementa Nivel 1. Nivel 2 es automatico (Claude Code). Regla 5 (checkpoint) implementa Nivel 3.
 - `.ai/rules.md` -- Version instanciada de las reglas para el sprint actual.
 
 ---
@@ -169,4 +157,7 @@ Al retomar, el orquestador ejecuta esta secuencia:
 - SIEMPRE mantener la cola protegida (spec actual + ultimos 2 results + rules + CLAUDE.md) despues de Nivel 2
 - SIEMPRE escribir snapshot a disco antes de ejecutar /clear (Nivel 3)
 - NUNCA contar tokens exactos para decidir cuando compactar -- usar heuristicas simples (numero de tickets completados, repeticion de outputs)
-- SIEMPRE sugerir /compact despues de 3+ tickets completados (Nivel 2)
+- SIEMPRE ejecutar checkpoint dinamico (Regla 5) despues de cada ticket completado
+- NUNCA insertar puntos de corte hardcoded en el plan — el checkpoint decide
+- NUNCA pedir /compact manualmente — Claude Code auto-compacta
+- SIEMPRE incluir instrucciones de compactacion en CLAUDE.md del proyecto

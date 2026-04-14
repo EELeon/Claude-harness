@@ -1,5 +1,5 @@
-ticket	commit	tests	status	failure_category	iterations	scope_warnings	complexity	description
-T-10	317f36e	passed	keep	none	1	0	Simple	perfiles de permiso configurables (conservative/standard/aggressive)
-T-11	9546c8d	passed	keep	none	1	0	Simple	estructura y guía de project_notes/ para conocimiento estático
-T-12	fee1c20	passed	keep	none	1	0	Simple	métricas de iteraciones, scope warnings, y complejidad en results.tsv
-T-9	ad4f507	passed	keep	none	1	0	Media	protocolo de prompt evolution con separación operacional/principios
+ticket	commit	tests	status	failure_category	iterations	scope_warnings	complexity	tokens_used	duration_s	rollback_count	description
+T-10	317f36e	passed	keep	none	1	0	Simple	?	?	0	perfiles de permiso configurables (conservative/standard/aggressive)
+T-11	9546c8d	passed	keep	none	1	0	Simple	?	?	0	estructura y guía de project_notes/ para conocimiento estático
+T-12	fee1c20	passed	keep	none	1	0	Simple	?	?	0	métricas de iteraciones, scope warnings, y complejidad en results.tsv
+T-9	ad4f507	passed	keep	none	1	0	Media	?	?	0	protocolo de prompt evolution con separación operacional/principios
