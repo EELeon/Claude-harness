@@ -1,5 +1,29 @@
 # Reglas de división en subtareas y sizing de subagentes
 
+## Cuándo partir un TICKET en sub-tickets (antes de escribir el spec)
+
+IMPORTANTE: Esta decisión ocurre ANTES de escribir el spec.
+Es diferente de dividir un ticket en subtareas (que ocurre DENTRO del spec).
+
+| Concepto | Qué es | Cuándo decidir |
+|----------|--------|---------------|
+| Sub-tickets | Specs independientes, cada uno con su propio scope fence, auditoría y commit | ANTES de escribir el spec |
+| Subtareas | Divisiones de trabajo dentro de UN spec, comparten scope fence | DENTRO del spec ya escrito |
+
+Un tema debe partirse en sub-tickets cuando dispara 2+ señales de complejidad
+(ver sección "Análisis de descomposición" en spec-template.md).
+
+Señales de complejidad:
+1. Objetivo con múltiples responsabilidades ("implementar X Y migrar Z")
+2. Más de 8 archivos en scope
+3. Más de 4 criterios de aceptación independientes
+4. Subtareas sin archivos compartidos
+5. Más de 2 módulos/directorios afectados
+6. Complejidad Alta + más de 3 subtareas
+
+La opción default es PARTIR. Mantener junto requiere justificación explícita
+y menos de 2 señales activas.
+
 ## Contexto técnico
 
 Un subagente de Claude Code:

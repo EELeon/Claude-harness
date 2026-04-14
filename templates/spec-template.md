@@ -23,6 +23,8 @@ closure_criteria:
 required_validations:
   - "comando o check específico"
 max_attempts: 3
+decomposition_signals: 0  # Número de señales activas (0-6)
+decomposition_decision: "unico | partido_en_N"
 ---
 
 <!-- El frontmatter es la fuente de verdad para validación automática.
@@ -123,6 +125,32 @@ Si no hay dependencias de lectura relevantes, escribir "Ninguna".
 | Archivo | Contenido |
 |---------|-----------|
 | `ruta/exacta/nuevo.py` | [Qué contiene y por qué] |
+
+---
+
+## Análisis de descomposición
+
+<!-- OBLIGATORIO para tickets de complejidad Media o Alta.
+     Responder ANTES de escribir el resto del spec.
+     Para tickets Simple, escribir "N/A — ticket Simple" y continuar. -->
+
+Señales de complejidad evaluadas:
+- [ ] Objetivo tiene múltiples responsabilidades conectadas con "y": [sí/no — si sí, cuáles]
+- [ ] Más de 8 archivos en scope fence (allowed_paths): [sí/no — count: N]
+- [ ] Más de 4 criterios de aceptación que verifican cosas independientes: [sí/no — count: N]
+- [ ] Subtareas no comparten archivos entre sí (señal de tickets independientes disfrazados): [sí/no]
+- [ ] Toca más de 2 módulos/directorios distintos del repo: [sí/no — cuáles]
+- [ ] Complejidad Alta + más de 3 subtareas: [sí/no]
+
+Señales activas: [N]/6
+
+<!-- REGLA DE DECISIÓN:
+     - Si ≥ 2 señales activas → OBLIGATORIO partir en sub-tickets
+     - Si < 2 señales activas → puede mantenerse como ticket único
+     - Si dice "unico" con ≥ 2 señales → FAIL en preflight -->
+
+Decisión: [unico | partido_en_N]
+Justificación: [Por qué se mantiene junto / cómo se partió]
 
 ---
 
