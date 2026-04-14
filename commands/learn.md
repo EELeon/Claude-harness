@@ -139,7 +139,31 @@ Agregar al archivo `.ai/done-tasks.md` (crear si no existe):
 - Tiempo aproximado de contexto usado: [bajo/medio/alto]
 ```
 
-## 10. Preparar para el siguiente
+## 10. Clasificación de failure mode (solo para tickets discard)
+
+Si el ticket tiene status `discard` en `.ai/runs/results.tsv`:
+
+1. Leer `failure_category` del results.tsv
+2. Mapear a código de taxonomía:
+   - `no_commit` → EXEC-01
+   - `scope_violation` → EXEC-02
+   - `test_failure` → EXEC-03
+   - `crash` → EXEC-04
+   - `incomplete` → CLOSE-01
+   - `rationalization` → CLOSE-02
+   - `spec_ambiguity` → CLOSE-03
+   - `verification_failed` → CLOSE-04
+3. Si existe `.ai/failure-modes.md`:
+   - Agregar fila al registro
+   - Contar ocurrencias del mismo código
+   - Si el código aparece 3+ veces → agregar a "Patrones recurrentes"
+     y sugerir acción sistémica
+4. Si no existe `.ai/failure-modes.md`:
+   - Crearlo con el header y la primera fila
+
+Este paso es automático — no requiere input del usuario.
+
+## 11. Preparar para el siguiente
 
 Reporta:
 - Qué se completó
