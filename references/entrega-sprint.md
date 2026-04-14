@@ -22,7 +22,9 @@ repo-target/
 │   │   │   └── results.tsv     # Copia del results.tsv de esa iteración
 │   │   └── summary.md          # Reporte final del loop recursivo
 │   ├── runs/
-│   │   └── results.tsv         # Tracking (se crea vacío con header)
+│   │   ├── results.tsv         # Tracking (se crea vacío con header)
+│   │   └── archive/            # results.tsv archivados por sprint
+│   │       └── [nombre-batch].tsv
 │   ├── prompts/                # UN archivo .md por batch — listo para pegar
 │   │   └── [nombre-batch].md
 │   ├── rules.md                # Reglas de orquestación (leídas de disco)
@@ -59,11 +61,13 @@ al generar artefactos como a Claude Code al archivar.
 ## Artefactos temporales vs permanentes
 
 **Temporales (se archivan/borran al terminar):**
-`.ai/specs/active/*`, `.ai/rules.md`, `.ai/plan.md`, `.ai/runs/results.tsv`
+`.ai/specs/active/*`, `.ai/rules.md`, `.ai/plan.md`, `.ai/runs/results.tsv` (se archiva antes de borrar en `.ai/runs/archive/`)
 
 **Permanentes (sobreviven entre ejecuciones):**
 `.ai/meta.md`, `.ai/audit/*`, `.ai/done-tasks.md`, `.ai/prompts/*`,
-`.ai/specs/archive/*`, `.ai/standards/`, `.ai/sprint-registry.md`, `CLAUDE.md`, `.claude/`
+`.ai/specs/archive/*`, `.ai/standards/`, `.ai/sprint-registry.md`,
+`.ai/runs/archive/*` -- historial de results.tsv por sprint,
+`CLAUDE.md`, `.claude/`
 
 ## Modelo de ejecución
 
@@ -99,6 +103,10 @@ echo "| [sprint] | [rama] | [fecha] | #[pr] | [total] | [keep] | [discard] | [ro
 # 2. Mover specs al archivo
 mv .ai/specs/active/* .ai/specs/archive/[nombre-batch]/
 
+# 2b. Archivar results.tsv antes de borrar
+mkdir -p .ai/runs/archive
+cp .ai/runs/results.tsv .ai/runs/archive/[nombre-batch].tsv
+
 # 3. Borrar artefactos temporales
 rm -f .ai/rules.md .ai/plan.md .ai/runs/results.tsv
 
@@ -111,6 +119,7 @@ git add -A && git commit -m "chore: archivar specs y limpiar [nombre-batch]"
 - `.ai/prompts/*` — historial permanente
 - `.ai/standards/` — harness de auditoría
 - `.ai/sprint-registry.md` — historial acumulativo de sprints
+- `.ai/runs/archive/*` — historial de results.tsv por sprint
 - `CLAUDE.md`, `.claude/` — infraestructura de Claude Code
 
 ## Instrucciones para el usuario

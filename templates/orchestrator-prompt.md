@@ -491,6 +491,9 @@ Categorías de fallo:
    mkdir -p .ai/specs/archive/[nombre-batch]
    # Mover specs al archivo
    mv .ai/specs/active/* .ai/specs/archive/[nombre-batch]/
+   # Archivar results.tsv
+   mkdir -p .ai/runs/archive
+   cp .ai/runs/results.tsv .ai/runs/archive/[nombre-batch].tsv
    # Borrar artefactos temporales
    rm -f .ai/rules.md .ai/plan.md .ai/runs/results.tsv
    # Commit de limpieza
@@ -499,6 +502,7 @@ Categorías de fallo:
    **NO borrar:** `.ai/done-tasks.md` (acumulativo),
    `.ai/prompts/*` (historial permanente), `.ai/standards/`,
    `.ai/sprint-registry.md` (historial acumulativo),
+   `.ai/runs/archive/*` (historial de results.tsv por sprint),
    `CLAUDE.md`, ni nada en `.claude/`.
 5b. **Registrar en sprint registry:**
    Si `.ai/sprint-registry.md` no existe, crearlo con header markdown (tabla con 9 columnas).
