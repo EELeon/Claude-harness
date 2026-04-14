@@ -160,11 +160,13 @@ Después de cada subagente, antes de correr tests:
 | Está en permitidos | ✅ | — | OK |
 | Está en prohibidos | — | ✅ | **BLOQUEANTE → rollback** |
 | Está en condicionales | ✅ condicional | — | Verificar condición (ver abajo) |
-| No está en ninguna lista | — | — | **WARNING** — registrar pero no bloquear |
+| No está en ninguna lista | — | — | **REVERTIR** — ejecutar `git checkout HEAD -- [archivo]` para descartar los cambios en ese archivo. Registrar en scope_warnings. NO bloquear el ticket completo. |
 
 - Si hay archivo en denylist → rollback automático, registrar `scope_violation`
-- Si hay archivo fuera de toda lista → registrar warning en description de .ai/runs/results.tsv
-  pero NO bloquear (el subagente puede haber tocado un test auxiliar legítimamente)
+- Si hay archivo fuera de toda lista → revertir ese archivo específico con
+  `git checkout HEAD -- [archivo]` y registrar en scope_warnings.
+  Esto preserva los cambios válidos del ticket y descarta solo el exceso.
+  NO bloquear el ticket completo — solo limpiar los archivos fuera de scope.
 - Si faltan archivos de la allowlist → warning, no bloqueo
   (una buena implementación puede requerir tocar menos archivos)
 
