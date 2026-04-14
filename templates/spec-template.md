@@ -96,6 +96,25 @@ La condición debe describir un CAMBIO OBSERVABLE en el diff:
 
 ---
 
+## Archivos de lectura (dependencias implícitas)
+
+<!--
+Archivos que este ticket LEE pero NO modifica.
+Listar aquí permite al orquestador detectar dependencias ocultas:
+si Ticket A lee `events.py` y Ticket B lo modifica, A no debería
+correr en paralelo con B (aunque sus scope fences de ESCRITURA no se solapen).
+
+Solo listar archivos que otros tickets del sprint podrían modificar.
+No listar archivos estables como CLAUDE.md o librerías externas.
+
+Si no hay dependencias de lectura relevantes, escribir "Ninguna".
+-->
+
+- `ruta/archivo_que_lee.py` — [qué dato lee de este archivo]
+- Ninguna
+
+---
+
 ## Archivos a modificar
 
 | Archivo | Cambio |
@@ -209,6 +228,7 @@ Por eso este spec debe ser AUTOCONTENIDO. Verificar:
 -->
 
 - [ ] ¿Tiene scope fence (archivos permitidos + prohibidos)?
+- [ ] ¿Tiene dependencias de lectura listadas (o "Ninguna" explícito)?
 - [ ] ¿Tiene rutas EXACTAS de archivos a modificar/crear?
 - [ ] ¿Tiene pasos concretos (no "investigar" o "explorar")?
 - [ ] ¿Tiene comando exacto de tests?
