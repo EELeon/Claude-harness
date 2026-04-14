@@ -32,16 +32,21 @@ VENTAJAS vs prompt monolítico:
 - Agregar tickets no infla el prompt del orquestador
 - Las reglas se pueden actualizar sin regenerar el prompt
 
-ESTRATEGIA DE CONTEXTO (4 capas):
+ESTRATEGIA DE CONTEXTO (3 capas):
 1. SUBAGENTES: Cada ticket corre como subagente → contexto fresco.
    El orquestador solo recibe el resultado resumido (Heat Shield).
 2. ESTADO EN DISCO: .ai/runs/results.tsv persiste entre /compact y /clear.
-3. COMPACTACIÓN PROACTIVA: Después de 3+ tickets, pedir /compact.
-4. PUNTOS DE CORTE: Pausas para /clear, luego re-pegar la misma línea.
+3. CHECKPOINT DINÁMICO: Después de cada ticket, evaluar contexto usado.
+   Si >70% → sugerir /compact. Si >85% → ejecutar reset resumible.
 
 LIMITACIONES:
-- Claude Code NO puede ejecutar /clear ni /compact programáticamente
+- Claude Code NO puede ejecutar /clear programáticamente (requiere intervención del usuario)
 - Los subagentes no pueden crear sub-subagentes
+
+AUTO-COMPACT: Claude Code compacta automáticamente cuando el contexto se acerca
+al límite. Las instrucciones en CLAUDE.md sobreviven el auto-compact.
+El orquestador NO necesita pedir /compact manualmente — solo verificar
+que CLAUDE.md tenga instrucciones de compactación adecuadas (Paso 5).
 - Máximo 5 subagentes concurrentes por codebase
 -->
 
@@ -72,17 +77,13 @@ NO modifiques archivos en project_notes/ — son mantenidos por el usuario.
 | 1 | T-[N] — [Título] | `.ai/specs/active/ticket-[N].md` | [Simple/Media/Alta] |
 | 2 | T-[N] — [Título] | `.ai/specs/active/ticket-[N].md` | [Simple/Media/Alta] |
 | 3 | T-[N] — [Título] | `.ai/specs/active/ticket-[N].md` | [Simple/Media/Alta] |
-
-### --- PUNTO DE CORTE ---
-Antes de continuar, ejecutá la Regla 5 de .ai/rules.md
-
 | 4 | T-[N] — [Título] | `.ai/specs/active/ticket-[N].md` | [Simple/Media/Alta] |
 | 5 | T-[N] — [Título] | `.ai/specs/active/ticket-[N].md` | [Simple/Media/Alta] |
 | 6 | T-[N] — [Título] | `.ai/specs/active/ticket-[N].md` | [Simple/Media/Alta] |
 
 Para cada ticket:
 1. Lanzá un **subagente general-purpose** con este prompt:
-   > Lee e implementa el spec en `.ai/specs/active/ticket-[N].md`. Leé CLAUDE.md para contexto del proyecto. Seguí los pasos del spec, corré los tests, y hacé un commit atómico con el número de ticket en el mensaje. Devolvé: resumen (1-3 líneas), hash del commit, estado de tests (passed/failed), lista de archivos tocados, y para cada criterio de aceptación del spec indicá si se cumplió (sí/no/parcial). NO devuelvas logs completos ni output de tests.
+   > Lee e implementa el spec en `.ai/specs/active/ticket-[N].md`. Leé CLAUDE.md para contexto del proyecto. Seguí los pasos del spec, corré los tests, y hacé un commit atómico con el número de ticket en el mensaje. Devolvé: resumen (1-3 líneas), hash del commit, estado de tests (passed/failed), lista de archivos tocados, conteo estimado de caracteres procesados (input+output del subagente), y para cada criterio de aceptación del spec indicá si se cumplió (sí/no/parcial). NO devuelvas logs completos ni output de tests.
 2. Después del subagente, aplicá Reglas 2 + 2b + 2c (scope → tests → completitud)
 3. Registrá el resultado en `.ai/runs/results.tsv` (Regla 4)
 
@@ -123,21 +124,25 @@ contra usos accidentales; esta regla lo usa de forma controlada.
 
 Después de cada subagente:
 1. Guardá el hash del commit anterior: `git rev-parse HEAD` (antes del subagente)
-2. Verificá que el commit existe: `git log -1 --oneline`
-3. **Auditoría de scope** (ver Regla 2b abajo)
-4. Corré los tests del ticket (el comando está en el spec)
-5. **Si scope OK + tests pasan:** ejecutá Regla 2c (auditoría de completitud).
-   Si completitud OK → registrá `keep` en `.ai/runs/results.tsv` y continuá.
-   Incluí las columnas de métricas: `iterations` (intentos totales),
-   `scope_warnings` (archivos fuera de allowlist), `complexity` (del spec).
-6. **Si scope violation (archivos prohibidos tocados):** rollback inmediato:
-   `git reset --hard [hash anterior]`, registrá `discard` con
+2. **Capturá timestamp de inicio:** `START_TS=$(date +%s)` y `ROLLBACKS=0` (antes del subagente)
+3. Verificá que el commit existe: `git log -1 --oneline`
+4. **Auditoría de scope** (ver Regla 2b abajo)
+5. Corré los tests del ticket (el comando está en el spec)
+6. **Si scope OK + tests pasan:** ejecutá Regla 2c (auditoría de completitud).
+   Si completitud OK → calculá métricas y registrá `keep` en `.ai/runs/results.tsv`.
+   **Métricas a registrar:** `iterations` (intentos totales), `scope_warnings` (archivos
+   fuera de allowlist), `complexity` (del spec), `tokens_used` (estimá caracteres del
+   reporte Heat Shield × 4, o "?" si no medible), `duration_s` ($(($(date +%s) - START_TS))),
+   `rollback_count` ($ROLLBACKS).
+7. **Si scope violation (archivos prohibidos tocados):** rollback inmediato:
+   `git reset --hard [hash anterior]`, `ROLLBACKS=$((ROLLBACKS+1))`, registrá `discard` con
    `failure_category=scope_violation` en `.ai/runs/results.tsv`
-   (incluí `iterations`, `scope_warnings`, `complexity`), continuá
-7. **Si los tests fallan:** intentá una corrección rápida (máximo 2 intentos).
+   (incluí todas las métricas: iterations, scope_warnings, complexity, tokens_used,
+   duration_s, rollback_count), continuá
+8. **Si los tests fallan:** intentá una corrección rápida (máximo 2 intentos).
    Si no se resuelve, hacé rollback: `git reset --hard [hash anterior]`,
-   registrá `discard` con `failure_category=test_failure`
-   (incluí `iterations`, `scope_warnings`, `complexity`), y continuá.
+   `ROLLBACKS=$((ROLLBACKS+1))`, registrá `discard` con `failure_category=test_failure`
+   (incluí todas las métricas), y continuá.
    NO te quedes trabado intentando arreglar un ticket roto indefinidamente.
 
 **Commits atómicos:** Cada ticket DEBE terminar con un commit atómico
@@ -256,17 +261,32 @@ instrucciones detalladas se parafrasean y pierden precisión. Por eso:
 - Los specs están en disco (el subagente los lee frescos)
 - NUNCA depender de "lo que recuerdo de tickets anteriores"
 
-## Regla 5: Punto de corte (Nivel 3 — Reset resumible)
-Al llegar a un punto de corte marcado en el prompt, o si el contexto está
-estimado >80% de capacidad, ejecutar reset resumible (Nivel 3 de la
-política de compactación — ver `references/compaction-policy.md`):
-1. Asegurate de que `.ai/runs/results.tsv` está actualizado
-2. Verificá que `.ai/plan.md` refleja el progreso actual
-3. Mostrá resumen de progreso parcial
-4. Decile al usuario: **"Llegamos al punto de corte. Recomiendo:
-   1. Ejecutá /clear
-   2. Después pegá de nuevo la línea de ejecución.
-   3. Voy a retomar automáticamente desde el ticket [N] leyendo .ai/runs/results.tsv."**
+## Regla 5: Checkpoint dinámico (después de cada ticket)
+Después de completar cada ticket y registrarlo en results.tsv,
+evaluar el estado del contexto:
+
+**Paso 1 — Detectar degradación:**
+- ¿Estoy releyendo rules.md, specs, o CLAUDE.md porque "no recuerdo"?
+- ¿Estoy perdiendo track del orden de tickets o confundiendo resultados?
+- Si la respuesta a cualquiera es sí → el contexto está degradado.
+
+**Paso 2 — Decidir acción:**
+- **Sin señales de degradación** → Continuar al siguiente ticket.
+  Claude Code auto-compacta cuando se acerca al límite — no intervenir.
+- **Señales de degradación** → Ejecutar protocolo de reset:
+  1. Asegurate de que `.ai/runs/results.tsv` está actualizado
+  2. Verificá que `.ai/plan.md` refleja el progreso actual
+  3. Mostrá resumen de progreso parcial
+  4. Decile al usuario: **"El contexto está degradado. Recomiendo:
+     1. Ejecutá /clear
+     2. Después pegá de nuevo la línea de ejecución.
+     3. Voy a retomar automáticamente desde el ticket [N]
+        leyendo .ai/runs/results.tsv."**
+
+**Nota:** El auto-compact de Claude Code maneja la mayoría de los casos.
+El checkpoint solo necesita detectar cuando el auto-compact no es
+suficiente (degradación real de fidelidad). NUNCA pedir /compact
+manualmente — dejar que Claude Code lo maneje.
 
 Al retomar después del /clear, la secuencia es:
 1. Leer `.ai/runs/results.tsv` → identificar tickets completados
@@ -286,6 +306,7 @@ El subagente devuelve SOLO:
 - Hash del commit
 - Estado de tests (passed/failed + nombre del test fallido si aplica)
 - Archivos tocados
+- Conteo estimado de caracteres procesados (input+output del subagente) — para tokens_used
 - Estado de criterios de aceptación (sí/no/parcial por cada uno)
 - Desviaciones tácticas (si hubo): [decisiones que el subagente tomó que no estaban en el spec, máximo 2 líneas]
 
@@ -388,7 +409,7 @@ Crear `.ai/runs/results.tsv` al inicio (si no existe) con este header.
 Usar tabs como separador (NO comas).
 
 ```
-ticket	commit	tests	status	failure_category	iterations	scope_warnings	complexity	description
+ticket	commit	tests	status	failure_category	iterations	scope_warnings	complexity	tokens_used	duration_s	rollback_count	description
 ```
 
 Columnas:
@@ -400,17 +421,25 @@ Columnas:
 6. **iterations** — número de intentos para completar el ticket (1 = primera vez, 2 = un retry, etc.)
 7. **scope_warnings** — número de archivos tocados fuera de allowlist (0 = limpio)
 8. **complexity** — complejidad del spec (Simple/Media/Alta) — para correlacionar con iteraciones
-9. **description** — qué se intentó hacer (1 línea)
+9. **tokens_used** — tokens estimados consumidos por el subagente (input+output). Estimación por conteo de caracteres/4 si no hay API metric disponible. "?" si no medible
+10. **duration_s** — segundos de ejecución del subagente (wall-clock desde spawn hasta resultado). Medir con `date +%s` antes y después
+11. **rollback_count** — número de `git reset --hard` ejecutados antes del resultado final (0 = sin rollbacks, N = N rollbacks por scope violations o test failures)
+12. **description** — qué se intentó hacer (1 línea)
 
 Ejemplo:
 ```
-T-1	a1b2c3d	passed	keep	none	1	0	Simple	result budgeting formal
-T-5	c3d4e5f	failed	discard	test_failure	2	1	Media	compactación — falló en primer intento
+T-1	a1b2c3d	passed	keep	none	1	0	Simple	18500	45	0	result budgeting formal
+T-5	c3d4e5f	failed	discard	test_failure	2	1	Media	42000	120	1	compactación — falló en primer intento
 ```
 
-**Backward-compatibility:** Si un results.tsv de un sprint anterior no tiene las columnas
-`iterations`, `scope_warnings`, y `complexity`, tratarlas como vacías. /retrospective y
-/status deben funcionar sin error con el formato viejo (6 columnas) o el nuevo (9 columnas).
+**Backward-compatibility:** El formato ha evolucionado en 3 generaciones:
+- **v1 (6 cols):** ticket, commit, tests, status, failure_category, description
+- **v2 (9 cols):** + iterations, scope_warnings, complexity
+- **v3 (12 cols):** + tokens_used, duration_s, rollback_count
+
+/retrospective y /status deben funcionar sin error con cualquier formato.
+Detectar la versión contando columnas del header o de la primera fila de datos.
+Columnas faltantes se tratan como vacías — NUNCA fallar por formato viejo.
 
 Categorías de fallo:
 | Categoría | Quién la detecta | Cuándo se escribe | Criterio operativo |
@@ -469,9 +498,8 @@ Categorías de fallo:
 2. Listar todos los tickets en orden de ejecución
 3. Para cada ticket: solo número, título, ruta del spec, y complejidad
 4. El prompt del subagente es genérico — apunta al spec en disco
-5. Insertar puntos de corte cada 3-4 tickets
-6. Nunca cortar entre tickets con dependencia directa
-7. Guardar como `.ai/prompts/[nombre-batch].md`
+5. NO insertar puntos de corte hardcoded — el checkpoint dinámico (Regla 5) decide
+6. Guardar como `.ai/prompts/[nombre-batch].md`
 8. Entregar al usuario la línea de ejecución:
    `Lee .ai/prompts/[nombre-batch].md y ejecutá todos los tickets.`
 
@@ -502,7 +530,7 @@ Con un contexto de ~200k tokens para el orquestador:
 - Puede manejar ~10-12 tickets simples antes de necesitar /compact
 - ~6-8 tickets medios
 - ~4-5 tickets altos
-- Los puntos de corte se calibran con estas heurísticas
+- El checkpoint dinámico (Regla 5) decide cuándo compactar — no hardcodear
 
 Nota: las estimaciones del orquestador son menores que antes porque
 el prompt es lean y los subagentes retornan solo Heat Shield.
