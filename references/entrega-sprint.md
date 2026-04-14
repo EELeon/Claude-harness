@@ -63,7 +63,7 @@ al generar artefactos como a Claude Code al archivar.
 
 **Permanentes (sobreviven entre ejecuciones):**
 `.ai/meta.md`, `.ai/audit/*`, `.ai/done-tasks.md`, `.ai/prompts/*`,
-`.ai/specs/archive/*`, `.ai/standards/`, `CLAUDE.md`, `.claude/`
+`.ai/specs/archive/*`, `.ai/standards/`, `.ai/sprint-registry.md`, `CLAUDE.md`, `.claude/`
 
 ## Modelo de ejecución
 
@@ -85,6 +85,17 @@ Al finalizar, el orquestador archiva y limpia automáticamente
 # 1. Crear carpeta de archivo si no existe
 mkdir -p .ai/specs/archive/[nombre-batch]
 
+# 1b. Registrar en sprint registry
+# Si no existe, crear con header
+if [ ! -f .ai/sprint-registry.md ]; then
+  echo "# Sprint Registry" > .ai/sprint-registry.md
+  echo "" >> .ai/sprint-registry.md
+  echo "| Sprint | Rama | Fecha | PR | Tickets | Keep | Discard | Rollbacks | Results |" >> .ai/sprint-registry.md
+  echo "|--------|------|-------|----|---------|------|---------|-----------|---------|" >> .ai/sprint-registry.md
+fi
+# Agregar fila (el orquestador calcula los valores leyendo results.tsv)
+echo "| [sprint] | [rama] | [fecha] | #[pr] | [total] | [keep] | [discard] | [rollbacks] | .ai/runs/archive/[sprint].tsv |" >> .ai/sprint-registry.md
+
 # 2. Mover specs al archivo
 mv .ai/specs/active/* .ai/specs/archive/[nombre-batch]/
 
@@ -99,6 +110,7 @@ git add -A && git commit -m "chore: archivar specs y limpiar [nombre-batch]"
 - `.ai/done-tasks.md` — acumulativo entre ejecuciones
 - `.ai/prompts/*` — historial permanente
 - `.ai/standards/` — harness de auditoría
+- `.ai/sprint-registry.md` — historial acumulativo de sprints
 - `CLAUDE.md`, `.claude/` — infraestructura de Claude Code
 
 ## Instrucciones para el usuario

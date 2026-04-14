@@ -490,7 +490,13 @@ Categorías de fallo:
    ```
    **NO borrar:** `.ai/done-tasks.md` (acumulativo),
    `.ai/prompts/*` (historial permanente), `.ai/standards/`,
+   `.ai/sprint-registry.md` (historial acumulativo),
    `CLAUDE.md`, ni nada en `.claude/`.
+5b. **Registrar en sprint registry:**
+   Si `.ai/sprint-registry.md` no existe, crearlo con header markdown (tabla con 9 columnas).
+   Leer `.ai/runs/results.tsv` y calcular totales. Agregar una fila con:
+   sprint name, rama, fecha de hoy, número del PR, total tickets,
+   count(keep), count(discard), sum(rollback_count), ruta al results.tsv archivado.
 6. Mostrá resumen final:
    - Tickets: [N] keep / [N] discard / [N] crash
    - Cambios en CLAUDE.md
