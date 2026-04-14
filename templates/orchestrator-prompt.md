@@ -126,6 +126,16 @@ Después de cada subagente:
 1. Guardá el hash del commit anterior: `git rev-parse HEAD` (antes del subagente)
 2. **Capturá timestamp de inicio:** `START_TS=$(date +%s)` y `ROLLBACKS=0` (antes del subagente)
 3. Verificá que el commit existe: `git log -1 --oneline`
+3b. **Validación de commit (Regla 2d):**
+   Comparar el hash actual (`git rev-parse HEAD`) con el hash guardado antes del subagente.
+   - Si son iguales → el subagente NO hizo commit. Marcar como `discard` con
+     `failure_category=no_commit`. NO intentar rescatar cambios uncommitted manualmente
+     — el subagente falló en cumplir el contrato de commit atómico.
+   - Si son diferentes → el subagente hizo commit. Continuar con Regla 2b (scope).
+   
+   **Evidencia:** En sprints observados, subagentes que reportan "completado" sin commit
+   requieren rescate manual costoso (leer diffs, commitear a mano, verificar scope).
+   Es más eficiente descartar y re-ejecutar.
 4. **Auditoría de scope** (ver Regla 2b abajo)
 5. Corré los tests del ticket (el comando está en el spec)
 6. **Si scope OK + tests pasan:** ejecutá Regla 2c (auditoría de completitud).
@@ -218,7 +228,7 @@ significa que el objetivo del ticket NO se logró. En duda, tratarlo como críti
    (incluí `iterations`, `scope_warnings`, `complexity`).
 
 **Orden completo de verificación post-subagente:**
-Regla 2b (scope) → Regla 2 paso 4 (tests) → Regla 2c (completitud)
+Regla 2d (commit) → Regla 2b (scope) → Regla 2 paso 5 (tests) → Regla 2c (completitud)
 Si cualquier paso falla, NO ejecutar los siguientes. Registrar la
 failure_category del PRIMER paso que falló.
 
@@ -452,6 +462,7 @@ Categorías de fallo:
 | `incomplete` | Orquestador (Regla 2c) | Después de auditoría de completitud | ≥1 criterio de aceptación del spec NO cumplido (ver Regla 2c) |
 | `rationalization` | Hook Stop → Orquestador | Cuando el hook bloquea | El hook Stop devuelve exit code 2 (bloqueo). Si no hay hook instalado, el orquestador detecta: subagente reporta "completado" pero el diff tiene 0 archivos tocados, o los archivos tocados no coinciden con ningún paso del spec |
 | `spec_ambiguity` | Orquestador | Después de resultado anómalo | El subagente devuelve resultado que NO corresponde al objetivo del spec (ej: implementó algo diferente a lo pedido), O el subagente reporta que tuvo que "interpretar" o "asumir" algo no definido en el spec |
+| `no_commit` | Orquestador (Regla 2d) | Después de validación de commit | Hash pre/post subagente idénticos — subagente no completó commit atómico |
 
 ## Al terminar todos los tickets
 

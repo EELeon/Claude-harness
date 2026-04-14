@@ -21,6 +21,7 @@
 | 7 | Spec ambiguo | Subagente reporta "asumí" o "interpreté" | `split ticket` | Dividir + re-spec con usuario |
 | 8 | Output demasiado grande | Salida excede límites de result budgeting | `archive artifact` | Truncar + persistir a disco |
 | 9 | Batch con colisión | Dos subagentes tocaron mismo archivo | `rollback` | Reclasificar execution_class |
+| 11 | Subagente sin commit | Hash pre/post subagente idénticos | `discard` | Registrar no_commit, re-ejecutar subagente |
 
 ---
 
@@ -190,6 +191,26 @@
 3. Reclasificar los tickets: cambiar `execution_class` de `batch` a `sequential`
 4. Re-ejecutar los tickets de forma secuencial (Regla 1 del orquestador)
 5. El primero en ejecutarse define el estado del archivo; el segundo lo lee fresco
+
+---
+
+### 11. Subagente sin commit — `discard`
+
+**Señales de detección:**
+- `git rev-parse HEAD` antes y después del subagente son idénticos
+- El subagente reporta "completado" pero no hay commit nuevo
+- Hay cambios uncommitted en el working directory
+
+**Pasos exactos:**
+1. Registrar `discard` con `failure_category=no_commit` en results.tsv
+2. Descartar cualquier cambio uncommitted: `git checkout -- .` y `git clean -fd`
+3. Re-ejecutar el subagente con el mismo spec (cuenta como iteración 2)
+4. Si falla de nuevo → registrar como `discard` definitivo y continuar
+
+**Ejemplo concreto:** El subagente de F-4 termina sin commit. Git status muestra
+archivos modificados. En vez de commitear manualmente (riesgo de scope violation),
+descartar y re-ejecutar. Si el spec es correcto, el subagente debería poder
+completar en un segundo intento.
 
 ---
 
