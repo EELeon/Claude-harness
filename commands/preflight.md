@@ -146,18 +146,30 @@ Método: contar líneas de contenido. Si = 0 → FAIL con "[heading] está vací
 | Criterios de aceptación ≥ 1 | count(checkboxes en Criterios) | FAIL si = 0 |
 | Tests ≥ 1 | count(checkboxes en Tests) | FAIL si = 0 |
 
-**Nivel 5: Validación de descomposición (FAIL si incoherente)**
+**Nivel 5: Validación de descomposición y triage previo (FAIL si incoherente)**
 
 Solo para specs con complexity = Media o Alta.
 Para specs Simple, saltar este nivel.
 
-Validaciones:
+**5a. Verificar que el triage (Paso 1.5) ocurrió:**
+
+Si el spec tiene decomposition_signals ≥ 2 Y decomposition_decision = "unico":
+- FAIL con "ticket con ≥2 señales de complejidad debe partirse en sub-tickets.
+  Esto debió detectarse en el Paso 1.5 (triage de tamaño). Volver al triage
+  antes de continuar. Ver: references/flujo-principal.md → Paso 1.5"
+
+Si el spec tiene complexity = Alta Y decomposition_decision = "unico":
+- FAIL con "ticket de complejidad Alta no puede mantenerse como único sin
+  justificación explícita en el triage. Volver al Paso 1.5"
+
+**5b. Validaciones de descomposición (existentes):**
+
 1. La sección `## Análisis de descomposición` existe y no está vacía
 2. El campo `decomposition_signals` del frontmatter coincide con el
    conteo de señales marcadas como "sí" en la sección
 3. Coherencia señales → decisión:
    - Si decomposition_signals ≥ 2 Y decomposition_decision = "unico" → FAIL
-     con "ticket con ≥2 señales de complejidad debe partirse en sub-tickets"
+     (capturado en 5a, redundante pero explícito)
    - Si decomposition_signals < 2 Y decomposition_decision = "unico" → OK
    - Si decomposition_decision = "partido_en_N" → OK (ya se partió)
 4. Verificación cruzada de señales contra datos del spec:
@@ -195,7 +207,9 @@ Para cada spec, reportar:
 ❌ Formato: commit message sin formato "[tipo]: descripción"
 ✅ Cruces: 4 permitidos ≥ 3 archivos, 2 prohibidos, 2 criterios, 3 tests
 
-### Descomposición
+### Descomposición (Nivel 5)
+✅ Triage previo: ticket pasó Paso 1.5 con <2 señales
+❌ Triage faltante: 3/6 señales activas, debió partirse en Paso 1.5
 ✅ Señales: 1/6 activas, decisión "unico" coherente
 ❌ Señales: 3/6 activas, decisión "unico" INCOHERENTE — debe partirse
 

@@ -11,100 +11,78 @@ description: >
 
 # Code Orchestrator — De tickets a ejecución autónoma
 
-## Propósito
-
-Convertir un lote de tickets en un paquete que Claude Code ejecute
-de manera autónoma, con una sola línea.
-
 ## Modelo de ejecución
 
-- **Una sola rama, un solo PR** — todos los tickets en secuencia
-- **Commits atómicos por ticket** — revertibles individualmente con `git revert`
-- **Subagentes por ticket** — contexto fresco (~200k tokens) por cada uno
-- **Estado en disco** — `.ai/runs/results.tsv` permite retomar si se pierde contexto
-- **Checkpoint dinámico** — después de cada ticket, evaluar contexto y decidir si compactar
-
-**Límites:** máx 5 subagentes concurrentes, no sub-subagentes,
-cada subagente empieza con contexto en blanco.
+- Una sola rama, un solo PR, commits atómicos por ticket, subagentes con contexto fresco
+- Estado en disco (`.ai/runs/results.tsv`), checkpoint dinámico post-ticket
+- Máx 5 subagentes concurrentes, no sub-subagentes, máx 6 specs por subagente
 
 **Capas de protección:**
-- Primaria (siempre activa): Preflight → Scope fence + diff audit →
-  Tests → Completitud → Ledger
-- Secundaria (hooks opcionales): Guard destructivo + Anti-racionalización
-- Terciaria (integraciones Claude Code): /simplify (calidad) + /batch (paralelismo) + /loop (monitor PR)
+- Primaria (siempre): Preflight → Scope fence + diff → Tests → Completitud → Ledger
+- Secundaria (hooks): Guard destructivo + Anti-racionalización
+- Terciaria (Claude Code): /simplify + /batch + /loop
 
-## Flujo principal (6 pasos)
+## Flujo principal (7 pasos)
 
-Leer `${CLAUDE_PLUGIN_ROOT}/references/flujo-principal.md` para los pasos completos.
+| Paso | Qué hace | Referencia (leer bajo demanda) |
+|------|----------|-------------------------------|
+| 0 | Meta del proyecto (condicional) | flujo-principal.md |
+| 1 | Inventario y análisis de tickets | flujo-principal.md |
+| **1.5** | **Triage de tamaño (gate)** | flujo-principal.md |
+| 2 | Ordenar tickets y puntos de corte | flujo-principal.md |
+| 3 | Generar specs por ticket | reglas-specs.md |
+| 3.5 | Preflight: validar specs | commands/preflight.md |
+| 4 | Prompt + rules | orchestrator-prompt.md |
+| 5 | Artefactos de soporte | flujo-principal.md |
+| 6 | Revisión + línea de ejecución | entrega-sprint.md |
 
-| Paso | Qué hace | Detalle en |
-|------|----------|-----------|
-| 0 | Meta del proyecto (condicional) | `${CLAUDE_PLUGIN_ROOT}/references/flujo-principal.md` |
-| 1 | Inventario y análisis de tickets | `${CLAUDE_PLUGIN_ROOT}/references/flujo-principal.md` |
-| 2 | Ordenar tickets y definir puntos de corte | `${CLAUDE_PLUGIN_ROOT}/references/flujo-principal.md` |
-| 3 | Generar specs por ticket | `${CLAUDE_PLUGIN_ROOT}/references/reglas-specs.md` |
-| 3.5 | Preflight: validar specs | `${CLAUDE_PLUGIN_ROOT}/commands/preflight.md` |
-| 4 | Prompt → `.ai/prompts/[batch].md` + `.ai/rules.md` | `${CLAUDE_PLUGIN_ROOT}/templates/orchestrator-prompt.md` |
-| 5 | Artefactos de soporte (progresivo) | `${CLAUDE_PLUGIN_ROOT}/references/flujo-principal.md` |
-| 6 | Revisión + línea de ejecución para el usuario | `${CLAUDE_PLUGIN_ROOT}/references/flujo-principal.md` |
+## Lazy-load de referencias
+
+LEER SOLO cuando el paso lo requiera. NO leer todo al inicio.
+
+**Siempre leer (Paso 1):**
+- `${CLAUDE_PLUGIN_ROOT}/references/flujo-principal.md` — flujo completo
+
+**Leer al escribir specs (Paso 3):**
+- `${CLAUDE_PLUGIN_ROOT}/references/reglas-specs.md`
+- `${CLAUDE_PLUGIN_ROOT}/templates/spec-template.md`
+
+**Leer solo si hay tickets que dividir (Paso 1.5):**
+- `${CLAUDE_PLUGIN_ROOT}/references/subagent-sizing.md`
+
+**Leer al generar prompt (Paso 4):**
+- `${CLAUDE_PLUGIN_ROOT}/templates/orchestrator-prompt.md`
+
+**Leer al entregar (Paso 6):**
+- `${CLAUDE_PLUGIN_ROOT}/references/entrega-sprint.md`
+- `${CLAUDE_PLUGIN_ROOT}/templates/execution-plan-template.md`
+
+**Leer solo si hay errores/recovery:**
+- `${CLAUDE_PLUGIN_ROOT}/references/recovery-matrix.md`
+
+**Leer solo si se configuran hooks:**
+- `${CLAUDE_PLUGIN_ROOT}/templates/stop-hook.md`
+
+**Leer solo si se crean agentes custom:**
+- `${CLAUDE_PLUGIN_ROOT}/references/agent-patterns.md`
 
 ## Entregables obligatorios — NUNCA omitir
 
-Los specs son solo el paso intermedio. El paquete NO está completo sin estos 3 archivos:
+1. **`.ai/rules.md`** — SOLO overrides del sprint (perfil, comando tests, puntos de corte).
+   Las reglas estándar viven en `${CLAUDE_PLUGIN_ROOT}/references/reglas-orquestacion.md`.
+   El prompt apunta a ambos archivos. NO copiar reglas estándar al rules.md.
+2. **`.ai/prompts/[batch].md`** — Prompt ultra-lean (~1K tokens). Tabla de tickets + referencias.
+3. **Línea de ejecución:** `Lee .ai/prompts/[nombre-batch].md y ejecutá todos los tickets.`
 
-1. **`.ai/rules.md`** — Reglas de orquestación (9 reglas + Heat Shield + ledger).
-   Generar siguiendo `${CLAUDE_PLUGIN_ROOT}/templates/orchestrator-prompt.md`.
-   SIEMPRE leer esa plantilla antes de escribir rules.md.
+Si specs listos pero rules.md y prompt NO existen → flujo incompleto. Continuar a Paso 4 → 5 → 6.
 
-2. **`.ai/prompts/[nombre-batch].md`** — Prompt de ejecución ultra-lean (~1-2K tokens).
-   Solo contiene: instrucción de leer rules.md + tabla de tickets con ruta a cada spec.
-   Crear carpeta con `mkdir -p .ai/prompts` si no existe.
+## Checklist de cierre
 
-3. **Línea de ejecución para el usuario** — Una sola línea copy-paste para Claude Code:
-   ```
-   Lee .ai/prompts/[nombre-batch].md y ejecutá todos los tickets.
-   ```
-   SIEMPRE presentar esta línea al final de la entrega.
-
-**REGLA:** Si los specs están listos pero rules.md y el prompt NO existen,
-el flujo está incompleto. NUNCA detenerse después del preflight sin continuar
-a Paso 4 → 5 → 6.
-
-## Checklist de cierre — verificar antes de entregar
-
-- [ ] Specs creados en `.ai/specs/active/` (uno por ticket)
+- [ ] Specs en `.ai/specs/active/`
 - [ ] Preflight pasado (0 FAIL)
 - [ ] `.ai/rules.md` generado
 - [ ] `.ai/prompts/[batch].md` generado
-- [ ] Artefactos de soporte: CLAUDE.md, comandos base, plan de ejecución
-- [ ] Línea de ejecución entregada al usuario
+- [ ] Artefactos: CLAUDE.md, comandos, plan de ejecución
+- [ ] Línea de ejecución entregada
 
-NUNCA entregar un paquete con ítems sin marcar.
-
-## Reglas de specs
-
-Leer `${CLAUDE_PLUGIN_ROOT}/references/reglas-specs.md` para estructura obligatoria y límites.
-
-## Entrega
-
-Leer `${CLAUDE_PLUGIN_ROOT}/references/entrega-sprint.md` para artefactos, mapa de archivos,
-y flujo de ejecución.
-
-**Regla de carpetas:** Siempre `mkdir -p` antes de escribir a una ruta.
-
-## Archivos de referencia
-
-Todas las rutas usan `${CLAUDE_PLUGIN_ROOT}` para resolver archivos compartidos del plugin.
-
-| Archivo | Cuándo leerlo |
-|---------|--------------|
-| `${CLAUDE_PLUGIN_ROOT}/references/flujo-principal.md` | Al ejecutar el flujo de 6 pasos |
-| `${CLAUDE_PLUGIN_ROOT}/references/reglas-specs.md` | Al escribir specs |
-| `${CLAUDE_PLUGIN_ROOT}/references/entrega-sprint.md` | Al entregar una ejecución |
-| `${CLAUDE_PLUGIN_ROOT}/references/subagent-sizing.md` | Al dividir tickets en subtareas |
-| `${CLAUDE_PLUGIN_ROOT}/references/agent-patterns.md` | Al crear agentes custom |
-| `${CLAUDE_PLUGIN_ROOT}/templates/spec-template.md` | Plantilla completa de cada spec |
-| `${CLAUDE_PLUGIN_ROOT}/templates/orchestrator-prompt.md` | Plantilla del prompt + reglas |
-| `${CLAUDE_PLUGIN_ROOT}/templates/stop-hook.md` | Al configurar hooks |
-| `${CLAUDE_PLUGIN_ROOT}/templates/claudemd-template.md` | Al generar CLAUDE.md |
-| `${CLAUDE_PLUGIN_ROOT}/templates/execution-plan-template.md` | Al generar el plan de ejecución |
+**Regla de carpetas:** Siempre `mkdir -p` antes de escribir.

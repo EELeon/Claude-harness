@@ -40,6 +40,69 @@ Leer todos los tickets. Para cada uno, extraer:
 
 Presentar tabla-resumen al usuario antes de continuar.
 
+## Paso 1.5 — Triage de tamaño (gate obligatorio)
+
+ANTES de ordenar o escribir specs, evaluar si cada ticket necesita partirse.
+Este paso usa SOLO los datos del inventario (Paso 1) — NO profundiza en código.
+
+**Objetivo:** Detectar tickets sobredimensionados antes de gastar contexto en
+specs detallados. La decisión de partir es barata aquí y cara después.
+
+### Proceso
+
+Para cada ticket con complejidad Media o Alta, evaluar las 6 señales de
+complejidad de `references/subagent-sizing.md` usando solo la información
+del inventario:
+
+| Señal | Cómo evaluarla con datos del inventario |
+|-------|----------------------------------------|
+| Objetivo con múltiples responsabilidades | ¿El título/descripción del ticket tiene "y", "además", "también"? |
+| Más de 8 archivos en scope | Contar archivos del inventario (columna Archivos) |
+| Más de 4 criterios de aceptación independientes | Contar criterios mencionados en el ticket |
+| Subtareas sin archivos compartidos | ¿Los grupos de archivos son disjuntos? |
+| Más de 2 módulos/directorios afectados | Contar directorios únicos de los archivos del inventario |
+| Complejidad Alta + más de 3 subtareas | ¿Se anticipa que necesite 4+ subtareas? |
+
+### Decisión
+
+| Señales activas | Acción |
+|----------------|--------|
+| 0-1 | Ticket pasa al Paso 2 tal cual |
+| 2+ | OBLIGATORIO partir en sub-tickets |
+
+### Cómo documentar la partición
+
+Para tickets que se parten, producir una **tabla de triage** (NO specs completos):
+
+```
+Ticket original: T-N — [título]
+Señales activas: [N]/6 — [listar cuáles]
+
+| Sub-ticket | Scope rough | Archivos (~) | Complejidad estimada |
+|------------|-------------|-------------|---------------------|
+| T-N.a | [1 frase] | [lista corta] | Simple/Media |
+| T-N.b | [1 frase] | [lista corta] | Simple/Media |
+```
+
+**Reglas de la partición:**
+- Cada sub-ticket debe poder ejecutarse y hacer commit independiente
+- Cada sub-ticket debe tener complejidad Simple o Media (NUNCA Alta)
+- Si un sub-ticket resultante sigue siendo Alta → partir otra vez
+- Documentar dependencias entre sub-tickets (ej: "T-N.b requiere T-N.a")
+- NUNCA escribir specs detallados aquí — solo nombre, scope de 1 frase,
+  archivos rough, y complejidad estimada
+
+### Gate
+
+Presentar tabla de triage al usuario. NO continuar al Paso 2 hasta que
+el usuario apruebe las particiones. Si el usuario ajusta la división,
+actualizar la tabla.
+
+Los sub-tickets aprobados reemplazan al ticket original en el inventario
+y entran al Paso 2 como tickets independientes.
+
+**Tickets Simple:** Pasan directo — no necesitan triage.
+
 ## Paso 2 — Ordenar tickets, detectar paralelismo, y definir puntos de corte
 
 Ordenar TODOS los tickets en una sola secuencia de ejecución.
@@ -48,6 +111,29 @@ Ordenar TODOS los tickets en una sola secuencia de ejecución.
 1. **Dependencia técnica** — si B depende de A, A va primero
 2. **Dominio compartido** — tickets que tocan los mismos archivos van juntos
 3. **Complejidad intercalada** — evitar agrupar varios tickets de complejidad Alta seguidos
+
+### Computar execution_class por spec (OBLIGATORIO)
+
+Después de que TODOS los specs estén escritos, el Paso 2 computa la
+`execution_class` de cada spec comparando scope fences cruzados.
+El campo viene con valor `auto` en el frontmatter — NUNCA lo llena
+el escritor del spec manualmente.
+
+**Algoritmo:**
+```
+Para cada spec S:
+  1. ¿S modifica archivos? (allowed_paths no vacío y no es solo lectura)
+     - NO → execution_class = read_only
+     - SÍ → continuar
+  2. ¿Algún archivo de S.allowed_paths aparece en allowed_paths de otro spec?
+     - NO → ¿S toca config global (.claude/*, CLAUDE.md, CI)?
+       - NO → execution_class = isolated_write
+       - SÍ → execution_class = repo_wide
+     - SÍ → execution_class = shared_write
+```
+
+Actualizar el frontmatter de cada spec con el valor computado.
+Los specs con `isolated_write` son candidatos a batch-eligible.
 
 ### Detección de tickets batch-eligible (para /batch)
 
@@ -98,6 +184,23 @@ Presentar propuesta de orden al usuario.
 
 Para CADA ticket, generar un archivo `.ai/specs/active/ticket-N.md`
 siguiendo la plantilla en `templates/spec-template.md`.
+
+**Límite de specs por subagente: máximo 6.**
+Si el sprint tiene más de 6 tickets, partir la generación de specs en
+lotes de ≤6 y delegar cada lote a un subagente diferente. Cada subagente
+recibe: la tabla de inventario (Paso 1), la plantilla de spec, y la lista
+de tickets que le tocan. Esto previene degradación de calidad en los
+últimos specs por acumulación de contexto.
+
+Ejemplo con 14 tickets:
+- Subagente 1: specs T-1 a T-6 (6 specs)
+- Subagente 2: specs T-7 a T-12 (6 specs)
+- Subagente 3: specs T-13 a T-14 (2 specs)
+
+Si hay dependencias entre tickets de diferentes lotes, incluir en el
+prompt del subagente posterior un resumen de 1 línea de los specs
+relevantes ya generados (leer de disco). NO pasar specs completos
+como contexto — solo: id, título, allowed_paths.
 
 **Ubicación:** Los specs van en `.ai/specs/active/` (relativo a la raíz
 del repositorio). Al finalizar, se archivan automáticamente

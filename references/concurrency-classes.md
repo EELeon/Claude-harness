@@ -24,9 +24,11 @@
 ### Reglas de clasificación
 
 1. SIEMPRE verificar el scope fence contra todos los demás specs activos del sprint
-2. Si hay DUDA entre `isolated_write` y `shared_write`, elegir `shared_write` (más conservador)
+2. La execution_class la computa el Paso 2 del flujo principal (NO el escritor del spec).
+   El frontmatter del spec tiene `execution_class: auto` por defecto.
 3. Archivos en `### Archivos condicionales` cuentan como posible solapamiento
 4. `repo_wide` tiene prioridad: si el ticket toca archivos globales, es `repo_wide` aunque también toque archivos aislados
+5. NO usar "si hay duda, elegir shared_write" como default — aplicar el algoritmo del Paso 2
 
 ## Ejemplos de tickets reales por clase
 

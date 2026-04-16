@@ -2,16 +2,19 @@
 
 ## Cuándo partir un TICKET en sub-tickets (antes de escribir el spec)
 
-IMPORTANTE: Esta decisión ocurre ANTES de escribir el spec.
-Es diferente de dividir un ticket en subtareas (que ocurre DENTRO del spec).
+IMPORTANTE: Esta decisión ocurre en el **Paso 1.5 — Triage de tamaño**
+del flujo principal (`references/flujo-principal.md`). Es un gate obligatorio
+entre el inventario (Paso 1) y el ordenamiento (Paso 2).
 
-| Concepto | Qué es | Cuándo decidir |
-|----------|--------|---------------|
-| Sub-tickets | Specs independientes, cada uno con su propio scope fence, auditoría y commit | ANTES de escribir el spec |
-| Subtareas | Divisiones de trabajo dentro de UN spec, comparten scope fence | DENTRO del spec ya escrito |
+NUNCA evaluar sizing después de escribir specs — para entonces ya se gastó
+contexto en análisis detallado que podría haberse evitado.
 
-Un tema debe partirse en sub-tickets cuando dispara 2+ señales de complejidad
-(ver sección "Análisis de descomposición" en spec-template.md).
+| Concepto | Qué es | Cuándo decidir | Dónde en el flujo |
+|----------|--------|---------------|-------------------|
+| Sub-tickets | Specs independientes, cada uno con su propio scope fence, auditoría y commit | Paso 1.5 (triage) — ANTES de escribir el spec | `flujo-principal.md` → Paso 1.5 |
+| Subtareas | Divisiones de trabajo dentro de UN spec, comparten scope fence | Paso 3 — DENTRO del spec ya escrito | `spec-template.md` → Subtareas |
+
+Un tema debe partirse en sub-tickets cuando dispara 2+ señales de complejidad.
 
 Señales de complejidad:
 1. Objetivo con múltiples responsabilidades ("implementar X Y migrar Z")
@@ -23,6 +26,12 @@ Señales de complejidad:
 
 La opción default es PARTIR. Mantener junto requiere justificación explícita
 y menos de 2 señales activas.
+
+**Flujo correcto:**
+1. Paso 1: inventario → se detectan archivos, complejidad, dominio
+2. Paso 1.5: triage → con esos datos, evaluar señales y decidir particiones
+3. Paso 2: ordenar los tickets resultantes (originales + sub-tickets)
+4. Paso 3: escribir specs (ya con el tamaño correcto)
 
 ## Contexto técnico
 
