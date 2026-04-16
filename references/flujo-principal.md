@@ -366,4 +366,21 @@ Para tickets sacados del prompt (excepcionalmente complejos):
 Lee .ai/specs/active/ticket-[N].md e impleméntalo. Usa subagents.
 ```
 
-Ajustar según feedback antes de empaquetar.
+Ajustar según feedback antes de continuar al Paso 7.
+
+## Paso 7 — Commit de preparación
+
+Commitear todos los artefactos generados para que Claude Code los encuentre
+en un estado limpio (importante: `git reset --hard` durante rollback borraría
+archivos no commiteados, incluyendo los specs).
+
+```bash
+git add .ai/specs/active/ .ai/prompts/ .ai/rules.md .ai/plan.md \
+       CLAUDE.md .claude/ 2>/dev/null
+git commit -m "chore: preparar sprint [nombre-batch] — [N] tickets"
+```
+
+**Incluir:** specs, prompt, rules.md, plan.md, CLAUDE.md, .claude/ (si nuevos/modificados).
+**NO incluir:** archivos .plugin, .ai/runs/ (se crea durante ejecución), temporales.
+
+Este commit es el punto de partida limpio para la ejecución autónoma.

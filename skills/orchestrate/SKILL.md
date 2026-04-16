@@ -35,6 +35,7 @@ description: >
 | 4 | Prompt + rules | orchestrator-prompt.md |
 | 5 | Artefactos de soporte | flujo-principal.md |
 | 6 | Revisión + línea de ejecución | entrega-sprint.md |
+| **7** | **Commit de preparación** | (inline abajo) |
 
 ## Lazy-load de referencias
 
@@ -76,6 +77,23 @@ LEER SOLO cuando el paso lo requiera. NO leer todo al inicio.
 
 Si specs listos pero rules.md y prompt NO existen → flujo incompleto. Continuar a Paso 4 → 5 → 6.
 
+## Paso 7: Commit de preparación
+
+Después de entregar la línea de ejecución, commitear TODO lo generado:
+
+```bash
+git add .ai/specs/active/ .ai/prompts/ .ai/rules.md .ai/plan.md \
+       CLAUDE.md .claude/ 2>/dev/null
+git commit -m "chore: preparar sprint [nombre-batch] — [N] tickets"
+```
+
+Incluir: specs, prompt, rules, plan, CLAUDE.md y .claude/ (si se crearon/modificaron).
+NO incluir: archivos del plugin, .ai/runs/ (se crea durante ejecución), archivos temporales.
+
+**¿Por qué?** Claude Code necesita los specs y artefactos commiteados para que los subagentes
+los lean desde un estado limpio. Sin commit, un `git reset --hard` durante rollback
+borraría los specs mismos.
+
 ## Checklist de cierre
 
 - [ ] Specs en `.ai/specs/active/`
@@ -84,5 +102,6 @@ Si specs listos pero rules.md y prompt NO existen → flujo incompleto. Continua
 - [ ] `.ai/prompts/[batch].md` generado
 - [ ] Artefactos: CLAUDE.md, comandos, plan de ejecución
 - [ ] Línea de ejecución entregada
+- [ ] **Commit de preparación hecho**
 
 **Regla de carpetas:** Siempre `mkdir -p` antes de escribir.

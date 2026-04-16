@@ -1,6 +1,6 @@
 {
   "name": "code-orchestrator",
-  "version": "4.5.1",
+  "version": "4.5.2",
   "description": "Orquestador de tickets para Claude Code. Convierte tickets en ejecución autónoma con specs, validación, auditoría recursiva y aprendizaje continuo. v4.5: templates comprimidos 57%, lazy-load de references, limpieza de duplicados.",
   "author": {
     "name": "EELeon",
