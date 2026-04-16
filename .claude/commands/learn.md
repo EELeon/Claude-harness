@@ -146,7 +146,7 @@ Si durante este ticket hubo decisiones significativas (cambios de approach, desv
 1. Crear o actualizar `.ai/decisions/[nombre-batch].decisions.md`
 2. Agregar cada decisión con el formato de `references/decision-capture.md`
 3. Si el spec tenía sección "Decisiones de diseño", incluir esas también
-4. Si el subagente reportó desviaciones tácticas en Heat Shield, registrarlas como decisiones de fase "implementación"
+4. Si el subagente reportó desviaciones tácticas, registrarlas como decisiones de fase "implementación"
 
 Si no hubo decisiones significativas, saltar este paso.
 

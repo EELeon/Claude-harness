@@ -23,10 +23,12 @@ NO dejes que modifiquen los specs — los specs son la fuente de verdad.
 | 1 | [prefix]-[seq] — [Título] | `.ai/specs/active/[prefix]-[seq]-[slug].md` | [Simple/Media/Alta] |
 
 Para cada ticket:
-1. Lanzá un **subagente general-purpose** con este prompt:
-   > Lee e implementa el spec en `.ai/specs/active/[spec].md`. Leé CLAUDE.md para contexto. Seguí los pasos, corré tests, y hacé un commit atómico con el ticket en el mensaje. Lint con ruff si disponible. Devolvé Heat Shield: resumen (1-3 líneas), hash commit, tests, archivos tocados, tokens estimados, criterios (sí/no/parcial). NUNCA modifiques `.ai/`.
+1. Si el ticket es **INLINE** (trivial): lanzá subagente con la instrucción inline de la tabla.
+   Si tiene **spec**: lanzá un **subagente general-purpose** con este prompt:
+   > Lee e implementa el spec en `.ai/specs/active/[spec].md`. Leé CLAUDE.md para contexto. Seguí los pasos, corré tests, y hacé un commit atómico con el ticket en el mensaje. Lint con ruff si disponible. Devolvé: resumen (1-3 líneas), hash commit, tests pasaron/fallaron, archivos tocados. NUNCA modifiques `.ai/`.
 2. Aplicá verificación post-subagente (Reglas 2d → 2b → tests → 2c → 2e)
 3. Registrá en `.ai/runs/results.tsv` (Regla 4)
+4. `/learn` SOLO si hubo problemas (Regla 7)
 
 Al terminar: seguir protocolo "Al terminar" de reglas-orquestacion.md.
 ```

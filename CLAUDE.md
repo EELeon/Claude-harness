@@ -35,7 +35,7 @@ templates/        # Plantillas para specs, prompts, CLAUDE.md, meta, hooks
 
 ## Reglas de dominio
 - NUNCA exceder 100 líneas en CLAUDE.md de repos target — simplicidad > exhaustividad
-- SIEMPRE usar Heat Shield para reportar resultados de subagentes (resumen ≤4 líneas + ruta)
+- Tickets triviales (≤2 archivos, cambio mecánico) van como INLINE en el prompt — sin spec completo
 - NUNCA permitir sub-subagentes — máximo 1 nivel de profundidad
 - SIEMPRE persistir estado a disco antes de /compact o /clear
 - Un spec SIEMPRE tiene: objetivo, scope fence, archivos, tests, criterios de aceptación, commit message
@@ -57,6 +57,6 @@ templates/        # Plantillas para specs, prompts, CLAUDE.md, meta, hooks
 - SIEMPRE usar subagentes para subtareas marcadas en el spec
 - SIEMPRE commit atómico después de cada subtarea
 - SIEMPRE correr validación antes de marcar como completado
-- SIEMPRE ejecutar `/learn` al terminar cada ticket
+- Ejecutar `/learn` SOLO si el ticket tuvo problemas (rollback, >1 intento, desviaciones). Un /learn al final del sprint para lo general
 - Si se usa prompt del sprint: el orquestador maneja transiciones + checkpoint dinámico entre tickets
 - Si se ejecuta manualmente: `/clear` entre tickets para contexto fresco

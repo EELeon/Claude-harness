@@ -18,9 +18,10 @@ description: >
 - Máx 5 subagentes concurrentes, no sub-subagentes, máx 6 specs por subagente
 
 **Capas de protección:**
-- Primaria (siempre): Preflight → Scope fence + diff → Tests → Completitud → Ledger
-- Secundaria (hooks): Guard destructivo + Anti-racionalización
-- Terciaria (Claude Code): /simplify + /batch + /loop
+- Primaria (siempre): Scope fence + diff → Tests → Completitud → Ledger
+- Secundaria (siempre): Preflight (solo tickets con spec, no triviales)
+- Terciaria (hooks): Guard destructivo
+- Opcional (Claude Code): /simplify + /batch + /loop
 
 ## Flujo principal (7 pasos)
 
@@ -72,7 +73,7 @@ LEER SOLO cuando el paso lo requiera. NO leer todo al inicio.
 1. **`.ai/rules.md`** — SOLO overrides del sprint (perfil, comando tests, puntos de corte).
    Las reglas estándar viven en `${CLAUDE_PLUGIN_ROOT}/references/reglas-orquestacion.md`.
    El prompt apunta a ambos archivos. NO copiar reglas estándar al rules.md.
-2. **`.ai/prompts/[batch].md`** — Prompt ultra-lean (~1K tokens). Tabla de tickets + referencias.
+2. **`.ai/prompts/[batch].md`** — Prompt ultra-lean (~1K tokens). Tabla de tickets (con specs o instrucciones inline para triviales) + referencias.
 3. **Línea de ejecución:** `Lee .ai/prompts/[nombre-batch].md y ejecutá todos los tickets.`
 
 Si specs listos pero rules.md y prompt NO existen → flujo incompleto. Continuar a Paso 4 → 5 → 6.

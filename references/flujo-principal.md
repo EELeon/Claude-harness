@@ -182,7 +182,28 @@ Presentar propuesta de orden al usuario.
 
 ## Paso 3 — Generar specs
 
-Para CADA ticket, generar un archivo `.ai/specs/active/ticket-N.md`
+### Tickets triviales (sin spec)
+
+Un ticket es **trivial** si cumple TODOS estos criterios:
+- Toca ≤2 archivos
+- El cambio es mecánico (renombrar, cambiar valor, actualizar docstring)
+- No tiene dependencias ni bloquea a otros
+- No requiere tests nuevos
+
+Los tickets triviales NO necesitan spec completo. En su lugar, se incluyen
+como **oneliners** directamente en la tabla del prompt de ejecución:
+
+```
+| # | Ticket | Spec | Complejidad |
+| 1 | T-3 | INLINE: Cambiar 'no_response' a 'deferred' en docstrings de core/outcomes.py L133,138,144 | Trivial |
+```
+
+El subagente recibe la instrucción inline y hace commit. La verificación
+post-subagente sigue aplicando (scope, tests, completitud básica).
+
+### Tickets normales (con spec)
+
+Para cada ticket NO trivial, generar un archivo `.ai/specs/active/ticket-N.md`
 siguiendo la plantilla en `templates/spec-template.md`.
 
 **Límite de specs por subagente: máximo 6.**
@@ -267,10 +288,9 @@ Generar estos archivos siguiendo `templates/orchestrator-prompt.md`:
    Solo contiene: instrucción de leer reglas + tabla de tickets con ruta al spec.
    Es ultra-lean para mantenerse en la zona de fidelidad total (0-5K tokens).
 
-2. **`.ai/rules.md`** — Reglas de orquestación que el agente lee de disco.
-   Contiene: las 9 reglas (incluyendo 2b scope audit, 2c completitud,
-   8 /simplify gate, y 9 /batch paralelo), formato de .ai/runs/results.tsv,
-   patrón Heat Shield, y paso final de `/learn`.
+2. **`.ai/rules.md`** — SOLO overrides del sprint (perfil de permiso, comando de tests,
+   puntos de corte). Las reglas estándar viven en
+   `${CLAUDE_PLUGIN_ROOT}/references/reglas-orquestacion.md` y el prompt apunta a ambos.
 
 **El prompt es un archivo independiente** para que el usuario solo
 necesite pegar una línea en Claude Code:

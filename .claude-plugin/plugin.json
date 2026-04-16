@@ -1,7 +1,7 @@
 {
   "name": "code-orchestrator",
-  "version": "4.5.2",
-  "description": "Orquestador de tickets para Claude Code. Convierte tickets en ejecución autónoma con specs, validación, auditoría recursiva y aprendizaje continuo. v4.5: templates comprimidos 57%, lazy-load de references, limpieza de duplicados.",
+  "version": "4.6.0",
+  "description": "Orquestador de tickets para Claude Code. Convierte tickets en ejecución autónoma con specs, validación, auditoría recursiva y aprendizaje continuo. v4.6: simplificación — Heat Shield eliminado, /learn condicional, tickets triviales inline, campos de decomposición removidos del spec template.",
   "author": {
     "name": "EELeon",
     "url": "https://github.com/EELeon"

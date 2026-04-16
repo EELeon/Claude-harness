@@ -41,7 +41,7 @@ Basado en auditoria de 926 sesiones reales de Claude Code.
 ## Reglas para el orquestador
 
 1. **No re-leer archivos**: Si un archivo ya fue leido en el contexto actual, usar la version en memoria. Solo re-leer si se modifico despues.
-2. **Heat Shield en retornos**: Limitar el output de subagentes a resumen de 4 lineas + ruta del archivo modificado. Evitar retornos verbosos.
+2. **Reportes lean en retornos**: Limitar el output de subagentes a resumen de 1-3 lineas + hash + tests + archivos tocados. Evitar retornos verbosos.
 3. **Puntos de corte**: Ejecutar `/compact` o `/clear` cada 3-4 tickets para evitar degradacion de contexto.
 4. **Preflight de skills**: Antes de un sprint, verificar que solo las skills necesarias estan habilitadas.
 

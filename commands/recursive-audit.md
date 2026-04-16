@@ -120,7 +120,7 @@ Dividir los dominios del meta en dos mitades equilibradas (por cantidad de capac
 Auditor 1 escribe `raw-gaps-1.md`, Auditor 2 escribe `raw-gaps-2.md`.
 Después, concatenar ambos en `raw-gaps.md` antes de pasar al paso 2.
 
-**Heat Shield del auditor:**
+**Reporte del auditor:**
 El orquestador recibe solo:
 - Fase: AUDIT
 - Gaps encontrados: [N]
@@ -194,7 +194,7 @@ Lanzar un subagente **Plan** (read-only) con este prompt:
 > - [Patrones del codebase que los specs deben seguir]
 > ```
 
-**Heat Shield del analista+planificador:**
+**Reporte del analista+planificador:**
 - Fase: PLAN
 - Gaps a implementar: [N]
 - Gaps filtrados: [N]
@@ -232,7 +232,7 @@ Lanzar un subagente **general-purpose** (write) con este prompt:
 > (validación de commands/preflight.md) sobre los specs generados.
 > Si alguno tiene FAIL, corregilo antes de terminar.
 
-**Heat Shield del spec writer:**
+**Reporte del spec writer:**
 - Fase: SPECS
 - Specs generados: [N]
 - Preflight: [PASS/FAIL]

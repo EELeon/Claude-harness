@@ -49,21 +49,24 @@ Sin degradación → continuar. Con degradación → persistir results.tsv, pedi
 ## Regla 6: Retomar post-clear
 Si results.tsv tiene tickets → saltarlos. Leer results.tsv → rules.md → CLAUDE.md → continuar.
 
-## Regla 7: Heat Shield
-Subagente devuelve SOLO: resumen (1-3 líneas), hash commit, tests, archivos tocados, tokens estimados, criterios (sí/no/parcial), desviaciones (máx 2 líneas). Si excede límites → `.ai/artifacts/` + ruta.
+## Regla 7: /learn condicional
+Post-ticket, ejecutar `/learn` SOLO si:
+- El ticket requirió más de 1 intento (iterations > 1)
+- Hubo rollback (rollback_count > 0)
+- El subagente encontró algo inesperado (desviaciones en el reporte)
+- El ticket fue descartado (status = discard)
 
-## Regla 8: Auto-learn
-Post-keep: `/learn ticket-[N] [título]`. Post-discard: NO /learn.
+Si el ticket pasó limpio a la primera → NO /learn. Un solo `/learn` al final del sprint captura lo general.
 
-## Regla 9: /simplify (opcional)
+## Regla 8: /simplify (opcional)
 Post-verificación para Media/Alta. Aplicar → re-test → amend si pasan, descartar si fallan.
 
-## Regla 10: /batch (opcional)
+## Regla 9: /batch (opcional)
 3+ tickets sin dependencias, S/M, sin archivos compartidos → locks + /batch + verificar cada uno.
 
 ## Al terminar
 1. Suite completa de tests
-2. `/learn [batch] completo`
+2. `/learn [batch] completo` — este es el /learn obligatorio del sprint (captura lecciones generales)
 3. Archivar: `mkdir -p .ai/specs/archive/[batch] && mv .ai/specs/active/* .ai/specs/archive/[batch]/ && mkdir -p .ai/runs/archive && cp .ai/runs/results.tsv .ai/runs/archive/[batch].tsv && rm -f .ai/rules.md .ai/plan.md .ai/runs/results.tsv && git add -A && git commit -m "chore: archivar [batch]"`
 4. Registrar en sprint-registry.md
 5. Resumen final + ofrecer /loop si hay CI

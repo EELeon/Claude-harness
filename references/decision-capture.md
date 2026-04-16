@@ -5,7 +5,7 @@
 El harness captura **qué** se hizo (specs, results.tsv, done-tasks.md) pero no **por qué** se tomaron las decisiones. El razonamiento vive en tres lugares efímeros que se pierden:
 
 1. **Transcript de Cowork** — decisiones durante escritura de specs. Muere al cerrar sesión.
-2. **Contexto del subagente** — decisiones tácticas durante implementación. Solo sobrevive el Heat Shield.
+2. **Contexto del subagente** — decisiones tácticas durante implementación. Solo sobrevive el reporte lean.
 3. **Conversación de auditoría** — hallazgos que quedan en chat, no en el repo.
 
 ## Formato de una entrada de decisión

@@ -90,13 +90,6 @@ Validaciones:
 | blocked_if | list[str] | Siempre (puede ser vacío) |
 | discard_if | list[str] | Siempre |
 
-5. Campos de descomposición presentes si complexity != Simple:
-
-| Campo | Tipo | Requerido si |
-|-------|------|-------------|
-| decomposition_signals | int | complexity = Media o Alta |
-| decomposition_decision | enum | complexity = Media o Alta. Valores: unico, partido_en_N |
-
 Si el frontmatter falta completamente → FAIL con "frontmatter YAML no encontrado".
 Si un campo obligatorio falta → FAIL con "campo faltante: [nombre]".
 Si un valor es inválido → FAIL con "valor inválido para [campo]: [valor]".
@@ -146,51 +139,19 @@ Método: contar líneas de contenido. Si = 0 → FAIL con "[heading] está vací
 | Criterios de aceptación ≥ 1 | count(checkboxes en Criterios) | FAIL si = 0 |
 | Tests ≥ 1 | count(checkboxes en Tests) | FAIL si = 0 |
 
-**Nivel 5: Validación de descomposición y triage previo (FAIL si incoherente)**
-
-Solo para specs con complexity = Media o Alta.
-Para specs Simple, saltar este nivel.
-
-**5a. Verificar que el triage (Paso 1.5) ocurrió:**
-
-Si el spec tiene decomposition_signals ≥ 2 Y decomposition_decision = "unico":
-- FAIL con "ticket con ≥2 señales de complejidad debe partirse en sub-tickets.
-  Esto debió detectarse en el Paso 1.5 (triage de tamaño). Volver al triage
-  antes de continuar. Ver: references/flujo-principal.md → Paso 1.5"
-
-Si el spec tiene complexity = Alta Y decomposition_decision = "unico":
-- FAIL con "ticket de complejidad Alta no puede mantenerse como único sin
-  justificación explícita en el triage. Volver al Paso 1.5"
-
-**5b. Validaciones de descomposición (existentes):**
-
-1. La sección `## Análisis de descomposición` existe y no está vacía
-2. El campo `decomposition_signals` del frontmatter coincide con el
-   conteo de señales marcadas como "sí" en la sección
-3. Coherencia señales → decisión:
-   - Si decomposition_signals ≥ 2 Y decomposition_decision = "unico" → FAIL
-     (capturado en 5a, redundante pero explícito)
-   - Si decomposition_signals < 2 Y decomposition_decision = "unico" → OK
-   - Si decomposition_decision = "partido_en_N" → OK (ya se partió)
-4. Verificación cruzada de señales contra datos del spec:
-   - Señal "más de 8 archivos": contar allowed_paths del frontmatter.
-     Si count > 8 y señal marcada "no" → WARN "posible señal no detectada"
-   - Señal "más de 4 criterios independientes": contar closure_criteria.
-     Si count > 4 y señal marcada "no" → WARN
-   - Señal "más de 2 módulos": contar directorios únicos en allowed_paths.
-     Si count > 2 y señal marcada "no" → WARN
-
 **Orden de ejecución:**
 0. Nivel 0 (frontmatter) — si falla, no continuar
-1. Nivel 1 (headings) — si falla, no continuar con niveles 2-5
-2. Nivel 2 (no vacío) — si falla, reportar pero continuar con nivel 3-5
+1. Nivel 1 (headings) — si falla, no continuar con niveles 2-4
+2. Nivel 2 (no vacío) — si falla, reportar pero continuar con nivel 3-4
 3. Nivel 3 (formato) — reportar todo
 4. Nivel 4 (cruces numéricos) — reportar todo
-5. Nivel 5 (descomposición) — solo para Media/Alta
-6. Validaciones semánticas (campos obligatorios + warnings + cruzadas)
+5. Validaciones semánticas (campos obligatorios + warnings + cruzadas)
 
-Esto separa lo que se puede verificar mecánicamente (niveles 0-5) de lo
-que requiere interpretación (campos semánticos). Los niveles 0-5 son
+Nota: la descomposición se valida en el Paso 1.5 (triage de tamaño),
+no en preflight. Si un ticket llega a spec, ya pasó el triage.
+
+Esto separa lo que se puede verificar mecánicamente (niveles 0-4) de lo
+que requiere interpretación (campos semánticos). Los niveles 0-4 son
 deterministas: el mismo spec siempre produce el mismo resultado.
 
 ## Formato de salida

@@ -32,8 +32,6 @@ blocked_if:
 discard_if:
   - "max_attempts alcanzado sin tests passing"
   - "scope violation en archivo denylist"
-decomposition_signals: 0
-decomposition_decision: "unico | partido_en_N"
 ---
 
 ## Objetivo
@@ -71,24 +69,6 @@ decomposition_decision: "unico | partido_en_N"
 |---------|--------|
 | `ruta/archivo.py` | [Qué agregar/cambiar] |
 | `ruta/nuevo.py` | [Crear: qué contiene] |
-
-## Análisis de descomposición
-
-<!-- OBLIGATORIO para Media/Alta. Para Simple: "N/A". Si ≥2 señales → OBLIGATORIO partir. -->
-
-- [ ] Objetivo tiene múltiples responsabilidades con "y"
-- [ ] >8 archivos en scope fence
-- [ ] >4 criterios de aceptación independientes
-- [ ] Subtareas no comparten archivos (tickets disfrazados)
-- [ ] Toca >2 módulos/directorios distintos
-- [ ] Alta + >3 subtareas
-
-Señales activas: [N]/6 | Decisión: [unico | partido_en_N]
-
-## Política de iteración
-- **Reintentar:** [condiciones]
-- **Escalar:** [cuándo pedir intervención]
-- **Descartar:** [cuándo abandonar]
 
 ## Subtareas
 

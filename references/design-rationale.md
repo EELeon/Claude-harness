@@ -21,7 +21,7 @@ El prompt del orquestador debe mantenerse en ~2-3K tokens.
 - Reglas actualizables sin regenerar prompt
 
 ## Estrategia de contexto (3 capas)
-1. SUBAGENTES: contexto fresco por ticket. Heat Shield para resultados.
+1. SUBAGENTES: contexto fresco por ticket. Reporte lean para resultados.
 2. ESTADO EN DISCO: .ai/runs/results.tsv persiste entre /compact y /clear.
 3. CHECKPOINT DINÁMICO: Evaluar contexto post-ticket. >70% sugerir compact, >85% reset.
 

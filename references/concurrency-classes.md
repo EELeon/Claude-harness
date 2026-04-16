@@ -58,7 +58,7 @@
 Cuando tickets `isolated_write` o `shared_write` se ejecutan en worktrees paralelos,
 sus commits deben integrarse al branch del sprint. Este protocolo define cómo.
 
-Ver Regla 10 en `templates/orchestrator-prompt.md` para las reglas detalladas de cherry-pick.
+Ver protocolo de cherry-pick seguro en `references/reglas-orquestacion.md` para las reglas detalladas.
 
 ### Para `isolated_write` (paralelo en worktree)
 

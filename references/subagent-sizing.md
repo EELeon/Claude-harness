@@ -157,25 +157,15 @@ NO hagas:
 - Specs deben incluir contexto de arquitectura
 - 1 ticket complejo puede consumir 1 sesión entera
 
-## Patrón Heat Shield (retorno de subagentes)
+## Retorno de subagentes (formato lean)
 
-El subagente NO debe devolver datos crudos al orquestador. El orquestador
-necesita mantener su contexto lean para seguir orquestando.
-
-**El subagente devuelve:**
+El subagente devuelve un reporte conciso para mantener el contexto del orquestador lean:
 - Resumen de qué se hizo (1-3 líneas)
 - Hash del commit
 - Estado de tests (passed/failed)
 - Archivos tocados (lista)
-- Estado de criterios de aceptación (sí/no/parcial por cada uno)
 
-**El subagente NO devuelve:**
-- Logs completos de ejecución
-- Contenido de archivos leídos
-- Output completo de tests (solo pass/fail + nombre del test que falló)
-
-Este patrón protege al orquestador de acumular contexto innecesario
-que acelera la degradación de la ventana.
+NO devolver: logs completos, contenido de archivos, output completo de tests.
 
 ## Errores comunes al dividir
 

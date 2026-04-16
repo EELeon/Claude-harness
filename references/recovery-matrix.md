@@ -13,7 +13,7 @@
 | # | Situación | Señal de detección | Acción | Detalle |
 |---|-----------|-------------------|--------|---------|
 | 1 | Contexto pesado (>80%) | Orquestador reporta lentitud o paraphrase loss | `shrink` | Microcompact + /compact |
-| 2 | Subagente tangencial | Heat Shield muestra archivos fuera de scope | `rollback` | git reset --hard + re-spec |
+| 2 | Subagente tangencial | Reporte del subagente muestra archivos fuera de scope | `rollback` | git reset --hard + re-spec |
 | 3 | Test suite lenta | Tests tardan >5min sin terminar | `split` | Separar tests lentos, marcar como known-slow |
 | 4 | Comando no disponible | Error de herramienta o permiso | `retry` | Fallback documentado por tipo |
 | 5 | CI falla post-PR | Pipeline falla después de crear PR | `escalate` | Sesión principal con diagnóstico |
@@ -49,7 +49,7 @@
 ### 2. Subagente tangencial — `rollback`
 
 **Señales de detección:**
-- Heat Shield reporta archivos que no están en la allowlist ni en condicionales del spec
+- Reporte del subagente reporta archivos que no están en la allowlist ni en condicionales del spec
 - El diff muestra cambios en archivos de la denylist
 - El subagente reporta haber "refactorizado" o "mejorado" cosas no pedidas
 - La descripción del cambio no coincide con el objetivo del spec
@@ -165,7 +165,7 @@
 
 **Señales de detección:**
 - La salida del subagente excede los límites definidos en `references/output-budgets.md`
-- El Heat Shield recibe un bloque de texto demasiado grande
+- El Reporte del subagente recibe un bloque de texto demasiado grande
 - El retorno del subagente amenaza con inflar el contexto del orquestador
 
 **Pasos exactos:**
