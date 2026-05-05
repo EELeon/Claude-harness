@@ -35,13 +35,13 @@ templates/        # Plantillas para specs, prompts, CLAUDE.md, meta, hooks
 
 ## Reglas de dominio
 - NUNCA exceder 100 líneas en CLAUDE.md de repos target — simplicidad > exhaustividad
-- Tickets triviales (≤2 archivos, cambio mecánico) van como INLINE en el prompt — sin spec completo
-- NUNCA permitir sub-subagentes — máximo 1 nivel de profundidad
-- SIEMPRE persistir estado a disco antes de /compact o /clear
+- Tickets triviales (≤5 archivos, cambio mecánico) van como INLINE en el prompt — sin spec completo
+- Sub-subagentes: NO soportados por Claude Code (constraint de plataforma, no regla de diseño) — máximo 1 nivel
+- SIEMPRE persistir estado a disco antes de /clear o reset — el disco es la fuente de verdad
 - Un spec SIEMPRE tiene: objetivo, scope fence, archivos, tests, criterios de aceptación, commit message
 - El ledger (.ai/runs/results.tsv) es la fuente de verdad — SIEMPRE registrar
-- SIEMPRE usar /compact antes de pausas largas (>5 min) — el cache de Anthropic expira y re-procesa todo el contexto
-- NUNCA re-leer un archivo que ya esta en el contexto actual — confiar en lo que ya se leyo
+- NUNCA pedir /compact manualmente — Claude Code auto-compacta cuando hace falta
+- Re-leer archivos solo si (a) se modificaron después de la última lectura o (b) hay duda razonable del estado — confiar en lo ya leído cuando aplique
 
 ## NO hacer
 - NUNCA bloquear `git reset --hard` en hooks — el orchestrator lo usa para rollback

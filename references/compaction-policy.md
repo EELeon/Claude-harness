@@ -84,13 +84,14 @@ Subagente T-4 devuelve:
 1. Checkpoint dinamico (Regla 5) detecta degradacion de fidelidad:
    el orquestador relee archivos que ya leyo, pierde track del orden de tickets,
    o confunde resultados.
-2. Se completaron 8+ tickets desde el ultimo /clear o inicio de sesion,
+2. Se completaron 12+ tickets desde el ultimo /clear o inicio de sesion,
    Y el "smoke test" de Regla 5 indica vaguedad al leer el proximo spec.
 
-Nota: la condicion 2 es una heuristica conservadora. En sprints observados,
-las sesiones que excedieron 8 tickets sin reset consistentemente perdieron
-contexto (evidencia: C3 con 31 tickets agoto contexto, C4 con 24 tickets
-necesito 2 continuaciones).
+Nota: la condicion 2 es una heuristica conservadora. El umbral anterior era
+8 tickets, calibrado con modelos mas viejos (C3 con 31 tickets agoto contexto,
+C4 con 24 tickets necesito 2 continuaciones). Con Opus 4.7 la fidelidad
+sostiene sprints mas largos sin reset; 12 tickets es la nueva zona segura,
+pero el disparador real sigue siendo el smoke test de Regla 5, no el numero.
 
 **Responsable:** El usuario (con guia del orquestador).
 

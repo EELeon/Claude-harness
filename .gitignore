@@ -1,0 +1,22 @@
+# Build artifacts
+*.plugin
+
+# Temp files
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+
+# OS metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.sublime-*
+
+# Logs
+*.log

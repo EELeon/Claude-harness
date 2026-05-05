@@ -185,10 +185,15 @@ Presentar propuesta de orden al usuario.
 ### Tickets triviales (sin spec)
 
 Un ticket es **trivial** si cumple TODOS estos criterios:
-- Toca ≤2 archivos
-- El cambio es mecánico (renombrar, cambiar valor, actualizar docstring)
+- Toca ≤5 archivos
+- El cambio es mecánico (renombrar, cambiar valor, actualizar docstring,
+  mover bloques, actualizar imports, aplicar el mismo patch a N archivos)
 - No tiene dependencias ni bloquea a otros
-- No requiere tests nuevos
+- No requiere tests nuevos (los existentes deben seguir pasando)
+
+El umbral anterior era ≤2 archivos. Se amplió a ≤5 porque modelos recientes
+manejan cambios mecánicos distribuidos sin perder fidelidad — un spec completo
+para esos casos es sobrecarga innecesaria.
 
 Los tickets triviales NO necesitan spec completo. En su lugar, se incluyen
 como **oneliners** directamente en la tabla del prompt de ejecución:
@@ -206,17 +211,21 @@ post-subagente sigue aplicando (scope, tests, completitud básica).
 Para cada ticket NO trivial, generar un archivo `.ai/specs/active/ticket-N.md`
 siguiendo la plantilla en `templates/spec-template.md`.
 
-**Límite de specs por subagente: máximo 6.**
-Si el sprint tiene más de 6 tickets, partir la generación de specs en
-lotes de ≤6 y delegar cada lote a un subagente diferente. Cada subagente
+**Límite de specs por subagente: máximo 8.**
+Si el sprint tiene más de 8 tickets, partir la generación de specs en
+lotes de ≤8 y delegar cada lote a un subagente diferente. Cada subagente
 recibe: la tabla de inventario (Paso 1), la plantilla de spec, y la lista
 de tickets que le tocan. Esto previene degradación de calidad en los
 últimos specs por acumulación de contexto.
 
-Ejemplo con 14 tickets:
-- Subagente 1: specs T-1 a T-6 (6 specs)
-- Subagente 2: specs T-7 a T-12 (6 specs)
-- Subagente 3: specs T-13 a T-14 (2 specs)
+El límite anterior era 6 specs. Se amplió a 8 porque la fidelidad del
+modelo sostiene ese volumen sin degradación medible en la calidad del
+último spec. Con 9+, reaparecen omisiones.
+
+Ejemplo con 18 tickets:
+- Subagente 1: specs T-1 a T-8 (8 specs)
+- Subagente 2: specs T-9 a T-16 (8 specs)
+- Subagente 3: specs T-17 a T-18 (2 specs)
 
 Si hay dependencias entre tickets de diferentes lotes, incluir en el
 prompt del subagente posterior un resumen de 1 línea de los specs
@@ -238,9 +247,9 @@ Leer `references/subagent-sizing.md` para las reglas de cuándo y cómo
 dividir un ticket en subtareas para subagentes.
 
 Resumen rápido:
-- Si un ticket toca **≤ 3 archivos** y tiene **≤ 3 pasos lógicos** → NO dividir
-- Si toca **4-8 archivos** → dividir en 2-3 subtareas
-- Si toca **9+ archivos** o tiene lógica algorítmica compleja → dividir en 3-5 subtareas
+- Si un ticket toca **≤ 5 archivos** y tiene **≤ 3 pasos lógicos** → NO dividir
+- Si toca **6-10 archivos** → dividir en 2-3 subtareas
+- Si toca **11+ archivos** o tiene lógica algorítmica compleja → dividir en 3-5 subtareas
 - Cada subtarea debe ser **autocontenida**: ejecutable sin saber qué hacen las otras
 - Cada subtarea termina con un **commit atómico**
 
@@ -359,12 +368,13 @@ de **mínimo viable → crece según necesidad**:
 
 **Principio:** La complejidad emerge de la presión real, no se anticipa.
 
-**Presupuesto de tokens (thresholds empíricos):**
+**Presupuesto de tokens (thresholds empíricos, calibrados para Opus 4.7):**
 - CLAUDE.md: ~2500 tokens (100 líneas). Más = dilución de atención
-- Cada spec: ~5000 tokens. Más = pérdida de fidelidad
-- Máx 10 constraints por spec/delegación. Más = omisiones
-- Contexto del orquestador: degradación medible a ~100K tokens (50% capacidad)
-- Zona segura de fidelidad total: 0-5K tokens de instrucciones
+- Cada spec: ~8000 tokens (antes 5K). Más de 10K = pérdida de fidelidad
+- 10 constraints por spec/delegación como zona segura. 12-15 es el umbral real;
+  >15 causa omisiones consistentes
+- Contexto del orquestador: degradación medible a ~120K tokens (antes 100K)
+- Zona segura de fidelidad total: 0-8K tokens de instrucciones (antes 0-5K)
 
 ## Paso 6 — Revisión con el usuario
 

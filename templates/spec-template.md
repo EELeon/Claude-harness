@@ -72,7 +72,7 @@ discard_if:
 
 ## Subtareas
 
-<!-- ≤3 archivos y ≤3 pasos → sin subdivisión. 4-8 archivos → 2-3 subtareas. 9+ → 3-5 subtareas. -->
+<!-- ≤5 archivos y ≤3 pasos → sin subdivisión. 6-10 archivos → 2-3 subtareas. 11+ → 3-5 subtareas. -->
 
 **Pasos:**
 1. [Paso concreto con archivo y función]

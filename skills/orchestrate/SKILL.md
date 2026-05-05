@@ -15,7 +15,7 @@ description: >
 
 - Una sola rama, un solo PR, commits atómicos por ticket, subagentes con contexto fresco
 - Estado en disco (`.ai/runs/results.tsv`), checkpoint dinámico post-ticket
-- Máx 5 subagentes concurrentes, no sub-subagentes, máx 6 specs por subagente
+- Máx 5 subagentes concurrentes, no sub-subagentes (constraint de plataforma), máx 8 specs por subagente
 
 **Capas de protección:**
 - Primaria (siempre): Scope fence + diff → Tests → Completitud → Ledger

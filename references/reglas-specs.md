@@ -6,8 +6,12 @@ el spec está incompleto.
 
 ## Límites empíricos para specs efectivos
 
-- Máximo **10 constraints** por spec (más causa omisiones críticas)
-- Target ~5000 tokens por spec (>5K = pérdida de fidelidad en instrucciones)
+- **10 constraints** por spec como zona segura (el umbral real con modelos
+  recientes está más cerca de 12-15; más de 15 causa omisiones críticas)
+- Target ~8000 tokens por spec — el ceiling anterior era 5K, calibrado con
+  modelos más viejos. Con Opus 4.7 la fidelidad de instrucciones sostiene
+  specs más ricos sin degradación medible. 8K es la nueva zona confiable;
+  >10K sigue trayendo paraphrase loss
 - Forma imperativa en restricciones: "NUNCA X", "SIEMPRE Y"
 - Si hay dependencia fuerte con otro ticket, usar patrón Interface-First
   (definir contrato/stub compartido antes de implementar)

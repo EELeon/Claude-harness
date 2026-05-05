@@ -18,7 +18,7 @@ Un tema debe partirse en sub-tickets cuando dispara 2+ señales de complejidad.
 
 Señales de complejidad:
 1. Objetivo con múltiples responsabilidades ("implementar X Y migrar Z")
-2. Más de 8 archivos en scope
+2. Más de 10 archivos en scope
 3. Más de 4 criterios de aceptación independientes
 4. Subtareas sin archivos compartidos
 5. Más de 2 módulos/directorios afectados
@@ -26,6 +26,10 @@ Señales de complejidad:
 
 La opción default es PARTIR. Mantener junto requiere justificación explícita
 y menos de 2 señales activas.
+
+Los umbrales 2 y 3 se calibraron con modelos anteriores. Con Opus 4.7 la
+capacidad de sostener scope fence en tickets de 10 archivos sin degradación
+medible es confiable; por eso el umbral de archivos subió de 8 a 10.
 
 **Flujo correcto:**
 1. Paso 1: inventario → se detectan archivos, complejidad, dominio
@@ -37,7 +41,8 @@ y menos de 2 señales activas.
 
 Un subagente de Claude Code:
 - Tiene su propia ventana de contexto (~200k tokens), separada del agente principal
-- No puede crear otros subagentes (sin anidación)
+- **No puede crear otros subagentes** — este es un constraint de plataforma
+  de Claude Code, no una decisión de diseño. Máximo 1 nivel de profundidad
 - Devuelve solo su resultado final al agente padre (no el contexto intermedio)
 - Puede correr en paralelo con otros subagentes
 - Tiene acceso restringido a herramientas según su configuración
@@ -51,7 +56,7 @@ Un subagente de Claude Code:
 ### NO dividir (ejecución directa)
 
 El ticket se ejecuta directo en el contexto principal cuando:
-- Toca ≤ 3 archivos
+- Toca ≤ 5 archivos
 - Tiene ≤ 3 pasos lógicos secuenciales
 - No requiere exploración del codebase
 - Es principalmente CRUD o configuración
@@ -60,7 +65,7 @@ El ticket se ejecuta directo en el contexto principal cuando:
 ### Dividir en 2-3 subtareas
 
 Cuando el ticket:
-- Toca 4-8 archivos
+- Toca 6-10 archivos
 - Tiene pasos que pueden paralelizarse
 - Mezcla exploración con implementación
 - Ejemplo: implementar un nuevo módulo de cálculo
@@ -71,7 +76,7 @@ Cuando el ticket:
 ### Dividir en 3-5 subtareas
 
 Cuando el ticket:
-- Toca 9+ archivos
+- Toca 11+ archivos
 - Tiene lógica algorítmica compleja
 - Requiere investigación previa del codebase
 - Tiene múltiples dominios internos
@@ -177,6 +182,6 @@ NO devolver: logs completos, contenido de archivos, output completo de tests.
 
 4. **Olvidar el commit atómico** — Cada subtarea debe terminar con commit. Sin commit, si falla la siguiente subtarea, se pierde todo.
 
-5. **Demasiados constraints en el prompt** — Máximo 10 restricciones por delegación. Más de 10 causa omisiones críticas del modelo.
+5. **Demasiados constraints en el prompt** — Límite suave de 10 restricciones por delegación. Con modelos recientes el umbral real está más cerca de 12-15, pero 10 sigue siendo la zona segura. Más de 15 consistentemente causa omisiones.
 
 6. **Más de 5 subagentes concurrentes** — Causa degradación sistémica por sobrecarga de coordinación. Si un ticket necesita más de 5 subtareas paralelas, serializar en grupos de ≤5.
