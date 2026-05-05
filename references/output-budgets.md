@@ -12,7 +12,7 @@ Los outputs grandes contaminan el contexto del orquestador, degradan la fidelida
 
 | Tipo de salida | Clave | Limite (chars) | Contexto tipico |
 |----------------|-------|----------------|-----------------|
-| Resumen de subagente | `summary_max_chars` | 500 | Heat Shield: 1-3 lineas de que se hizo |
+| Resumen de subagente | `summary_max_chars` | 500 | Reporte lean: 1-3 lineas de que se hizo |
 | Output de tests | `test_output_max_chars` | 1000 | Resultado de correr la suite de tests del ticket |
 | Extracto de diff | `diff_excerpt_max_chars` | 2000 | Diff para auditorias de scope o completitud |
 | Preview de logs | `log_preview_max_chars` | 500 | Logs de build, CI, o errores de ejecucion |

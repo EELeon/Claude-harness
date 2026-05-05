@@ -15,7 +15,7 @@ Si no hay perfil definido, usar `standard` como default.
 | Cleanup automático post-sprint | No — usuario confirma | Sí | Sí + borrar branches |
 | Batch paralelo | No — siempre secuencial | Sí (si batch-eligible) | Sí + más agresivo en eligibilidad |
 | Anti-racionalización hook | Obligatorio | Recomendado | Opcional |
-| Punto de corte | Cada 2 tickets | Cada 3-4 tickets | Cada 5-6 tickets |
+| Punto de corte | Cada 3 tickets | Auto (checkpoint dinámico) | Auto (solo si hay degradación) |
 
 ## Guía de selección
 

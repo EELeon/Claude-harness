@@ -2,20 +2,23 @@
 
 ## Cuándo partir un TICKET en sub-tickets (antes de escribir el spec)
 
-IMPORTANTE: Esta decisión ocurre ANTES de escribir el spec.
-Es diferente de dividir un ticket en subtareas (que ocurre DENTRO del spec).
+IMPORTANTE: Esta decisión ocurre en el **Paso 1.5 — Triage de tamaño**
+del flujo principal (`references/flujo-principal.md`). Es un gate obligatorio
+entre el inventario (Paso 1) y el ordenamiento (Paso 2).
 
-| Concepto | Qué es | Cuándo decidir |
-|----------|--------|---------------|
-| Sub-tickets | Specs independientes, cada uno con su propio scope fence, auditoría y commit | ANTES de escribir el spec |
-| Subtareas | Divisiones de trabajo dentro de UN spec, comparten scope fence | DENTRO del spec ya escrito |
+NUNCA evaluar sizing después de escribir specs — para entonces ya se gastó
+contexto en análisis detallado que podría haberse evitado.
 
-Un tema debe partirse en sub-tickets cuando dispara 2+ señales de complejidad
-(ver sección "Análisis de descomposición" en spec-template.md).
+| Concepto | Qué es | Cuándo decidir | Dónde en el flujo |
+|----------|--------|---------------|-------------------|
+| Sub-tickets | Specs independientes, cada uno con su propio scope fence, auditoría y commit | Paso 1.5 (triage) — ANTES de escribir el spec | `flujo-principal.md` → Paso 1.5 |
+| Subtareas | Divisiones de trabajo dentro de UN spec, comparten scope fence | Paso 3 — DENTRO del spec ya escrito | `spec-template.md` → Subtareas |
+
+Un tema debe partirse en sub-tickets cuando dispara 2+ señales de complejidad.
 
 Señales de complejidad:
 1. Objetivo con múltiples responsabilidades ("implementar X Y migrar Z")
-2. Más de 8 archivos en scope
+2. Más de 10 archivos en scope
 3. Más de 4 criterios de aceptación independientes
 4. Subtareas sin archivos compartidos
 5. Más de 2 módulos/directorios afectados
@@ -24,11 +27,22 @@ Señales de complejidad:
 La opción default es PARTIR. Mantener junto requiere justificación explícita
 y menos de 2 señales activas.
 
+Los umbrales 2 y 3 se calibraron con modelos anteriores. Con Opus 4.7 la
+capacidad de sostener scope fence en tickets de 10 archivos sin degradación
+medible es confiable; por eso el umbral de archivos subió de 8 a 10.
+
+**Flujo correcto:**
+1. Paso 1: inventario → se detectan archivos, complejidad, dominio
+2. Paso 1.5: triage → con esos datos, evaluar señales y decidir particiones
+3. Paso 2: ordenar los tickets resultantes (originales + sub-tickets)
+4. Paso 3: escribir specs (ya con el tamaño correcto)
+
 ## Contexto técnico
 
 Un subagente de Claude Code:
 - Tiene su propia ventana de contexto (~200k tokens), separada del agente principal
-- No puede crear otros subagentes (sin anidación)
+- **No puede crear otros subagentes** — este es un constraint de plataforma
+  de Claude Code, no una decisión de diseño. Máximo 1 nivel de profundidad
 - Devuelve solo su resultado final al agente padre (no el contexto intermedio)
 - Puede correr en paralelo con otros subagentes
 - Tiene acceso restringido a herramientas según su configuración
@@ -42,7 +56,7 @@ Un subagente de Claude Code:
 ### NO dividir (ejecución directa)
 
 El ticket se ejecuta directo en el contexto principal cuando:
-- Toca ≤ 3 archivos
+- Toca ≤ 5 archivos
 - Tiene ≤ 3 pasos lógicos secuenciales
 - No requiere exploración del codebase
 - Es principalmente CRUD o configuración
@@ -51,7 +65,7 @@ El ticket se ejecuta directo en el contexto principal cuando:
 ### Dividir en 2-3 subtareas
 
 Cuando el ticket:
-- Toca 4-8 archivos
+- Toca 6-10 archivos
 - Tiene pasos que pueden paralelizarse
 - Mezcla exploración con implementación
 - Ejemplo: implementar un nuevo módulo de cálculo
@@ -62,7 +76,7 @@ Cuando el ticket:
 ### Dividir en 3-5 subtareas
 
 Cuando el ticket:
-- Toca 9+ archivos
+- Toca 11+ archivos
 - Tiene lógica algorítmica compleja
 - Requiere investigación previa del codebase
 - Tiene múltiples dominios internos
@@ -148,25 +162,15 @@ NO hagas:
 - Specs deben incluir contexto de arquitectura
 - 1 ticket complejo puede consumir 1 sesión entera
 
-## Patrón Heat Shield (retorno de subagentes)
+## Retorno de subagentes (formato lean)
 
-El subagente NO debe devolver datos crudos al orquestador. El orquestador
-necesita mantener su contexto lean para seguir orquestando.
-
-**El subagente devuelve:**
+El subagente devuelve un reporte conciso para mantener el contexto del orquestador lean:
 - Resumen de qué se hizo (1-3 líneas)
 - Hash del commit
 - Estado de tests (passed/failed)
 - Archivos tocados (lista)
-- Estado de criterios de aceptación (sí/no/parcial por cada uno)
 
-**El subagente NO devuelve:**
-- Logs completos de ejecución
-- Contenido de archivos leídos
-- Output completo de tests (solo pass/fail + nombre del test que falló)
-
-Este patrón protege al orquestador de acumular contexto innecesario
-que acelera la degradación de la ventana.
+NO devolver: logs completos, contenido de archivos, output completo de tests.
 
 ## Errores comunes al dividir
 
@@ -178,6 +182,6 @@ que acelera la degradación de la ventana.
 
 4. **Olvidar el commit atómico** — Cada subtarea debe terminar con commit. Sin commit, si falla la siguiente subtarea, se pierde todo.
 
-5. **Demasiados constraints en el prompt** — Máximo 10 restricciones por delegación. Más de 10 causa omisiones críticas del modelo.
+5. **Demasiados constraints en el prompt** — Límite suave de 10 restricciones por delegación. Con modelos recientes el umbral real está más cerca de 12-15, pero 10 sigue siendo la zona segura. Más de 15 consistentemente causa omisiones.
 
 6. **Más de 5 subagentes concurrentes** — Causa degradación sistémica por sobrecarga de coordinación. Si un ticket necesita más de 5 subtareas paralelas, serializar en grupos de ≤5.

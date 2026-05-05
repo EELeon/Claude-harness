@@ -122,6 +122,20 @@ git add -A && git commit -m "chore: archivar specs y limpiar [nombre-batch]"
 - `.ai/runs/archive/*` — historial de results.tsv por sprint
 - `CLAUDE.md`, `.claude/` — infraestructura de Claude Code
 
+## Commit de preparación (Paso 7)
+
+Después de revisión y antes de entregar la línea de ejecución, commitear
+todos los artefactos generados:
+
+```bash
+git add .ai/specs/active/ .ai/prompts/ .ai/rules.md .ai/plan.md \
+       CLAUDE.md .claude/ 2>/dev/null
+git commit -m "chore: preparar sprint [nombre-batch] — [N] tickets"
+```
+
+Esto garantiza que `git reset --hard` durante rollback de tickets no
+borre los specs ni la infraestructura del sprint.
+
 ## Instrucciones para el usuario
 
 > **Para ejecutar:**

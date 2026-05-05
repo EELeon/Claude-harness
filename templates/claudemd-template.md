@@ -88,6 +88,8 @@ Una regla que referencia archivos borrados o APIs deprecated → eliminar.
 - SIEMPRE usar subagentes para subtareas marcadas en el spec
 - SIEMPRE commit atómico después de cada subtarea
 - SIEMPRE correr tests antes de marcar como completado
-- SIEMPRE ejecutar `/learn` al terminar cada ticket
+- Ejecutar `/learn` SOLO si hubo problemas (rollback, >1 intento, desviaciones). Un `/learn` al final del sprint captura lo general
 - Si se usa prompt del sprint: el orquestador maneja transiciones + checkpoint dinámico entre tickets
 - Si se ejecuta manualmente: `/clear` entre tickets para contexto fresco
+- NUNCA pedir `/compact` manualmente — Claude Code lo maneja
+- Re-leer archivos solo si se modificaron o hay duda razonable del estado — confiar en lo ya leído cuando aplique

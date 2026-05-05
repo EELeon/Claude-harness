@@ -40,6 +40,69 @@ Leer todos los tickets. Para cada uno, extraer:
 
 Presentar tabla-resumen al usuario antes de continuar.
 
+## Paso 1.5 — Triage de tamaño (gate obligatorio)
+
+ANTES de ordenar o escribir specs, evaluar si cada ticket necesita partirse.
+Este paso usa SOLO los datos del inventario (Paso 1) — NO profundiza en código.
+
+**Objetivo:** Detectar tickets sobredimensionados antes de gastar contexto en
+specs detallados. La decisión de partir es barata aquí y cara después.
+
+### Proceso
+
+Para cada ticket con complejidad Media o Alta, evaluar las 6 señales de
+complejidad de `references/subagent-sizing.md` usando solo la información
+del inventario:
+
+| Señal | Cómo evaluarla con datos del inventario |
+|-------|----------------------------------------|
+| Objetivo con múltiples responsabilidades | ¿El título/descripción del ticket tiene "y", "además", "también"? |
+| Más de 8 archivos en scope | Contar archivos del inventario (columna Archivos) |
+| Más de 4 criterios de aceptación independientes | Contar criterios mencionados en el ticket |
+| Subtareas sin archivos compartidos | ¿Los grupos de archivos son disjuntos? |
+| Más de 2 módulos/directorios afectados | Contar directorios únicos de los archivos del inventario |
+| Complejidad Alta + más de 3 subtareas | ¿Se anticipa que necesite 4+ subtareas? |
+
+### Decisión
+
+| Señales activas | Acción |
+|----------------|--------|
+| 0-1 | Ticket pasa al Paso 2 tal cual |
+| 2+ | OBLIGATORIO partir en sub-tickets |
+
+### Cómo documentar la partición
+
+Para tickets que se parten, producir una **tabla de triage** (NO specs completos):
+
+```
+Ticket original: T-N — [título]
+Señales activas: [N]/6 — [listar cuáles]
+
+| Sub-ticket | Scope rough | Archivos (~) | Complejidad estimada |
+|------------|-------------|-------------|---------------------|
+| T-N.a | [1 frase] | [lista corta] | Simple/Media |
+| T-N.b | [1 frase] | [lista corta] | Simple/Media |
+```
+
+**Reglas de la partición:**
+- Cada sub-ticket debe poder ejecutarse y hacer commit independiente
+- Cada sub-ticket debe tener complejidad Simple o Media (NUNCA Alta)
+- Si un sub-ticket resultante sigue siendo Alta → partir otra vez
+- Documentar dependencias entre sub-tickets (ej: "T-N.b requiere T-N.a")
+- NUNCA escribir specs detallados aquí — solo nombre, scope de 1 frase,
+  archivos rough, y complejidad estimada
+
+### Gate
+
+Presentar tabla de triage al usuario. NO continuar al Paso 2 hasta que
+el usuario apruebe las particiones. Si el usuario ajusta la división,
+actualizar la tabla.
+
+Los sub-tickets aprobados reemplazan al ticket original en el inventario
+y entran al Paso 2 como tickets independientes.
+
+**Tickets Simple:** Pasan directo — no necesitan triage.
+
 ## Paso 2 — Ordenar tickets, detectar paralelismo, y definir puntos de corte
 
 Ordenar TODOS los tickets en una sola secuencia de ejecución.
@@ -48,6 +111,29 @@ Ordenar TODOS los tickets en una sola secuencia de ejecución.
 1. **Dependencia técnica** — si B depende de A, A va primero
 2. **Dominio compartido** — tickets que tocan los mismos archivos van juntos
 3. **Complejidad intercalada** — evitar agrupar varios tickets de complejidad Alta seguidos
+
+### Computar execution_class por spec (OBLIGATORIO)
+
+Después de que TODOS los specs estén escritos, el Paso 2 computa la
+`execution_class` de cada spec comparando scope fences cruzados.
+El campo viene con valor `auto` en el frontmatter — NUNCA lo llena
+el escritor del spec manualmente.
+
+**Algoritmo:**
+```
+Para cada spec S:
+  1. ¿S modifica archivos? (allowed_paths no vacío y no es solo lectura)
+     - NO → execution_class = read_only
+     - SÍ → continuar
+  2. ¿Algún archivo de S.allowed_paths aparece en allowed_paths de otro spec?
+     - NO → ¿S toca config global (.claude/*, CLAUDE.md, CI)?
+       - NO → execution_class = isolated_write
+       - SÍ → execution_class = repo_wide
+     - SÍ → execution_class = shared_write
+```
+
+Actualizar el frontmatter de cada spec con el valor computado.
+Los specs con `isolated_write` son candidatos a batch-eligible.
 
 ### Detección de tickets batch-eligible (para /batch)
 
@@ -96,8 +182,55 @@ Presentar propuesta de orden al usuario.
 
 ## Paso 3 — Generar specs
 
-Para CADA ticket, generar un archivo `.ai/specs/active/ticket-N.md`
+### Tickets triviales (sin spec)
+
+Un ticket es **trivial** si cumple TODOS estos criterios:
+- Toca ≤5 archivos
+- El cambio es mecánico (renombrar, cambiar valor, actualizar docstring,
+  mover bloques, actualizar imports, aplicar el mismo patch a N archivos)
+- No tiene dependencias ni bloquea a otros
+- No requiere tests nuevos (los existentes deben seguir pasando)
+
+El umbral anterior era ≤2 archivos. Se amplió a ≤5 porque modelos recientes
+manejan cambios mecánicos distribuidos sin perder fidelidad — un spec completo
+para esos casos es sobrecarga innecesaria.
+
+Los tickets triviales NO necesitan spec completo. En su lugar, se incluyen
+como **oneliners** directamente en la tabla del prompt de ejecución:
+
+```
+| # | Ticket | Spec | Complejidad |
+| 1 | T-3 | INLINE: Cambiar 'no_response' a 'deferred' en docstrings de core/outcomes.py L133,138,144 | Trivial |
+```
+
+El subagente recibe la instrucción inline y hace commit. La verificación
+post-subagente sigue aplicando (scope, tests, completitud básica).
+
+### Tickets normales (con spec)
+
+Para cada ticket NO trivial, generar un archivo `.ai/specs/active/ticket-N.md`
 siguiendo la plantilla en `templates/spec-template.md`.
+
+**Límite de specs por subagente: máximo 8.**
+Si el sprint tiene más de 8 tickets, partir la generación de specs en
+lotes de ≤8 y delegar cada lote a un subagente diferente. Cada subagente
+recibe: la tabla de inventario (Paso 1), la plantilla de spec, y la lista
+de tickets que le tocan. Esto previene degradación de calidad en los
+últimos specs por acumulación de contexto.
+
+El límite anterior era 6 specs. Se amplió a 8 porque la fidelidad del
+modelo sostiene ese volumen sin degradación medible en la calidad del
+último spec. Con 9+, reaparecen omisiones.
+
+Ejemplo con 18 tickets:
+- Subagente 1: specs T-1 a T-8 (8 specs)
+- Subagente 2: specs T-9 a T-16 (8 specs)
+- Subagente 3: specs T-17 a T-18 (2 specs)
+
+Si hay dependencias entre tickets de diferentes lotes, incluir en el
+prompt del subagente posterior un resumen de 1 línea de los specs
+relevantes ya generados (leer de disco). NO pasar specs completos
+como contexto — solo: id, título, allowed_paths.
 
 **Ubicación:** Los specs van en `.ai/specs/active/` (relativo a la raíz
 del repositorio). Al finalizar, se archivan automáticamente
@@ -114,9 +247,9 @@ Leer `references/subagent-sizing.md` para las reglas de cuándo y cómo
 dividir un ticket en subtareas para subagentes.
 
 Resumen rápido:
-- Si un ticket toca **≤ 3 archivos** y tiene **≤ 3 pasos lógicos** → NO dividir
-- Si toca **4-8 archivos** → dividir en 2-3 subtareas
-- Si toca **9+ archivos** o tiene lógica algorítmica compleja → dividir en 3-5 subtareas
+- Si un ticket toca **≤ 5 archivos** y tiene **≤ 3 pasos lógicos** → NO dividir
+- Si toca **6-10 archivos** → dividir en 2-3 subtareas
+- Si toca **11+ archivos** o tiene lógica algorítmica compleja → dividir en 3-5 subtareas
 - Cada subtarea debe ser **autocontenida**: ejecutable sin saber qué hacen las otras
 - Cada subtarea termina con un **commit atómico**
 
@@ -164,10 +297,9 @@ Generar estos archivos siguiendo `templates/orchestrator-prompt.md`:
    Solo contiene: instrucción de leer reglas + tabla de tickets con ruta al spec.
    Es ultra-lean para mantenerse en la zona de fidelidad total (0-5K tokens).
 
-2. **`.ai/rules.md`** — Reglas de orquestación que el agente lee de disco.
-   Contiene: las 9 reglas (incluyendo 2b scope audit, 2c completitud,
-   8 /simplify gate, y 9 /batch paralelo), formato de .ai/runs/results.tsv,
-   patrón Heat Shield, y paso final de `/learn`.
+2. **`.ai/rules.md`** — SOLO overrides del sprint (perfil de permiso, comando de tests,
+   puntos de corte). Las reglas estándar viven en
+   `${CLAUDE_PLUGIN_ROOT}/references/reglas-orquestacion.md` y el prompt apunta a ambos.
 
 **El prompt es un archivo independiente** para que el usuario solo
 necesite pegar una línea en Claude Code:
@@ -236,12 +368,13 @@ de **mínimo viable → crece según necesidad**:
 
 **Principio:** La complejidad emerge de la presión real, no se anticipa.
 
-**Presupuesto de tokens (thresholds empíricos):**
+**Presupuesto de tokens (thresholds empíricos, calibrados para Opus 4.7):**
 - CLAUDE.md: ~2500 tokens (100 líneas). Más = dilución de atención
-- Cada spec: ~5000 tokens. Más = pérdida de fidelidad
-- Máx 10 constraints por spec/delegación. Más = omisiones
-- Contexto del orquestador: degradación medible a ~100K tokens (50% capacidad)
-- Zona segura de fidelidad total: 0-5K tokens de instrucciones
+- Cada spec: ~8000 tokens (antes 5K). Más de 10K = pérdida de fidelidad
+- 10 constraints por spec/delegación como zona segura. 12-15 es el umbral real;
+  >15 causa omisiones consistentes
+- Contexto del orquestador: degradación medible a ~120K tokens (antes 100K)
+- Zona segura de fidelidad total: 0-8K tokens de instrucciones (antes 0-5K)
 
 ## Paso 6 — Revisión con el usuario
 
@@ -263,4 +396,21 @@ Para tickets sacados del prompt (excepcionalmente complejos):
 Lee .ai/specs/active/ticket-[N].md e impleméntalo. Usa subagents.
 ```
 
-Ajustar según feedback antes de empaquetar.
+Ajustar según feedback antes de continuar al Paso 7.
+
+## Paso 7 — Commit de preparación
+
+Commitear todos los artefactos generados para que Claude Code los encuentre
+en un estado limpio (importante: `git reset --hard` durante rollback borraría
+archivos no commiteados, incluyendo los specs).
+
+```bash
+git add .ai/specs/active/ .ai/prompts/ .ai/rules.md .ai/plan.md \
+       CLAUDE.md .claude/ 2>/dev/null
+git commit -m "chore: preparar sprint [nombre-batch] — [N] tickets"
+```
+
+**Incluir:** specs, prompt, rules.md, plan.md, CLAUDE.md, .claude/ (si nuevos/modificados).
+**NO incluir:** archivos .plugin, .ai/runs/ (se crea durante ejecución), temporales.
+
+Este commit es el punto de partida limpio para la ejecución autónoma.

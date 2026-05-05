@@ -1,7 +1,7 @@
 {
   "name": "code-orchestrator",
-  "version": "4.0.0",
-  "description": "Orquestador de tickets para Claude Code. Convierte tickets en ejecución autónoma con specs, validación, auditoría recursiva, aprendizaje continuo, contratos operativos, métricas de topología, evolución de prompts, cherry-pick seguro, scope fence estricto, y sprint registry.",
+  "version": "4.7.0",
+  "description": "Orquestador de tickets para Claude Code. Convierte tickets en ejecución autónoma con specs, validación, auditoría recursiva y aprendizaje continuo. v4.7: recalibración para Opus 4.7 — trivial inline ≤5 archivos, specs ~8K tokens, 8 specs por subagente, quitado /compact manual, sub-subagentes como platform-constraint. Ver references/CHANGELOG-v4.7.md.",
   "author": {
     "name": "EELeon",
     "url": "https://github.com/EELeon"

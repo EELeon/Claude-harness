@@ -10,7 +10,7 @@ El orquestador gestiona contexto en 3 niveles progresivos: microcompact (continu
 
 ## Nivel 1 -- Microcompact (automatico, continuo)
 
-**Trigger:** Despues de cada interaccion con subagente (al recibir el resultado Heat Shield).
+**Trigger:** Despues de cada interaccion con subagente (al recibir el resultado reporte lean del subagente).
 
 **Responsable:** El prompt del orquestador (regla embedded en Regla 4).
 
@@ -18,7 +18,7 @@ El orquestador gestiona contexto en 3 niveles progresivos: microcompact (continu
 1. Sustituir outputs repetidos por referencias a artifact path (ver `references/output-budgets.md` para limites por tipo de salida)
 2. Colapsar resultados de tests identicos en una sola linea: "Tests: N passed (sin cambios desde iteracion anterior)"
 3. Reemplazar diffs repetidos por "sin cambios desde iteracion N"
-4. Usar SOLO Heat Shield (resumen de 4 lineas maximo + ruta) en vez de output completo
+4. Usar SOLO reporte lean del subagente (resumen de 4 lineas maximo + ruta) en vez de output completo
 
 **Ejemplo -- antes:**
 ```
@@ -62,7 +62,7 @@ Subagente T-4 devuelve:
 - Decisiones clave
 
 **Acciones del orquestador (para facilitar auto-compact limpio):**
-1. Usar SOLO Heat Shield para resultados de subagentes (no retener outputs completos)
+1. Usar SOLO reporte lean del subagente para resultados de subagentes (no retener outputs completos)
 2. Persistir todo a disco (results.tsv, plan.md) — no depender del contexto
 3. Incluir instrucciones de compactacion en CLAUDE.md del proyecto (ver claudemd-template.md)
 4. NUNCA pedir /compact manualmente — Claude Code lo maneja
@@ -84,13 +84,14 @@ Subagente T-4 devuelve:
 1. Checkpoint dinamico (Regla 5) detecta degradacion de fidelidad:
    el orquestador relee archivos que ya leyo, pierde track del orden de tickets,
    o confunde resultados.
-2. Se completaron 8+ tickets desde el ultimo /clear o inicio de sesion,
+2. Se completaron 12+ tickets desde el ultimo /clear o inicio de sesion,
    Y el "smoke test" de Regla 5 indica vaguedad al leer el proximo spec.
 
-Nota: la condicion 2 es una heuristica conservadora. En sprints observados,
-las sesiones que excedieron 8 tickets sin reset consistentemente perdieron
-contexto (evidencia: C3 con 31 tickets agoto contexto, C4 con 24 tickets
-necesito 2 continuaciones).
+Nota: la condicion 2 es una heuristica conservadora. El umbral anterior era
+8 tickets, calibrado con modelos mas viejos (C3 con 31 tickets agoto contexto,
+C4 con 24 tickets necesito 2 continuaciones). Con Opus 4.7 la fidelidad
+sostiene sprints mas largos sin reset; 12 tickets es la nueva zona segura,
+pero el disparador real sigue siendo el smoke test de Regla 5, no el numero.
 
 **Responsable:** El usuario (con guia del orquestador).
 
