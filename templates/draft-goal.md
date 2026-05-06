@@ -46,7 +46,7 @@ Tu tarea: convertir esta descripción en un archivo markdown con un goal estruct
 1. **Lee `CLAUDE.md` del repo target** — detecta convenciones, scope fence existente, reglas de dominio (ej. baseline INMUTABLE, single-writer policy, comandos lint/test, etc.).
 2. **Lee los ADRs/docs mencionados** en la descripción para dar contexto preciso. Si no existen, NO los inventes.
 3. **Pregunta antes de escribir** si hay ambigüedad clave: modo de ejecución, riesgos no obvios, criterios de aceptación faltantes. NO inventes criterios silenciosamente.
-4. **Propón nombre de archivo**: `.ai/<sprint-id>-goal.md` o `.ai/<ticket-id>-goal.md`.
+4. **Propón nombre de archivo**: `.ai/goals/<sprint-id>.md` o `.ai/goals/<ticket-id>.md`. Crea el directorio `.ai/goals/` si no existe.
 5. **Escribe el archivo** con la estructura de arriba.
 6. **Reporta** al usuario: ruta del archivo + recordatorio de invocar `/start <ruta>` en sesión nueva (idealmente con `/clear`).
 
