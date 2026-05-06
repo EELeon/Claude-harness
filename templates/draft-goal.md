@@ -43,9 +43,14 @@ Tu tarea: convertir esta descripción en un archivo markdown con un goal estruct
 
 ## Tu proceso
 
-1. **Lee `CLAUDE.md` del repo target** — detecta convenciones, scope fence existente, reglas de dominio (ej. baseline INMUTABLE, single-writer policy, comandos lint/test, etc.).
+1. **Auditoría profunda del repo antes de redactar** (en este orden, no saltes pasos):
+   a. **`CLAUDE.md`** — lee la sección "Reglas de dominio" / BPs completa. Anota qué archivos requieren cambios *automáticos* cuando agregas un componente nuevo (capabilities en `config/*.yaml`, registries, `Procfile`, cron declarations, ADRs marcados como implementados).
+   b. **AST / contract tests** (`tests/architecture/`, `tests/contract/`, `tests/integration/`) — lista los activos que pueden bloquear el merge si el sprint los viola sin saberlo (ej. `test_handler_db_read_boundary`, `test_autonomy_level_enforcement`, single-writer, capabilities-meta strict).
+   c. **Scaffolds y trabajo preexistente** (`.ai/specs/active/`, `.ai/goals/`, ramas activas con `git branch`) — si existe trabajo previo del mismo sprint, referenciarlo como punto de partida explícito.
+   d. **Lecciones recientes** (`.claude/lessons/`, `.ai/audit-post-sprint-*.md` últimos 3-5 sprints) — buscar patrones de fricción tipo "F-02a: cron declarado en Procfile o no corre en Railway". Convertir las aplicables al sprint actual en criterios de aceptación.
+   e. **Estado puntual a respetar** — última migración numerada (para evitar colisiones), `docs/pendientes/` (decisiones diferidas que el sprint pueda absorber o explicitar como out-of-scope), aspiraciones excluidas explícitamente.
 2. **Lee los ADRs/docs mencionados** en la descripción para dar contexto preciso. Si no existen, NO los inventes.
-3. **Pregunta antes de escribir** si hay ambigüedad clave: modo de ejecución, riesgos no obvios, criterios de aceptación faltantes. NO inventes criterios silenciosamente.
+3. **Pregunta antes de escribir** si hay ambigüedad clave: modo de ejecución, riesgos no obvios, criterios de aceptación faltantes, decisiones pendientes sin resolver. NO inventes criterios silenciosamente.
 4. **Propón nombre de archivo**: `.ai/goals/<sprint-id>.md` o `.ai/goals/<ticket-id>.md`. Crea el directorio `.ai/goals/` si no existe.
 5. **Escribe el archivo** con la estructura de arriba.
 6. **Reporta** al usuario: ruta del archivo + recordatorio de invocar `/start <ruta>` en sesión nueva (idealmente con `/clear`).
