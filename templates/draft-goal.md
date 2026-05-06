@@ -31,11 +31,11 @@ Tu tarea: convertir esta descripción en un archivo markdown con un goal estruct
 **TOCAR:** <directorios y archivos esperados>
 **NO TOCAR sin confirmación:** <rutas protegidas detectadas en CLAUDE.md del repo target: baseline, single-writer, etc.>
 
-## Riesgos — PARAR antes
-<Lista numerada de momentos donde hay que pedir confirmación humana: validación visual UI, big-bang merges, borrados de código vivo, schema changes.>
+## Riesgos — PARAR antes (OPCIONAL — incluir solo si el usuario lo pide explícitamente)
+<Por defecto omitir esta sección. El sprint debe correr autónomo hasta el PR. Incluir solo si el usuario marcó pausas explícitas en su descripción rough (ej: "antes de borrar X confirmar conmigo"). Riesgos genéricos (UI, big-bang, schema) NO son pausas — se mitigan con tests/validaciones automáticas o se revisan al final en el PR.>
 
 ## Lista de tickets (orden + paralelización)
-<Si Sprint largo: organizar en Phases A/B/C con sub-tickets numerados. Marcar cuáles tocan archivos distintos (paralelizables). Marcar "PARAR" entre phases que requieran intervención humana.>
+<Si Sprint largo: organizar en Phases A/B/C con sub-tickets numerados. Marcar cuáles tocan archivos distintos (paralelizables). NO marcar "PARAR" entre phases salvo que el usuario lo pidió explícitamente.>
 
 ## Notas
 <Cosas excluidas, deadlines, dependencias, lo que sea relevante.>
@@ -53,5 +53,6 @@ Tu tarea: convertir esta descripción en un archivo markdown con un goal estruct
 ## Reglas
 - NUNCA ejecutar el goal — solo escribir el archivo.
 - NUNCA inventar pre-requisitos, criterios o riesgos que la descripción no implique.
-- SIEMPRE marcar pausas humanas (`PARAR antes`) para: validación visual UI, big-bang merges, borrado de código vivo, schema changes a tablas críticas.
+- NUNCA agregar pausas humanas por defensa propia. El sprint corre autónomo hasta el PR. Solo incluir pausas si el usuario las pidió explícitamente en su descripción rough.
+- Riesgos (big-bang, borrado, schema, UI): convertirlos en **criterios de aceptación verificables automáticamente** (tests, builds, validaciones), NO en pausas. La validación humana ocurre al revisar el PR final, no mid-sprint.
 - Si la descripción es demasiado ambigua para producir un goal útil, decirlo y pedir aclaraciones antes de escribir.

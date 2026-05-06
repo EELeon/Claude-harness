@@ -17,7 +17,7 @@ Antes de tocar código, completa esto en tu respuesta inicial:
 
 1. **Reformulación** — una frase tuya. Si el goal es ambiguo, pide aclaración antes de seguir.
 2. **Criterios de aceptación** — qué cuenta como "hecho": tests que deben pasar, lint/typecheck limpio, validación visual si toca UI, output verificable.
-3. **Scope fence** — qué tocas y qué NO. Riesgos identificables (big-bang, cambio de schema, datos críticos, borrado de código vivo) declarados explícitamente. Para cada riesgo, decide: pedir confirmación humana antes vs. proceder.
+3. **Scope fence** — qué tocas y qué NO. Riesgos identificables (big-bang, cambio de schema, datos críticos, borrado de código vivo) declarados explícitamente con la mitigación que vas a aplicar (test, validación automática, etc.). NO pidas confirmación humana mid-run salvo que el goal lo pida explícitamente.
 4. **Plan TodoWrite** — descomposición en subtareas. Marca dependencias y cuáles son independientes (paralelizables).
 5. **Modo de ejecución** — uno de:
    - **Atómico** (1 ticket, ≤3h): un commit por subtarea, un PR al final.
@@ -37,12 +37,12 @@ Espera mi `ok`/`go` antes de editar código.
 - Mensaje descriptivo (te servirá si tienes que retomar tras crash).
 - Lint/format del stack antes de commitear (definido en CLAUDE.md del repo).
 
-### Cuándo parar y pedir confirmación
-- Riesgo declarado en scope fence (big-bang, schema, datos): parar antes y pedir `go`.
-- Test falla 2+ veces por la misma razón: parar y reportar.
-- Scope cambió respecto al inicio: parar y reportar — NO expandir silenciosamente.
-- UI/frontend: tras commitear, abrir dev server + browser check antes de continuar al siguiente ticket relacionado.
-- Trabajo en progreso inesperado (ramas, archivos sin commitear, worktrees activos) que no esperabas: investigar antes de sobrescribir.
+### Cuándo parar y reportar (rescates, no pausas defensivas)
+Por defecto NO pares. Corre hasta crear el PR. Solo para si:
+- Test falla 2+ veces por la misma razón (anti-loop).
+- Scope cambió respecto al inicio — NO expandir silenciosamente.
+- Trabajo en progreso inesperado (ramas, archivos sin commitear, worktrees activos) que no esperabas — investiga antes de sobrescribir.
+- El goal **explícitamente** pide pausa en cierto punto (sección "Riesgos — PARAR antes" del archivo).
 
 ## Cierre del goal completo
 Cuando todos los criterios de aceptación se cumplan:
