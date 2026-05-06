@@ -1,62 +1,39 @@
-# Code Orchestrator — Plugin de orquestación para Claude Code
+# Claude harness — instrucciones de mantenimiento
 
-## Qué es
-Plugin que convierte tickets/tareas en specs autocontenidos y ejecuta sprints autónomos con Claude Code. Todo el estado vive en disco (`.ai/`), los prompts son lean, y cada ticket produce un commit atómico revertible.
+> Este CLAUDE.md aplica cuando trabajas EN ESTE REPO (mantenimiento del harness). NO es la plantilla que se copia a repos target — esa vive en `templates/CLAUDE.md`.
 
-## Estructura
-```
-skills/           # 7 skills invocables desde Cowork (orchestrate, bootstrap, etc.)
-commands/         # 8 comandos Claude Code (/learn, /status, /preflight, etc.)
-references/       # Documentación de arquitectura y flujos
-templates/        # Plantillas para specs, prompts, CLAUDE.md, meta, hooks
-.ai/              # Estado de ejecución (specs, runs, audit, prompts)
-.claude/          # Commands instalados + hooks + settings
-```
+## Qué es esto
+Tres plantillas que se copian a mano a los pocos repos donde Edwin trabaja con Claude Code:
+- `templates/CLAUDE.md` — reglas de cómo trabajar (siempre cargado en repo target).
+- `templates/start.md` — slash command `/start <goal>`. Cubre tickets atómicos Y sprints largos (una rama, commits atómicos, un PR final).
+- `templates/settings.json` — permisos pre-aprobados (git rollback sin atorarse).
 
-## Comandos esenciales
-```bash
-# No hay build/test/lint — el repo es 100% markdown
-# Validar specs antes de sprint
-# /preflight
+No hay skills, commands instalables, ni manifest de plugin. Es un repo de plantillas.
 
-# Ver estado del sprint
-# /status
+## Filosofía v5.2
+Un solo `/start` cubre todos los casos. Sin comandos extra, sin sintaxis estructurada (`[gate]`, `[parallel]`), sin archivos de estado custom. Estado vive en git (commits descriptivos en una rama del sprint) y en TodoWrite. Iteración prolongada usa `/loop` con auto-pacing (skill de plataforma).
 
-# Capturar lecciones post-ticket
-# /learn [ticket] [título]
-```
-
-## Convenciones
-- SIEMPRE escribir en español (docs, specs, prompts, comments)
-- SIEMPRE usar forma imperativa en reglas: "NUNCA X" / "SIEMPRE Y"
-- NUNCA copiar templates sin adaptar al contexto del repo target
-- SIEMPRE mantener specs autocontenidos — el subagente NO tiene acceso a meta ni plan
-- NUNCA crear agentes custom sin evidencia de 3+ errores repetidos del mismo tipo
-
-## Reglas de dominio
-- NUNCA exceder 100 líneas en CLAUDE.md de repos target — simplicidad > exhaustividad
-- Tickets triviales (≤5 archivos, cambio mecánico) van como INLINE en el prompt — sin spec completo
-- Sub-subagentes: NO soportados por Claude Code (constraint de plataforma, no regla de diseño) — máximo 1 nivel
-- SIEMPRE persistir estado a disco antes de /clear o reset — el disco es la fuente de verdad
-- Un spec SIEMPRE tiene: objetivo, scope fence, archivos, tests, criterios de aceptación, commit message
-- El ledger (.ai/runs/results.tsv) es la fuente de verdad — SIEMPRE registrar
-- NUNCA pedir /compact manualmente — Claude Code auto-compacta cuando hace falta
-- Re-leer archivos solo si (a) se modificaron después de la última lectura o (b) hay duda razonable del estado — confiar en lo ya leído cuando aplique
+## Reglas de mantenimiento
+- SIEMPRE escribir en español (plantillas, README, comments).
+- SIEMPRE forma imperativa en reglas: "SIEMPRE X" / "NUNCA X".
+- NUNCA añadir un cuarto archivo de plantilla sin justificación fuerte. Cada archivo nuevo es fricción al instalar en un repo.
+- NUNCA reintroducir specs rígidos, ledger en disco, comandos extra (`/sprint`, `/preflight`, `/learn`), ni skills custom. Si una pieza nueva parece necesaria, primero pregúntate si la plataforma ya la cubre (TodoWrite, `Agent` + worktree, `/loop`, git, auto-memory).
+- NUNCA dejar las plantillas largas. `templates/CLAUDE.md` < 50 líneas, `templates/start.md` < 60.
+- Cambiar una plantilla NO actualiza los repos donde ya se copió — el usuario debe re-aplicar manualmente. Decir esto explícitamente cuando se proponga un cambio sustantivo.
 
 ## NO hacer
-- NUNCA bloquear `git reset --hard` en hooks — el orchestrator lo usa para rollback
-- NUNCA ejecutar sprint si algún spec tiene FAIL en preflight
-- NUNCA archivar specs antes de que el sprint termine completo
-- NUNCA crear .ai/done-tasks.md manualmente — se crea con el primer /learn
+- NUNCA recrear `.ai/`, `skills/`, `commands/`, `references/`, ni `.claude-plugin/` aquí. Si vuelven a aparecer es señal de que el rewrite está degradándose.
+- NUNCA bundles `.plugin` (zips). El repo es markdown + JSON.
+- NUNCA convertir esto en plugin de Claude Code de nuevo a menos que Edwin pida explícitamente "redistribuirlo".
 
-## Intentos fallidos
-<!-- Se actualiza con /learn después de cada ticket -->
+## Estructura esperada
+```
+templates/
+├── CLAUDE.md
+├── start.md
+└── settings.json
+README.md
+CLAUDE.md   (este archivo)
+```
 
-## Workflow
-- SIEMPRE empezar leyendo el spec en `.ai/specs/active/ticket-N.md`
-- SIEMPRE usar subagentes para subtareas marcadas en el spec
-- SIEMPRE commit atómico después de cada subtarea
-- SIEMPRE correr validación antes de marcar como completado
-- Ejecutar `/learn` SOLO si el ticket tuvo problemas (rollback, >1 intento, desviaciones). Un /learn al final del sprint para lo general
-- Si se usa prompt del sprint: el orquestador maneja transiciones + checkpoint dinámico entre tickets
-- Si se ejecuta manualmente: `/clear` entre tickets para contexto fresco
+Si ves más, sospecha. Si ves menos, falta algo.
