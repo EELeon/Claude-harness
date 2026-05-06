@@ -36,8 +36,10 @@ Espera mi `ok`/`go` antes de editar código.
 
 ### Delegación
 - SIEMPRE `Agent` + `isolation: "worktree"` para subtareas que toquen archivos distintos.
+- SIEMPRE particionar por **directorios/archivos disjuntos**. **NO hay cap numérico de subagentes paralelos** — si los scopes son disjuntos, lanza tantos como haya trabajo independiente (5, 10, 20).
+- Si hay archivos compartidos que múltiples subagentes editarían (registries, `config/*.yaml`, `Procfile`, schemas comunes), bundlear esas ediciones en **UN solo subagente** con justificación cruzada en el commit message. Los demás referencian el resultado, no lo tocan.
 - SIEMPRE scheduling continuo: cuando un subagente termine, lanzar el siguiente sin esperar al lote.
-- NO sub-subagentes (Claude Code no los soporta) — máximo 1 nivel.
+- NO sub-subagentes (Claude Code no los soporta) — máximo 1 nivel de **profundidad**, no de cantidad horizontal.
 
 ### Commits
 - Commit atómico por subtarea, en UNA sola rama.

@@ -15,10 +15,12 @@
 - Si el goal es ambiguo o el scope no está claro, preguntar antes de empezar — no asumir.
 
 ### Paralelización
-- SIEMPRE delegar subtareas independientes con `Agent` + `isolation: "worktree"` cuando tocan archivos distintos. Sin worktree los subagentes se pisan en el working tree.
+- SIEMPRE delegar subtareas independientes con `Agent` + `isolation: "worktree"`. Sin worktree los subagentes se pisan en el working tree.
+- SIEMPRE particionar el trabajo por **directorios/archivos disjuntos**. **NO hay cap numérico de subagentes paralelos** — si los scopes son verdaderamente disjuntos, 5/10/20 subagentes simultáneos son seguros. Lanza tantos como haya trabajo independiente.
+- Si hay archivos compartidos que múltiples subagentes necesitarían editar (ej. `core/enums.py`, registries, `config/*.yaml`, `Procfile`, schemas comunes): bundlear esas ediciones en **UN solo subagente** con justificación cruzada en el commit message ("agrupado por shared infra: A4 + A5 + A7 tocan capabilities.yaml"). Los demás subagentes referencian el resultado pero NO lo tocan.
 - SIEMPRE scheduling continuo: cuando un subagente termina, evaluar inmediatamente si hay subtarea pendiente y lanzarla — NO esperar a que el resto del lote termine. Mantener el slot ocupado mientras haya trabajo en cola.
 - Subtareas dependientes (la salida de A alimenta B) van secuenciales en el agente principal, no en subagentes.
-- NO crear sub-subagentes (Claude Code no los soporta) — máximo 1 nivel de delegación.
+- NO crear sub-subagentes (Claude Code no los soporta) — máximo 1 nivel de **profundidad** de delegación. El cap es de profundidad, NO de cantidad horizontal.
 
 ### Iteración hasta convergencia
 - Si el goal pide iterar hasta que algo pase ("hasta que los tests pasen", "hasta que el lint quede limpio"), usar `/loop` con auto-pacing en vez de un único turn largo.
