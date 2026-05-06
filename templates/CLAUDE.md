@@ -37,8 +37,11 @@
 
 ### Cuándo abortar y pedir ayuda
 - Si después de 2 intentos un test sigue fallando por la misma razón.
-- Si el cambio requiere tocar algo fuera del scope fence.
+- Si el cambio requiere tocar un archivo en la lista **NO TOCAR** del scope fence (los protegidos explícitamente).
 - Si descubres trabajo en progreso (ramas, archivos sin commitear) que no esperabas — investigar antes de sobrescribir.
+
+### Expansión de scope mid-run (autorizada, sin pausa)
+La lista "TOCAR" del scope fence es **expectativa razonable, no jaula**. Si necesitas tocar un archivo no listado pero tampoco en NO TOCAR para cumplir el objetivo, expande sin pausa: declara la razón en el commit message (`chore(scope+): ...`) y sigue. El objetivo manda. NO arregles bugs no relacionados encontrados de paso — esos van a `docs/pendientes/` o equivalente.
 
 ## Convenciones del repo
 {{Idioma de docs/comentarios, formato de commit messages, nombres de ramas, etc.}}

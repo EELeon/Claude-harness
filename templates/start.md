@@ -49,9 +49,16 @@ Espera mi `ok`/`go` antes de editar código.
 ### Cuándo parar y reportar (rescates, no pausas defensivas)
 Por defecto NO pares. Corre hasta crear el PR. Solo para si:
 - Test falla 2+ veces por la misma razón (anti-loop).
-- Scope cambió respecto al inicio — NO expandir silenciosamente.
+- Necesitas tocar un archivo en la lista **NO TOCAR** del scope fence — pide confirmación antes.
 - Trabajo en progreso inesperado (ramas, archivos sin commitear, worktrees activos) que no esperabas — investiga antes de sobrescribir.
 - El goal **explícitamente** pide pausa en cierto punto (sección "Riesgos — PARAR antes" del archivo).
+
+### Expansión de scope mid-run (autorizada, sin pausa)
+El scope fence "TOCAR" del goal es **expectativa razonable, no jaula**. Si descubres mid-sprint que cumplir el objetivo requiere tocar un archivo no listado pero TAMPOCO en NO TOCAR (ej. el goal listó `mando/components/wizard/` y necesitas tocar `mando/lib/api.ts` para conectar wizard al endpoint), **expande sin parar**:
+- El cambio debe ser **necesario para el objetivo**, no opcional ni cosmético.
+- Declaras la expansión en el commit message: `chore(scope+): tocar <X> no listado — razón <Y>`.
+- Si encuentras un bug **no relacionado** al objetivo de paso (typo en otro módulo, lint en código fuera de scope, etc.), NO lo arregles aquí — levanta nota en `docs/pendientes/` o equivalente del repo y sigue. Los fixes tangenciales van a sprints futuros.
+- El objetivo manda. Si el scope fence original era incompleto, lo correcto es expandir y dejar evidencia, no atorarse pidiendo permiso.
 
 ## Cierre del goal completo
 Cuando todos los criterios de aceptación se cumplan:
