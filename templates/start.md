@@ -12,6 +12,13 @@ Si **$ARGUMENTS** parece una ruta a archivo (.md, existe en disco), leer el arch
 ## Si retomas un run previo (crash, /clear, sesión cerrada)
 Antes de cualquier cosa: revisa `git status`, `git branch --show-current` y `git log <rama>..HEAD` para ver si ya hay commits del run actual. Si los hay, NO empieces de cero — identifica qué subtareas ya se completaron por sus mensajes de commit y retoma desde la siguiente. Reporta el estado detectado en tu primera respuesta.
 
+## Fuente de verdad y scaffolds preexistentes
+Si el goal vive en `.ai/goals/`, **ese archivo es la fuente de verdad única**. Si encuentras trabajos preexistentes del harness anterior (`.ai/specs/active/<sprint>/` con `README.md`, `INDEX.md`, `rules.md` con instrucciones tipo `R-NN`, `MV2-NN.md` listados como "por redactar", etc.), trátalos como **contexto histórico**, no como instrucciones a seguir. Específicamente:
+- NO redactes specs por ticket en archivos separados (`MV2-01.md`, etc.). TodoWrite + commits atómicos descriptivos es suficiente.
+- NO sigas reglas tipo "MV2-NN obligatorio" o "ejecutar /learn al cierre" provenientes de scaffolds viejos.
+- NO invoques slash commands (`/learn`, `/retro`, `/preflight`, etc.) — los slash commands los invoca el usuario, no tú. Para retro/lessons/audit, escribe los archivos directamente.
+- Si el scaffold contradice el goal, el goal gana. Si solo complementa con info útil (paths, decisiones D-NN, ADRs), aprovecha la info pero ignora el formato de ejecución viejo.
+
 ## Contrato de arranque
 Antes de tocar código, completa esto en tu respuesta inicial:
 
