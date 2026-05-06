@@ -2,14 +2,15 @@
 
 Harness mínimo para ejecutar trabajo autónomo en Claude Code aprovechando lo que la plataforma ya hace nativo (TodoWrite, `Agent` + worktrees, `/loop`, git, auto-memory).
 
-**Filosofía.** Un solo slash command (`/start <goal>`) cubre todo: ticket atómico (3h), sprint largo (días), retoma tras crash. Sin comandos extras, sin sintaxis estructurada, sin ledger. El estado vive en git (commits descriptivos en una rama del sprint) y en TodoWrite. La iteración prolongada usa `/loop` con auto-pacing.
+**Filosofía.** Dos slash commands. `/start <goal>` cubre toda la ejecución: ticket atómico (3h), sprint largo (días), retoma tras crash. `/draft-goal <descripción rough>` produce un goal estructurado en archivo .md a partir de una descripción suelta — útil para sprints grandes que se invocan después con `/start <ruta>`. Sin sintaxis estructurada, sin ledger. El estado vive en git (commits descriptivos en una rama del sprint) y en TodoWrite. La iteración prolongada usa `/loop` con auto-pacing.
 
 ## Qué hay aquí
 
 ```
 templates/
 ├── CLAUDE.md       # Reglas de cómo trabajar (paralelizar, commitear, abortar)
-├── start.md        # Slash command /start <goal>
+├── start.md        # Slash command /start <goal | ruta>
+├── draft-goal.md   # Slash command /draft-goal <rough> → archivo de goal
 └── settings.json   # Permisos pre-aprobados (git rollback sin atorarse)
 ```
 
@@ -27,23 +28,44 @@ Pocos pasos manuales (es para uso personal en pocos repos — si fueran muchos, 
    - Sin cambios. Es genérico.
    - Crea el directorio `.claude/commands/` si no existe.
 
-3. **Copia `templates/settings.json` → `<repo>/.claude/settings.json`**
+3. **Copia `templates/draft-goal.md` → `<repo>/.claude/commands/draft-goal.md`**
+   - Sin cambios. Es genérico.
+
+4. **Copia `templates/settings.json` → `<repo>/.claude/settings.json`**
    - Si ya existe, fusiona los permisos en `permissions.allow`.
    - Añade los comandos del stack del repo (ej: `Bash(npm test:*)`, `Bash(pytest:*)`, `Bash(cargo test:*)`).
 
 ## Cómo se usa
 
-En el repo target, dentro de Claude Code:
+### Caso simple — ticket atómico
 
 ```
 /start <goal>
 ```
 
-El goal puede ser un ticket pequeño ("agregar índice X a tabla Y") o un sprint completo enumerado ("Sprint Z — Mando v2: 1) reescribir handler apertura..., 2) construir wizard UI..., 3) ..., 30) borrar skills viejos. Pausa para mi confirmación antes de los pasos de borrado big-bang"). El contrato fuerza descomposición + scope fence + criterios + modo, y luego ejecuto.
+Por ejemplo: `/start Agregar índice compuesto en money_entries (engagement_id, tipo_movimiento, fecha)`. Yo respondo con el contrato (criterios, scope, plan, modo), espero `ok`, ejecuto, abro PR, espero CI verde.
 
-**Sprint largo:** un sola rama, commits atómicos por subtarea, **un PR al final** del sprint completo (no PR por ticket interno). Para >2h de ejecución continua, uso `/loop` con auto-pacing.
+### Caso complejo — sprint largo desde descripción rough
 
-**Tras crash o `/clear`:** vuelves a invocar `/start` con el mismo goal; leo `git log` de la rama actual para detectar qué se completó y retomo desde la siguiente subtarea.
+Dos pasos en sesiones distintas:
+
+**Sesión 1** (chat normal): pegas la descripción rough del sprint y la conviertes a goal estructurado:
+
+```
+/draft-goal <pegas tu descripción de sprint Z, rough, con scope general, ADRs base, etc.>
+```
+
+Yo leo CLAUDE.md del repo, leo los ADRs si existen, te pregunto lo ambiguo, escribo `.ai/sprint-z-goal.md` con criterios + scope fence + riesgos + lista de tickets enumerada + paralelización.
+
+**Sesión 2** (idealmente con `/clear`):
+
+```
+/start .ai/sprint-z-goal.md
+```
+
+Yo leo el archivo, produzco el contrato basado en él, ejecuto: una rama, commits atómicos por subtarea, paralelización con worktrees donde aplique, paro en cada `PARAR antes` declarado en el goal, un solo PR al final.
+
+**Tras crash o `/clear`:** vuelves a invocar `/start <mismo goal o ruta>`. Leo `git log` de la rama actual para detectar qué se completó y retomo desde la siguiente subtarea.
 
 ## Lo que cambió vs v4.7
 

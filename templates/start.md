@@ -7,6 +7,8 @@ argument-hint: <goal>
 
 Goal: **$ARGUMENTS**
 
+Si **$ARGUMENTS** parece una ruta a archivo (.md, existe en disco), leer el archivo y tratar su contenido como el goal completo. Si no, tratar **$ARGUMENTS** como goal inline.
+
 ## Si retomas un run previo (crash, /clear, sesión cerrada)
 Antes de cualquier cosa: revisa `git status`, `git branch --show-current` y `git log <rama>..HEAD` para ver si ya hay commits del run actual. Si los hay, NO empieces de cero — identifica qué subtareas ya se completaron por sus mensajes de commit y retoma desde la siguiente. Reporta el estado detectado en tu primera respuesta.
 
