@@ -53,7 +53,8 @@ Tu tarea: convertir esta descripción en un archivo markdown con un goal estruct
 3. **Pregunta antes de escribir** si hay ambigüedad clave: modo de ejecución, riesgos no obvios, criterios de aceptación faltantes, decisiones pendientes sin resolver. NO inventes criterios silenciosamente.
 4. **Propón nombre de archivo**: `.ai/goals/<sprint-id>.md` o `.ai/goals/<ticket-id>.md`. Crea el directorio `.ai/goals/` si no existe.
 5. **Escribe el archivo** con la estructura de arriba.
-6. **Reporta** al usuario: ruta del archivo + recordatorio de invocar `/start <ruta>` en sesión nueva (idealmente con `/clear`).
+6. **Commit automático** del goal: `git add <ruta> && git commit -m "docs(goal): draft <id>"`. Stagea solo el archivo del goal (no `-A`), para no arrastrar cambios no relacionados cuando se ejecuta en main. Si el commit falla (hook, working tree sucio en un path conflictivo), reportarlo en vez de forzar.
+7. **Reporta** al usuario: ruta del archivo, hash del commit, y recordatorio de invocar `/start <ruta>` en sesión nueva (idealmente con `/clear`).
 
 ## Reglas
 - NUNCA ejecutar el goal — solo escribir el archivo.
